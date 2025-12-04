@@ -1,9 +1,9 @@
-# Glacier
+# Flying Dutchman
 
 **macOS Tahoe-only, Apple Silicon-only containerization management.**
 
-Glacier is a local-first development tool providing first-class integration with Apple's native
-Containerization framework. Built entirely in Swift 6.2, Glacier delivers an "it just works"
+Flying Dutchman is a local-first development tool providing first-class integration with Apple's native
+Containerization framework. Built entirely in Swift 6.2, Flying Dutchman delivers an "it just works"
 experience inspired by Orbstack—fast, intuitive, and native to macOS.
 
 ## Vision

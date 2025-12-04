@@ -105,6 +105,40 @@ A developer views real-time logs and resource metrics for running containers to 
 
 ---
 
+### User Story 7 - Docker API Compatibility Shim (Priority: P2)
+
+Existing Docker/Compose tooling should work against Flying Dutchman without a heavy Docker VM by exposing a subset of the Docker Engine HTTP API backed by Apple Containerization.
+
+**Why this priority**: Keeps developer muscle memory and CI scripts working, reducing adoption friction while showcasing the Apple Containers runtime.
+
+**Independent Test**: Point `DOCKER_HOST=unix:///var/run/flyingdutchman-docker.sock` and verify `docker ps`, `docker run` (basic), `docker pull`, and `docker logs` operate through Flying Dutchman with clear messaging for unsupported features.
+
+**Acceptance Scenarios**:
+
+1. **Given** docker CLI is installed and DOCKER_HOST points to Flying Dutchman, **When** the user runs `docker ps`, **Then** container list reflects Apple Containerization-backed instances
+2. **Given** the user runs a supported Docker API call (create/start/logs), **When** the operation completes, **Then** results match the Flying Dutchman engine state with sub-second latency
+3. **Given** the user invokes an unsupported Docker API feature, **When** the request is processed, **Then** Flying Dutchman returns a clear "unsupported" error with suggested alternatives or Podman fallback
+4. **Given** the shim is running, **When** it cannot reach FlyingDutchmanEngine, **Then** it surfaces a clear connectivity error without hanging docker CLI
+
+---
+
+### User Story 8 - Flying Dutchman Dev Cluster (Priority: P3)
+
+Developers can spin up a lightweight K3s-based dev cluster backed by Apple Containerization or a micro-VM and view apps as high-level units.
+
+**Why this priority**: Extends container workflows into orchestration with minimal setup, matching the PRD vision for local clusters.
+
+**Independent Test**: Create a dev cluster, deploy a sample app, and observe status/logs via SwiftkubeClient-powered views without leaving Flying Dutchman.
+
+**Acceptance Scenarios**:
+
+1. **Given** Flying Dutchman is installed, **When** the user creates a dev cluster, **Then** K3s boots using Apple Containerization or a dedicated micro-VM and exposes kubeconfig
+2. **Given** a dev cluster is running, **When** the user deploys a sample app, **Then** app-level cards show pods/services with live status and logs
+3. **Given** cluster health degrades, **When** the user views the cluster, **Then** Flying Dutchman surfaces diagnostics and remediation guidance
+4. **Given** the user requests teardown, **When** the cluster shuts down, **Then** resources (containers/VMs/networks) are cleaned up and state persisted
+
+---
+
 ### Edge Cases
 
 - What happens when Apple Containerization framework is unavailable and system falls back to `container` CLI?
@@ -115,6 +149,9 @@ A developer views real-time logs and resource metrics for running containers to 
 - How does the system handle containers created outside Flying Dutchman (via CLI or other tools)?
 - What occurs when user attempts operations on containers during macOS system sleep/wake cycle?
 - How does the app respond when disk space is insufficient for image pulls or container storage?
+- How does the Docker API shim respond to unsupported API semantics (e.g., custom volume drivers, privileged containers)?
+- What happens when the shim socket is present but FlyingDutchmanEngine is unreachable?
+- How does the dev cluster recover from partial K3s startup or node/container drift?
 
 ## Requirements *(mandatory)*
 
@@ -145,6 +182,14 @@ A developer views real-time logs and resource metrics for running containers to 
 - **FR-023**: System MUST handle graceful degradation when engine daemon is unreachable
 - **FR-024**: System MUST persist UI state including window layout, recently accessed containers, and user preferences
 - **FR-025**: System MUST provide internal API endpoint for inter-process communication between CLI and engine daemon
+- **FR-026**: System MUST expose a Docker Engine HTTP subset over a Unix socket backed by Apple Containerization, returning clear errors for unsupported semantics
+- **FR-027**: System MUST offer optional Podman/VM fallback for unsupported Docker features with explicit opt-in
+- **FR-028**: System MUST allow creation and teardown of a local dev cluster (K3s-based) using Apple Containerization or a micro-VM
+- **FR-029**: System MUST integrate with Kubernetes via SwiftkubeClient to present app-centric views of deployments, services, pods, and logs
+- **FR-030**: System MUST publish kubeconfig for the dev cluster and manage lifecycle (start/stop/recover) via FlyingDutchmanEngine
+- **FR-031**: System MUST support promoting a container workload into a dedicated VM using Virtualization.framework while retaining volumes
+- **FR-032**: System MUST define pipelines (YAML or Swift DSL) for build/test/push/deploy steps executed by FlyingDutchmanEngine
+- **FR-033**: System SHOULD integrate DevOps/AI agents (e.g., Stakpak via ACP, Swift-native assistant) for diagnostics and workflow generation
 
 ### Key Entities
 
@@ -171,3 +216,7 @@ A developer views real-time logs and resource metrics for running containers to 
 - **SC-010**: Application UI fully conforms to macOS Tahoe HIG with proper Liquid Glass integration verified by visual inspection
 - **SC-011**: All core container operations (list, start, stop, pull image) function identically via GUI and CLI interfaces
 - **SC-012**: System correctly handles network interruptions during image pulls with automatic retry or clear failure messaging 100% of the time
+- **SC-013**: Docker API shim returns responses for supported calls within 1 second and emits explicit, actionable errors for unsupported semantics
+- **SC-014**: Dev cluster creation completes in under 2 minutes with kubeconfig available and validated by `kubectl get nodes`
+- **SC-015**: App-centric Kubernetes views reflect pod/deployment status changes within 1 second of receipt from SwiftkubeClient
+- **SC-016**: Defined pipelines execute end-to-end with per-step status and failure reasons surfaced to the user on first attempt

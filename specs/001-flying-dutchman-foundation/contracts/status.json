@@ -1,0 +1,19 @@
+{
+  "endpoint": "/status",
+  "method": "GET",
+  "description": "Engine runtime status and readiness",
+  "response": {
+    "200": {
+      "engine": "running",
+      "uptimeSeconds": 0,
+      "workers": {
+        "http": "ready",
+        "xpc": "ready"
+      }
+    },
+    "503": {
+      "engine": "starting",
+      "message": "not ready"
+    }
+  }
+}

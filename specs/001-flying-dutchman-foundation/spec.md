@@ -111,55 +111,57 @@ A developer wants quick access to common actions without navigating menus or too
 - **FR-014**: System MUST integrate Apple Containerization framework as the primary container runtime
 - **FR-015**: System MUST provide fallback integration with `container` CLI for interoperability
 - **FR-016**: System MUST support future Docker API compatibility layer (architecture only, not implemented)
+- **FR-017**: System MUST expose an internal control surface via XPC for privileged operations and HTTP (SwiftNIO/Hummingbird) for tool integration
+- **FR-018**: System MUST run the engine as a launchd-managed daemon and use swift-service-lifecycle for graceful start/stop
 
 **Persistence**
 
-- **FR-017**: System MUST persist engine metadata (containers, images, stacks, volumes, networks) using SQLite via GRDB
-- **FR-018**: System MUST persist UI-specific state (window layout, preferences, recents) using SwiftData
-- **FR-019**: System MUST provide database schema migration capabilities
-- **FR-020**: System MUST handle database corruption gracefully with user notification and recovery options
+- **FR-019**: System MUST persist engine metadata (containers, images, stacks, volumes, networks) using SQLite via GRDB
+- **FR-020**: System MUST persist UI-specific state (window layout, preferences, recents) using SwiftData
+- **FR-021**: System MUST provide database schema migration capabilities
+- **FR-022**: System MUST handle database corruption gracefully with user notification and recovery options
 
 **Networking & APIs**
 
-- **FR-021**: System MUST provide an internal HTTP API for communication between CLI and GUI
-- **FR-022**: System MUST use SwiftNIO as networking foundation
-- **FR-023**: System MUST use Hummingbird for lightweight HTTP server functionality
-- **FR-024**: System MUST use AsyncHTTPClient for outbound HTTP connections to registries
+- **FR-023**: System MUST provide an internal HTTP API for communication between CLI and GUI
+- **FR-024**: System MUST use SwiftNIO as networking foundation
+- **FR-025**: System MUST use Hummingbird for lightweight HTTP server functionality
+- **FR-026**: System MUST use AsyncHTTPClient for outbound HTTP connections to registries
 
 **Command-Line Interface**
 
-- **FR-025**: System MUST provide a CLI executable with `version` command displaying current version
-- **FR-026**: System MUST provide a CLI `doctor` command showing system health diagnostics
-- **FR-027**: System MUST provide a CLI `containers list` command (initial stub implementation acceptable)
-- **FR-028**: System MUST provide a CLI `containers run` command (initial stub implementation acceptable)
-- **FR-029**: System MUST use swift-argument-parser for CLI structure and command parsing
-- **FR-030**: System MUST communicate with the engine via internal API or local HTTP
+- **FR-027**: System MUST provide a CLI executable with `version` command displaying current version
+- **FR-028**: System MUST provide a CLI `doctor` command showing system health diagnostics
+- **FR-029**: System MUST provide a CLI `containers list` command (initial stub implementation acceptable)
+- **FR-030**: System MUST provide a CLI `containers run` command (initial stub implementation acceptable)
+- **FR-031**: System MUST use swift-argument-parser for CLI structure and command parsing
+- **FR-032**: System MUST communicate with the engine via internal API or local HTTP
 
 **Platform & Constraints**
 
-- **FR-031**: System MUST run exclusively on macOS Tahoe (macOS 26 or later)
-- **FR-032**: System MUST run exclusively on Apple Silicon processors
-- **FR-033**: System MUST refuse to launch on unsupported platforms with clear error messaging
-- **FR-034**: System MUST verify required system frameworks are available at launch
+- **FR-033**: System MUST run exclusively on macOS Tahoe (macOS 26 or later)
+- **FR-034**: System MUST run exclusively on Apple Silicon processors
+- **FR-035**: System MUST refuse to launch on unsupported platforms with clear error messaging
+- **FR-036**: System MUST verify required system frameworks are available at launch
 
 **Build & Development**
 
-- **FR-035**: System MUST provide SwiftPM package manifest with swift-tools-version 6.2
-- **FR-036**: System MUST provide Tuist configuration for Xcode project generation
-- **FR-037**: System MUST declare all external dependencies with specific version constraints
-- **FR-038**: System MUST compile all targets without errors in initial stub implementation
+- **FR-037**: System MUST provide SwiftPM package manifest with swift-tools-version 6.2
+- **FR-038**: System MUST provide Tuist configuration for Xcode project generation
+- **FR-039**: System MUST declare all external dependencies with specific version constraints
+- **FR-040**: System MUST compile all targets without errors in initial stub implementation
 
 **Logging & Observability**
 
-- **FR-039**: System MUST use swift-log for structured logging across all modules
-- **FR-040**: System MUST log engine lifecycle events (startup, shutdown, errors)
-- **FR-041**: System MUST provide diagnostic logs for troubleshooting
+- **FR-041**: System MUST use swift-log for structured logging across all modules
+- **FR-042**: System MUST log engine lifecycle events (startup, shutdown, errors)
+- **FR-043**: System MUST provide diagnostic logs for troubleshooting
 
 **Service Lifecycle**
 
-- **FR-042**: System MUST use swift-service-lifecycle for engine daemon management
-- **FR-043**: System MUST handle graceful shutdown of engine services
-- **FR-044**: System MUST manage service startup ordering and dependencies
+- **FR-044**: System MUST use swift-service-lifecycle for engine daemon management
+- **FR-045**: System MUST handle graceful shutdown of engine services
+- **FR-046**: System MUST manage service startup ordering and dependencies
 
 ### Key Entities
 
