@@ -27,7 +27,7 @@ struct Doctor: AsyncParsableCommand {
             let health = try await EngineClient.fetchHealth()
             print("Engine: \(health.status)")
             if let detail = try? await EngineClient.fetchStatus() {
-                print("Workers: \(detail.workers)")
+                print("Uptime: \(detail.uptimeSeconds)s, Workers: \(detail.workers)")
             }
         } catch {
             print("Engine unreachable. Start FlyingDutchmanEngine. Error: \(error.localizedDescription)")

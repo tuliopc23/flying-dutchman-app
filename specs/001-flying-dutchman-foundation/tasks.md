@@ -5,7 +5,7 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 [P] Initialize Tuist/SwiftPM workspace with modules `FlyingDutchmanApp`, `FlyingDutchmanEngine`, `FlyingDutchmanCLI`, `FlyingDutchmanPersistence`, `FlyingDutchmanNetworking` in `Package.swift`
+- [x] T001 [P] Initialize Tuist/SwiftPM workspace with modules `FlyingDutchmanApp`, `FlyingDutchmanEngine`, `FlyingDutchmanCLI`, `FlyingDutchmanPersistence`, `FlyingDutchmanNetworking` in `Package.swift`
 - [ ] T002 [P] Configure tooling (SwiftLint, SwiftFormat, swift-log) and CI lint target
 - [ ] T003 Create `Tuist/Project.swift` and workspace targets mirroring the SPM modules
 
@@ -18,15 +18,15 @@
 
 ## Phase 3: User Story 1 – Launch Application and View Status (P1)
 
-- [ ] T020 Build SwiftUI Tahoe window with Liquid Glass surfaces and SF Symbols 7 status indicator (`Sources/FlyingDutchmanApp/MainWindow.swift`)
-- [ ] T021 Implement engine status fetch via networking layer and bind to UI (running/stopped states)
+- [x] T020 Build SwiftUI Tahoe window with Liquid Glass surfaces and SF Symbols 7 status indicator (`Sources/FlyingDutchmanApp/Content/MainWindow.swift`)
+- [x] T021 Implement engine status fetch via networking layer and bind to UI (running/stopped states)
 - [ ] T022 Support appearance changes (light/dark) and validate glass materials adapt correctly
 
 ## Phase 4: User Story 2 – Browse Container Projects (P2)
 
-- [ ] T030 Create sidebar view model with mock project data backed by persistence (`Sources/FlyingDutchmanApp/Sidebar/ProjectListViewModel.swift`)
-- [ ] T031 Render sidebar list with status chips and empty state (`Sources/FlyingDutchmanApp/Sidebar/ProjectListView.swift`)
-- [ ] T032 Implement selection flow to update main content placeholder (`Sources/FlyingDutchmanApp/Content/ProjectDetailView.swift`)
+- [x] T030 Create sidebar view model with mock project data backed by persistence (`Sources/FlyingDutchmanApp/Sidebar/SidebarViewModel.swift`)
+- [x] T031 Render sidebar list with status chips and empty state (`Sources/FlyingDutchmanApp/Sidebar/SidebarView.swift`, `Sources/FlyingDutchmanApp/Sidebar/EmptyStateView.swift`)
+- [x] T032 Implement selection flow to update main content placeholder (`Sources/FlyingDutchmanApp/Content/ProjectDetailView.swift`)
 
 ## Phase 5: User Story 3 – Execute Basic CLI Commands (P2)
 

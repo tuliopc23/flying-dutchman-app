@@ -80,7 +80,7 @@ Tests/
 └── ContractTests/            # Docker shim + HTTP contract tests
 ```
 
-**Structure Decision**: SPM + Tuist workspace with module-per-domain (App, Engine, Containers, Persistence, Networking, Kubernetes, AI, CLI). Launchd plist and socket paths live in EngineCore; shim socket under `/var/run/flyingdutchman-docker.sock`.
+**Structure Decision**: SPM + Tuist workspace with module-per-domain (App, Engine, Containers, Persistence, Networking, Kubernetes, AI, CLI). Launchd plist and socket paths live in Engine; shim socket under `/var/run/flyingdutchman-docker.sock`.
 
 ## Complexity Tracking
 
