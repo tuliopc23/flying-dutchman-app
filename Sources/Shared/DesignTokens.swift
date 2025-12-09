@@ -30,4 +30,20 @@ public enum DesignTokens {
     public static func glassStroke(for colorScheme: ColorScheme) -> Color {
         colorScheme == .dark ? .white.opacity(0.15) : .black.opacity(0.08)
     }
+
+    public static func containerStatusSymbol(for status: ContainerSummary.Status) -> String {
+        switch status {
+        case .running: return "play.circle.fill"
+        case .stopped: return "stop.circle.fill"
+        case .paused: return "pause.circle.fill"
+        }
+    }
+
+    public static func containerStatusColor(for status: ContainerSummary.Status) -> Color {
+        switch status {
+        case .running: return .green
+        case .stopped: return .gray
+        case .paused: return .orange
+        }
+    }
 }

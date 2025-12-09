@@ -16,7 +16,7 @@ struct FlyingDutchmanEngineMain {
             startup: {
                 logger.info("Starting FlyingDutchmanEngine (stub)")
                 DockerShimServer.startStub(logger: logger)
-                try await EngineServer.start(runtime: runtime)
+                try await EngineServer.start(runtime: runtime, store: containerStore)
                 EngineXPCListener.start()
             },
             shutdown: { _ in

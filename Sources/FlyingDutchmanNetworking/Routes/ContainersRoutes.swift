@@ -5,6 +5,7 @@ import Shared
 
 struct ContainersRoutes {
     let runtime: ContainerRuntime
+    let store: AnyContainerStore?
 
     func register(on router: HBRouter) {
         router.get("/containers") { _ in
@@ -16,6 +17,7 @@ struct ContainersRoutes {
             guard let updated = runtime.start(containerID: id) else {
                 throw HBHTTPError(.notFound)
             }
+            persist()
             return updated
         }
 
@@ -24,8 +26,14 @@ struct ContainersRoutes {
             guard let updated = runtime.stop(containerID: id) else {
                 throw HBHTTPError(.notFound)
             }
+            persist()
             return updated
         }
+    }
+
+    private func persist() {
+        guard let store else { return }
+        runtime.export(to: store)
     }
 
     private func containerID(from request: HBRequest) throws -> UUID {

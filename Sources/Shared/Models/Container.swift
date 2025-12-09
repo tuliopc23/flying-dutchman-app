@@ -12,6 +12,10 @@ public struct ContainerSummary: Codable, Identifiable, Hashable {
         case running
         case stopped
         case paused
+
+        public var displayName: String {
+            rawValue.capitalized
+        }
     }
 
     public init(

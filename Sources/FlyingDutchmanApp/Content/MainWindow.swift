@@ -4,6 +4,7 @@ import SwiftUI
 struct MainWindow: View {
     @Bindable var statusViewModel: StatusViewModel
     @Bindable var sidebarViewModel: SidebarViewModel
+    @Bindable var containersViewModel: ContainerListViewModel
     @Bindable var commandRegistry: CommandRegistry
     @Binding var showPalette: Bool
 
@@ -42,6 +43,7 @@ struct MainWindow: View {
                 }
 
                 ProjectDetailView(project: sidebarViewModel.selected)
+                ContainerListView(viewModel: containersViewModel)
             }
             .padding(24)
             .sheet(isPresented: $showPalette) {

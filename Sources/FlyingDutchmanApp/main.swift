@@ -9,12 +9,20 @@ struct FlyingDutchmanApp: App {
     @State private var commandRegistry: CommandRegistry = .init()
     @State private var showPalette: Bool = false
     @State private var appearanceOverride: ColorScheme?
+    @State private var containersViewModel: ContainerListViewModel = .init()
 
     var body: some Scene {
         WindowGroup {
-            MainWindow(statusViewModel: engineStatus, sidebarViewModel: sidebarModel, commandRegistry: commandRegistry, showPalette: $showPalette)
+            MainWindow(
+                statusViewModel: engineStatus,
+                sidebarViewModel: sidebarModel,
+                containersViewModel: containersViewModel,
+                commandRegistry: commandRegistry,
+                showPalette: $showPalette
+            )
                 .frame(minWidth: 960, minHeight: 600)
                 .task { await engineStatus.refresh() }
+                .task { await containersViewModel.load() }
                 .onAppear { seedCommands() }
                 .preferredColorScheme(appearanceOverride)
         }
@@ -33,6 +41,9 @@ struct FlyingDutchmanApp: App {
             },
             CommandAction(title: "Focus Sidebar", subtitle: "Reveal projects list", icon: "sidebar.leading") {
                 await MainActor.run { sidebarModel.requestFocus() }
+            },
+            CommandAction(title: "Refresh Containers", subtitle: "Pull latest container list", icon: "shippingbox.circle") {
+                await containersViewModel.load()
             },
             CommandAction(title: "Switch to Light Appearance", subtitle: "Overrides system setting", icon: "sun.max") {
                 await MainActor.run { appearanceOverride = .light }

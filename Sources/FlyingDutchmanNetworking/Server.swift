@@ -5,7 +5,7 @@ import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
 
 public struct EngineServer {
-    public static func makeRouter(runtime: ContainerRuntime = .shared) -> HBRouter {
+    public static func makeRouter(runtime: ContainerRuntime = .shared, store: AnyContainerStore? = nil) -> HBRouter {
         let router = HBRouter()
         router.get("/health") { _ in
             return [
@@ -23,12 +23,12 @@ public struct EngineServer {
                 "workers": state.workers
             ]
         }
-        ContainersRoutes(runtime: runtime).register(on: router)
+        ContainersRoutes(runtime: runtime, store: store).register(on: router)
         return router
     }
 
-    public static func start(host: String = AppConfig.Engine.host, port: Int = AppConfig.Engine.port, runtime: ContainerRuntime = .shared) async throws {
-        let app = HBApplication(router: makeRouter(runtime: runtime))
+    public static func start(host: String = AppConfig.Engine.host, port: Int = AppConfig.Engine.port, runtime: ContainerRuntime = .shared, store: AnyContainerStore? = nil) async throws {
+        let app = HBApplication(router: makeRouter(runtime: runtime, store: store))
         EngineRuntime.markStarted()
         try app.start(address: .hostname(host, port: port))
         Loggers.make(category: "flyingdutchman.networking").info("HTTP server started on \(host):\(port)")
