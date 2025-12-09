@@ -55,12 +55,20 @@ public final class DatabaseContainer {
                 t.column("name", .text).notNull()
                 t.column("description", .text)
                 t.column("createdAt", .datetime).notNull()
+                t.column("containerNames", .text).notNull().defaults(to: "[]")
             }
 
             try db.create(table: "containerStacks") { t in
                 t.column("containerId", .text).notNull().indexed().references("containers", onDelete: .cascade)
                 t.column("stackId", .text).notNull().indexed().references("stacks", onDelete: .cascade)
                 t.primaryKey(["containerId", "stackId"])
+            }
+        }
+        migrator.registerMigration("v2_stack_container_names") { db in
+            if try db.tableExists("stacks"), try !db.columnExists("containerNames", in: "stacks") {
+                try db.alter(table: "stacks") { t in
+                    t.add(column: "containerNames", .text).notNull().defaults(to: "[]")
+                }
             }
         }
         return migrator

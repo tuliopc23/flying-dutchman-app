@@ -10,7 +10,7 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
         commandName: "flyingdutchman",
         abstract: "Flying Dutchman CLI (foundation stub)",
         version: AppConfig.version,
-        subcommands: [Version.self, Doctor.self, Containers.self]
+        subcommands: [Version.self, Doctor.self, Containers.self, Images.self, Stacks.self]
     )
 }
 
@@ -58,7 +58,7 @@ struct Doctor: AsyncParsableCommand {
 struct Containers: ParsableCommand {
     static var configuration = CommandConfiguration(
         abstract: "Container operations",
-        subcommands: [List.self, Start.self, Stop.self],
+        subcommands: [List.self, Start.self, Stop.self, Restart.self],
         defaultSubcommand: List.self
     )
 }
@@ -140,6 +140,30 @@ extension Containers {
             }
         }
     }
+
+    struct Restart: AsyncParsableCommand {
+        static var configuration = CommandConfiguration(abstract: "Restart a container by id or name")
+
+        @Argument(help: "Container UUID or name")
+        var identifier: String
+
+        func run() async throws {
+            let data = await ContainerData.fetch()
+            guard let target = data.resolve(identifier: identifier) else {
+                throw ValidationError("Container '\(identifier)' not found (available: \(data.containers.map { $0.name }.joined(separator: \", \")))")
+            }
+
+            do {
+                let updated = try await EngineClient.restartContainer(id: target.id)
+                CLIOutput.line("Restarted", "\(updated.name) (\(updated.id.uuidString.prefix(8)))")
+            } catch {
+                if !data.engineReachable {
+                    CLIOutput.warn("Engine", "Unreachable. Showing mock data.")
+                }
+                CLIOutput.warn("Restart", "Failed to restart \(target.name): \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
 private struct ContainerData {
@@ -161,6 +185,76 @@ private struct ContainerData {
         } catch {
             let warning = "Unreachable. \(error.localizedDescription)"
             return ContainerData(containers: ContainerFixtures.sampleContainers, engineReachable: false, warning: warning)
+        }
+    }
+}
+
+struct Images: AsyncParsableCommand {
+    static var configuration = CommandConfiguration(
+        abstract: "Image operations",
+        subcommands: [List.self],
+        defaultSubcommand: List.self
+    )
+
+    struct List: AsyncParsableCommand {
+        static var configuration = CommandConfiguration(abstract: "List images (stubbed if engine offline)")
+        func run() async throws {
+            do {
+                let images = try await EngineClient.listImages()
+                CLIOutput.section("Images")
+                CLIOutput.table(headers: ["Name", "Tag", "Digest", "Size"], rows: images.map { img in
+                    [
+                        img.name,
+                        img.tag,
+                        img.digest ?? "—",
+                        img.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—"
+                    ]
+                })
+            } catch {
+                CLIOutput.warn("Images", "Unreachable. Showing mock data.")
+                CLIOutput.table(headers: ["Name", "Tag", "Digest", "Size"], rows: ContainerFixtures.sampleImages.map { img in
+                    [
+                        img.name,
+                        img.tag,
+                        img.digest ?? "—",
+                        img.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—"
+                    ]
+                })
+            }
+        }
+    }
+}
+
+struct Stacks: AsyncParsableCommand {
+    static var configuration = CommandConfiguration(
+        abstract: "Stack operations",
+        subcommands: [List.self],
+        defaultSubcommand: List.self
+    )
+
+    struct List: AsyncParsableCommand {
+        static var configuration = CommandConfiguration(abstract: "List stacks (stubbed if engine offline)")
+        func run() async throws {
+            do {
+                let stacks = try await EngineClient.listStacks()
+                CLIOutput.section("Stacks")
+                CLIOutput.table(headers: ["Name", "Description", "Containers"], rows: stacks.map { stack in
+                    [
+                        stack.name,
+                        stack.description ?? "—",
+                        stack.containerNames.isEmpty ? "—" : stack.containerNames.joined(separator: ", ")
+                    ]
+                })
+            } catch {
+                CLIOutput.warn("Stacks", "Unreachable. Showing mock data.")
+                CLIOutput.table(headers: ["Name", "Description", "Containers"], rows: ContainerFixtures.sampleStacks.map { stack in
+                    [
+                        stack.name,
+                        stack.description ?? "—",
+                        stack.containerNames.isEmpty ? "—" : stack.containerNames.joined(separator: ", ")
+                    ]
+                })
+            }
         }
     }
 }

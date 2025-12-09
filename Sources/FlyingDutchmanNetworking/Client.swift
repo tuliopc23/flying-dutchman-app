@@ -29,12 +29,25 @@ public enum EngineClient {
         return try JSONDecoder().decode([ContainerSummary].self, from: data)
     }
 
+    public static func fetchContainer(id: UUID) async throws -> ContainerSummary {
+        let url = URL(string: "http://\(AppConfig.Engine.host):\(AppConfig.Engine.port)/containers/\(id.uuidString)")!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(ContainerSummary.self, from: data)
+    }
+
     public static func startContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "start")
     }
 
     public static func stopContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "stop")
+    }
+
+    public static func restartContainer(id: UUID) async throws -> ContainerSummary {
+        try await mutateContainer(id: id, action: "restart")
     }
 
     private static func mutateContainer(id: UUID, action: String) async throws -> ContainerSummary {
@@ -46,5 +59,23 @@ public enum EngineClient {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
+    }
+
+    public static func listImages() async throws -> [ImageSummary] {
+        let url = URL(string: "http://\(AppConfig.Engine.host):\(AppConfig.Engine.port)/images")!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode([ImageSummary].self, from: data)
+    }
+
+    public static func listStacks() async throws -> [StackSummary] {
+        let url = URL(string: "http://\(AppConfig.Engine.host):\(AppConfig.Engine.port)/stacks")!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode([StackSummary].self, from: data)
     }
 }

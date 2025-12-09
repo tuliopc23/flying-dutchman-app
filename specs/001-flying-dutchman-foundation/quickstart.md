@@ -9,5 +9,6 @@
    - `swift run FlyingDutchmanCLI version`
    - `swift run FlyingDutchmanCLI doctor` (prints platform + engine + tooling checks; warns if engine unreachable)
    - `swift run FlyingDutchmanCLI containers list` (live if engine is up; falls back to mock data)
-   - `swift run FlyingDutchmanCLI containers start <id|name>` / `stop <id|name>` (calls engine endpoints; warns if offline)
+   - `swift run FlyingDutchmanCLI containers start <id|name>` / `stop <id|name>` / `restart <id|name>` (calls engine endpoints; warns if offline)
+   - `swift run FlyingDutchmanCLI images list` and `stacks list` for stubbed catalog views
 7) **Appearance**: Switch macOS light/dark and confirm glass materials adapt; reset overrides via the palette if needed.

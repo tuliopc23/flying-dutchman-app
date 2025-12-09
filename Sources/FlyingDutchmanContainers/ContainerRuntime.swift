@@ -68,4 +68,16 @@ public enum ContainerFixtures {
         .init(name: "worker", image: "ghcr.io/fd/worker:dev", status: .running, ports: ["5672->5672"]),
         .init(name: "db", image: "postgres:16-alpine", status: .stopped, ports: ["5432->5432"])
     ]
+
+    public static let sampleImages: [ImageSummary] = [
+        .init(name: "ghcr.io/fd/api", tag: "dev", digest: "sha256:abc123", sizeBytes: 230_000_000),
+        .init(name: "ghcr.io/fd/worker", tag: "dev", digest: "sha256:def456", sizeBytes: 180_000_000),
+        .init(name: "postgres", tag: "16-alpine", digest: "sha256:pg16", sizeBytes: 120_000_000)
+    ]
+
+    public static let sampleStacks: [StackSummary] = [
+        .init(name: "Core Services", description: "API + worker + db", containerNames: ["api", "worker", "db"]),
+        .init(name: "Analytics", description: "Clickhouse + ingestion", containerNames: []),
+        .init(name: "Empty Stack", description: "Create your first stack", containerNames: [])
+    ]
 }
