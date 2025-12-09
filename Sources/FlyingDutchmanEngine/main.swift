@@ -9,7 +9,9 @@ import Shared
 struct FlyingDutchmanEngineMain {
     static func main() async {
         let logger = Loggers.make(category: "flyingdutchman.engine")
-        let runtime = ContainerRuntime.shared
+        let containerStore = ContainerStore()
+        containerStore.seedIfEmpty(with: ContainerFixtures.sampleContainers)
+        let runtime = ContainerRuntime(store: containerStore)
         let service = Service(
             startup: {
                 logger.info("Starting FlyingDutchmanEngine (stub)")

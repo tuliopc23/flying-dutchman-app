@@ -9,9 +9,16 @@ public final class ContainerRuntime {
     private let lock = NIOLock()
     private var containers: [UUID: ContainerSummary]
 
-    private init() {
-        let samples = ContainerFixtures.sampleContainers
-        containers = Dictionary(uniqueKeysWithValues: samples.map { ($0.id, $0) })
+    public convenience init(store: AnyContainerStore? = nil) {
+        if let store = store {
+            self.init(initialContainers: store.fetchAll())
+        } else {
+            self.init(initialContainers: ContainerFixtures.sampleContainers)
+        }
+    }
+
+    private init(initialContainers: [ContainerSummary]) {
+        containers = Dictionary(uniqueKeysWithValues: initialContainers.map { ($0.id, $0) })
     }
 
     public func list() -> [ContainerSummary] {
@@ -36,6 +43,10 @@ public final class ContainerRuntime {
         return start(containerID: containerID)
     }
 
+    public func export(to store: AnyContainerStore) {
+        store.replaceAll(with: list())
+    }
+
     private func update(containerID: UUID, status: ContainerSummary.Status) -> ContainerSummary? {
         lock.withLock {
             guard var container = containers[containerID] else { return nil }
@@ -44,6 +55,11 @@ public final class ContainerRuntime {
             return container
         }
     }
+}
+
+public protocol AnyContainerStore {
+    func fetchAll() -> [ContainerSummary]
+    func replaceAll(with summaries: [ContainerSummary])
 }
 
 public enum ContainerFixtures {

@@ -1,6 +1,7 @@
 import Foundation
 import GRDB
 import Shared
+import FlyingDutchmanContainers
 
 public final class DatabaseContainer {
     public static let shared = DatabaseContainer()
@@ -11,6 +12,7 @@ public final class DatabaseContainer {
         let url = DatabaseContainer.databaseURL()
         do {
             dbQueue = try DatabaseQueue(path: url.path)
+            try DatabaseContainer.migrator.migrate(dbQueue)
             logger.info("Initialized SQLite at \(url.path)")
         } catch {
             logger.error("Failed to open SQLite at \(url.path): \(error.localizedDescription). Using in-memory fallback.")
@@ -25,4 +27,42 @@ public final class DatabaseContainer {
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("flyingdutchman.sqlite")
     }
+
+    private static var migrator: DatabaseMigrator = {
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("v1_core_schema") { db in
+            try db.create(table: "containers") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("image", .text).notNull()
+                t.column("status", .text).notNull()
+                t.column("ports", .text).notNull()
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+            }
+
+            try db.create(table: "images") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("tag", .text).notNull()
+                t.column("digest", .text)
+                t.column("sizeBytes", .integer)
+                t.column("createdAt", .datetime).notNull()
+            }
+
+            try db.create(table: "stacks") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("description", .text)
+                t.column("createdAt", .datetime).notNull()
+            }
+
+            try db.create(table: "containerStacks") { t in
+                t.column("containerId", .text).notNull().indexed().references("containers", onDelete: .cascade)
+                t.column("stackId", .text).notNull().indexed().references("stacks", onDelete: .cascade)
+                t.primaryKey(["containerId", "stackId"])
+            }
+        }
+        return migrator
+    }()
 }
