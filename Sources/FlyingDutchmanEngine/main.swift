@@ -2,16 +2,19 @@ import Foundation
 import ServiceLifecycle
 import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
+import FlyingDutchmanContainers
 import Shared
 
 @main
 struct FlyingDutchmanEngineMain {
     static func main() async {
         let logger = Loggers.make(category: "flyingdutchman.engine")
+        let runtime = ContainerRuntime.shared
         let service = Service(
             startup: {
                 logger.info("Starting FlyingDutchmanEngine (stub)")
-                try await EngineServer.start()
+                DockerShimServer.startStub(logger: logger)
+                try await EngineServer.start(runtime: runtime)
                 EngineXPCListener.start()
             },
             shutdown: { _ in

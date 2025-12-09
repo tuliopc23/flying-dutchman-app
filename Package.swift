@@ -12,6 +12,9 @@ let package = Package(
         .executable(name: "FlyingDutchmanCLI", targets: ["FlyingDutchmanCLI"]),
         .library(name: "FlyingDutchmanNetworking", targets: ["FlyingDutchmanNetworking"]),
         .library(name: "FlyingDutchmanPersistence", targets: ["FlyingDutchmanPersistence"]),
+        .library(name: "FlyingDutchmanContainers", targets: ["FlyingDutchmanContainers"]),
+        .library(name: "FlyingDutchmanKubernetes", targets: ["FlyingDutchmanKubernetes"]),
+        .library(name: "FlyingDutchmanAI", targets: ["FlyingDutchmanAI"]),
         .library(name: "Shared", targets: ["Shared"])
     ],
     dependencies: [
@@ -20,7 +23,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.6.0"),
         .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", from: "2.0.0"),
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0")
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.60.0")
     ],
     targets: [
         .target(
@@ -39,9 +43,33 @@ let package = Package(
             path: "Sources/FlyingDutchmanPersistence"
         ),
         .target(
+            name: "FlyingDutchmanContainers",
+            dependencies: [
+                "Shared",
+                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/FlyingDutchmanContainers"
+        ),
+        .target(
+            name: "FlyingDutchmanKubernetes",
+            dependencies: [
+                "Shared"
+            ],
+            path: "Sources/FlyingDutchmanKubernetes"
+        ),
+        .target(
+            name: "FlyingDutchmanAI",
+            dependencies: [
+                "Shared"
+            ],
+            path: "Sources/FlyingDutchmanAI"
+        ),
+        .target(
             name: "FlyingDutchmanNetworking",
             dependencies: [
                 "Shared",
+                "FlyingDutchmanContainers",
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
             ],
@@ -51,6 +79,7 @@ let package = Package(
             name: "FlyingDutchmanEngine",
             dependencies: [
                 "Shared",
+                "FlyingDutchmanContainers",
                 "FlyingDutchmanNetworking",
                 "FlyingDutchmanPersistence",
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle")
@@ -61,6 +90,7 @@ let package = Package(
             name: "FlyingDutchmanCLI",
             dependencies: [
                 "Shared",
+                "FlyingDutchmanContainers",
                 "FlyingDutchmanNetworking",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],

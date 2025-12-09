@@ -1,7 +1,10 @@
+import Shared
 import SwiftUI
 
 struct GlassCard<Content: View>: View {
     let content: Content
+    @Environment(\.colorScheme) private var colorScheme
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
@@ -10,12 +13,12 @@ struct GlassCard<Content: View>: View {
         content
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(DesignTokens.glassBackground(for: colorScheme))
+            .clipShape(DesignTokens.glassShape)
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(.white.opacity(0.1))
+                DesignTokens.glassShape
+                    .strokeBorder(DesignTokens.glassStroke(for: colorScheme))
             )
-            .shadow(radius: 18, y: 8)
+            .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.2), radius: 18, y: 8)
     }
 }

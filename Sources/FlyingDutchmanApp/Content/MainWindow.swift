@@ -1,3 +1,4 @@
+import Shared
 import SwiftUI
 
 struct MainWindow: View {
@@ -44,7 +45,9 @@ struct MainWindow: View {
             }
             .padding(24)
             .sheet(isPresented: $showPalette) {
-                CommandPaletteView(registry: commandRegistry)
+                CommandPaletteView(registry: commandRegistry) {
+                    showPalette = false
+                }
                     .frame(width: 520)
                     .presentationDetents([.medium])
             }

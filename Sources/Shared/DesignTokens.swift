@@ -18,4 +18,16 @@ public enum DesignTokens {
         default: return .orange
         }
     }
+
+    public static func glassBackground(for colorScheme: ColorScheme) -> some ShapeStyle {
+        colorScheme == .dark ? .ultraThinMaterial : .thinMaterial
+    }
+
+    public static func glassFieldBackground(for colorScheme: ColorScheme) -> some ShapeStyle {
+        colorScheme == .dark ? .thinMaterial.opacity(0.8) : .ultraThinMaterial
+    }
+
+    public static func glassStroke(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? .white.opacity(0.15) : .black.opacity(0.08)
+    }
 }

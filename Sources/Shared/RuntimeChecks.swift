@@ -7,6 +7,13 @@ public enum RuntimeChecks {
         public let message: String
     }
 
+    public struct PlatformStatus {
+        public let osVersion: OperatingSystemVersion
+        public let isAppleSilicon: Bool
+        public let isSupported: Bool
+        public let message: String
+    }
+
     public static func containerToolVersion() -> ToolCheck {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -29,5 +36,42 @@ public enum RuntimeChecks {
         } catch {
             return ToolCheck(name: "container", status: "missing", message: "container CLI not found in PATH")
         }
+    }
+
+    public static func containerizationFramework() -> ToolCheck {
+        #if canImport(Containerization)
+        return ToolCheck(name: "Containerization.framework", status: "ok", message: "Framework present")
+        #else
+        return ToolCheck(name: "Containerization.framework", status: "missing", message: "Not detected (stub). Install Tahoe Containerization framework.")
+        #endif
+    }
+
+    public static func platformSupport(minimumMajorVersion: Int = 15, requireAppleSilicon: Bool = true) -> PlatformStatus {
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        #if arch(arm64)
+        let isAppleSilicon = true
+        #else
+        let isAppleSilicon = false
+        #endif
+
+        let meetsVersion = version.majorVersion >= minimumMajorVersion
+        let meetsArch = requireAppleSilicon ? isAppleSilicon : true
+
+        let supported = meetsVersion && meetsArch
+        let message: String
+        if supported {
+            message = "Platform supported (\(version.majorVersion).\(version.minorVersion)) on \(isAppleSilicon ? "Apple Silicon" : "Intel")"
+        } else if !meetsVersion {
+            message = "Requires macOS \(minimumMajorVersion)+ (detected \(version.majorVersion).\(version.minorVersion))"
+        } else {
+            message = "Apple Silicon required"
+        }
+
+        return PlatformStatus(
+            osVersion: version,
+            isAppleSilicon: isAppleSilicon,
+            isSupported: supported,
+            message: message
+        )
     }
 }

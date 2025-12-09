@@ -8,6 +8,7 @@ struct FlyingDutchmanApp: App {
     @State private var sidebarModel: SidebarViewModel = .init()
     @State private var commandRegistry: CommandRegistry = .init()
     @State private var showPalette: Bool = false
+    @State private var appearanceOverride: ColorScheme?
 
     var body: some Scene {
         WindowGroup {
@@ -15,6 +16,7 @@ struct FlyingDutchmanApp: App {
                 .frame(minWidth: 960, minHeight: 600)
                 .task { await engineStatus.refresh() }
                 .onAppear { seedCommands() }
+                .preferredColorScheme(appearanceOverride)
         }
         .commands {
             CommandMenu("Palette") {
@@ -29,8 +31,17 @@ struct FlyingDutchmanApp: App {
             CommandAction(title: "Refresh Engine Status", subtitle: nil, icon: "arrow.clockwise") {
                 await engineStatus.refresh()
             },
-            CommandAction(title: "Open Projects", subtitle: "Focus sidebar", icon: "sidebar.leading") {
-                // placeholder
+            CommandAction(title: "Focus Sidebar", subtitle: "Reveal projects list", icon: "sidebar.leading") {
+                await MainActor.run { sidebarModel.requestFocus() }
+            },
+            CommandAction(title: "Switch to Light Appearance", subtitle: "Overrides system setting", icon: "sun.max") {
+                await MainActor.run { appearanceOverride = .light }
+            },
+            CommandAction(title: "Switch to Dark Appearance", subtitle: "Overrides system setting", icon: "moon") {
+                await MainActor.run { appearanceOverride = .dark }
+            },
+            CommandAction(title: "Reset Appearance to System", subtitle: "Follow macOS mode", icon: "circle.lefthalf.filled") {
+                await MainActor.run { appearanceOverride = nil }
             }
         ]
     }

@@ -1,32 +1,19 @@
+import Shared
 import SwiftUI
-
-struct CommandAction: Identifiable, Hashable {
-    let id = UUID()
-    let title: String
-    let subtitle: String?
-    let icon: String
-    let perform: () async -> Void
-}
-
-@Observable
-final class CommandRegistry {
-    var actions: [CommandAction] = []
-    var query: String = ""
-
-    func filtered() -> [CommandAction] {
-        let q = query.lowercased()
-        guard !q.isEmpty else { return actions }
-        return actions.filter { $0.title.lowercased().contains(q) || ($0.subtitle?.lowercased().contains(q) ?? false) }
-    }
-}
 
 struct CommandPaletteView: View {
     @Bindable var registry: CommandRegistry
+    var onDismiss: (() -> Void)?
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Search commands", text: $registry.query)
-                .textFieldStyle(.roundedBorder)
+                .textFieldStyle(.plain)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(DesignTokens.glassFieldBackground(for: colorScheme))
+                .clipShape(DesignTokens.glassShape)
             if registry.filtered().isEmpty {
                 Text("No commands").foregroundStyle(.secondary)
             } else {
@@ -42,7 +29,7 @@ struct CommandPaletteView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        Task { await action.perform() }
+                        trigger(action)
                     }
                 }
                 .listStyle(.plain)
@@ -50,9 +37,22 @@ struct CommandPaletteView: View {
             }
         }
         .padding(16)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(radius: 16)
+        .background(DesignTokens.glassBackground(for: colorScheme))
+        .clipShape(DesignTokens.glassShape)
+        .overlay(
+            DesignTokens.glassShape.strokeBorder(DesignTokens.glassStroke(for: colorScheme))
+        )
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.45 : 0.2), radius: 20, y: 10)
         .padding()
+    }
+
+    private func trigger(_ action: CommandAction) {
+        Task {
+            await action.perform()
+            await MainActor.run {
+                registry.query = ""
+                onDismiss?()
+            }
+        }
     }
 }
