@@ -1,0 +1,16 @@
+name: Lint
+
+on:
+  push:
+    branches: ["main", "develop", "001-flying-dutchman-foundation"]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install linting tools
+        run: brew install swiftformat swiftlint
+      - name: Run linters
+        run: ./scripts/lint.sh

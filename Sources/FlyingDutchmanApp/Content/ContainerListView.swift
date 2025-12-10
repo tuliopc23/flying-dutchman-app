@@ -7,6 +7,22 @@ final class ContainerListViewModel {
     var containers: [ContainerSummary] = []
     var error: String?
     var isLoading: Bool = false
+    var searchQuery: String = ""
+    var showRunningOnly: Bool = false
+
+    var filtered: [ContainerSummary] {
+        containers.filter { container in
+            let matchesQuery: Bool
+            if searchQuery.isEmpty {
+                matchesQuery = true
+            } else {
+                let needle = searchQuery.lowercased()
+                matchesQuery = container.name.lowercased().contains(needle) || container.image.lowercased().contains(needle)
+            }
+            let matchesStatus = !showRunningOnly || container.status == .running
+            return matchesQuery && matchesStatus
+        }
+    }
 
     func load() async {
         isLoading = true
@@ -47,14 +63,12 @@ final class ContainerListViewModel {
 
 struct ContainerListView: View {
     @Bindable var viewModel: ContainerListViewModel
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Label("Containers", systemImage: "shippingbox.circle")
-                        .font(.title3.weight(.semibold))
-                    Spacer()
+                SectionHeader(title: "Containers", subtitle: "Manage running and stopped containers", icon: "shippingbox.circle") {
                     if viewModel.isLoading {
                         ProgressView().controlSize(.small)
                     }
@@ -65,18 +79,30 @@ struct ContainerListView: View {
                     }
                 }
 
+                HStack {
+                    TextField("Search containers or images", text: $viewModel.searchQuery)
+                        .textFieldStyle(.roundedBorder)
+                    Toggle("Running only", isOn: $viewModel.showRunningOnly)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .help("Show only running containers")
+                }
+
                 if let error = viewModel.error {
                     Text(error)
                         .font(.footnote)
                         .foregroundStyle(.orange)
                 }
 
-                if viewModel.containers.isEmpty {
-                    Text("No containers available.")
-                        .foregroundStyle(.secondary)
+                if viewModel.filtered.isEmpty {
+                    EmptyStateCard(
+                        title: "No containers",
+                        message: "Start the engine or create a container to see it here.",
+                        systemImage: "shippingbox"
+                    )
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(viewModel.containers) { container in
+                        ForEach(viewModel.filtered) { container in
                             HStack(spacing: 12) {
                                 Image(systemName: DesignTokens.containerStatusSymbol(for: container.status))
                                     .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
@@ -93,7 +119,7 @@ struct ContainerListView: View {
                                 actionButtons(for: container)
                             }
                             .padding(10)
-                            .background(Color.secondary.opacity(0.05))
+                            .background(DesignTokens.glassFieldBackground(for: colorScheme))
                             .clipShape(DesignTokens.glassShape)
                         }
                     }

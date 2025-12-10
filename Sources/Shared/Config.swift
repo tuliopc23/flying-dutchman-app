@@ -27,4 +27,5 @@ public struct EngineStatusDetail: Codable {
     public let engine: String
     public let uptimeSeconds: Int
     public let workers: [String: String]
+    public let mode: String?
 }

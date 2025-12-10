@@ -46,7 +46,7 @@ public enum RuntimeChecks {
         #endif
     }
 
-    public static func platformSupport(minimumMajorVersion: Int = 15, requireAppleSilicon: Bool = true) -> PlatformStatus {
+    public static func platformSupport(minimumMajorVersion: Int = 26, requireAppleSilicon: Bool = true) -> PlatformStatus {
         let version = ProcessInfo.processInfo.operatingSystemVersion
         #if arch(arm64)
         let isAppleSilicon = true
@@ -56,15 +56,16 @@ public enum RuntimeChecks {
 
         let meetsVersion = version.majorVersion >= minimumMajorVersion
         let meetsArch = requireAppleSilicon ? isAppleSilicon : true
+        let requiredOSLabel = minimumMajorVersion >= 26 ? "macOS Tahoe \(minimumMajorVersion)+" : "macOS \(minimumMajorVersion)+"
 
         let supported = meetsVersion && meetsArch
         let message: String
         if supported {
             message = "Platform supported (\(version.majorVersion).\(version.minorVersion)) on \(isAppleSilicon ? "Apple Silicon" : "Intel")"
         } else if !meetsVersion {
-            message = "Requires macOS \(minimumMajorVersion)+ (detected \(version.majorVersion).\(version.minorVersion))"
+            message = "Requires \(requiredOSLabel) (detected \(version.majorVersion).\(version.minorVersion))"
         } else {
-            message = "Apple Silicon required"
+            message = "Apple Silicon required (detected Intel)"
         }
 
         return PlatformStatus(

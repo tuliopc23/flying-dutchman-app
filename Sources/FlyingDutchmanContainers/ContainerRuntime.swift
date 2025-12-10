@@ -3,22 +3,71 @@ import NIOConcurrencyHelpers
 import Shared
 
 /// Stub runtime layer that mimics Containerization operations for early phases.
-public final class ContainerRuntime {
+public protocol ContainerRuntimeProtocol {
+    var mode: ContainerRuntime.Mode { get }
+    var eventStore: EventRecorder? { get }
+    func list() -> [ContainerSummary]
+    @discardableResult func start(containerID: UUID) -> ContainerSummary?
+    @discardableResult func stop(containerID: UUID) -> ContainerSummary?
+    @discardableResult func restart(containerID: UUID) -> ContainerSummary?
+    func export(to store: AnyContainerStore)
+    func importContainer(_ container: ContainerSummary)
+    func logs(for id: UUID) -> [String]
+    func workerStatuses() -> [String: String]
+}
+
+public final class ContainerRuntime: ContainerRuntimeProtocol {
+    public enum Mode: String {
+        case containerization
+        case stub
+    }
+
     public static let shared = ContainerRuntime()
 
     private let lock = NIOLock()
     private var containers: [UUID: ContainerSummary]
+    private let containerization: ContainerizationClient
+    public let mode: Mode
+    private var logs: [UUID: [String]] = [:]
+    private let store: AnyContainerStore?
+    private let logStore: ContainerLogStore?
+    public let eventStore: EventRecorder?
 
-    public convenience init(store: AnyContainerStore? = nil) {
+    public convenience init(
+        store: AnyContainerStore? = nil,
+        logStore: ContainerLogStore? = nil,
+        eventStore: EventRecorder? = nil,
+        containerization: ContainerizationClient = .shared
+    ) {
+        let initial: [ContainerSummary]
         if let store = store {
-            self.init(initialContainers: store.fetchAll())
+            let stored = store.fetchAll()
+            if stored.isEmpty {
+                initial = ContainerFixtures.sampleContainers
+                store.replaceAll(with: initial)
+            } else {
+                initial = stored
+            }
         } else {
-            self.init(initialContainers: ContainerFixtures.sampleContainers)
+            initial = ContainerFixtures.sampleContainers
         }
+        self.init(initialContainers: initial, containerization: containerization, store: store, logStore: logStore, eventStore: eventStore)
     }
 
-    private init(initialContainers: [ContainerSummary]) {
+    private init(
+        initialContainers: [ContainerSummary],
+        containerization: ContainerizationClient,
+        store: AnyContainerStore?,
+        logStore: ContainerLogStore?,
+        eventStore: EventRecorder?
+    ) {
         containers = Dictionary(uniqueKeysWithValues: initialContainers.map { ($0.id, $0) })
+        self.store = store
+        self.logStore = logStore
+        self.eventStore = eventStore
+        self.containerization = containerization
+        mode = containerization.isNativeAvailable ? .containerization : .stub
+        hydrateLogs()
     }
 
     public func list() -> [ContainerSummary] {
@@ -29,12 +78,20 @@ public final class ContainerRuntime {
 
     @discardableResult
     public func start(containerID: UUID) -> ContainerSummary? {
-        update(containerID: containerID, status: .running)
+        guard !containerization.isNativeAvailable else {
+            // TODO: Invoke Containerization start; stub retains in-memory mutation for now.
+            return update(containerID: containerID, status: .running)
+        }
+        return update(containerID: containerID, status: .running)
     }
 
     @discardableResult
     public func stop(containerID: UUID) -> ContainerSummary? {
-        update(containerID: containerID, status: .stopped)
+        guard !containerization.isNativeAvailable else {
+            // TODO: Invoke Containerization stop; stub retains in-memory mutation for now.
+            return update(containerID: containerID, status: .stopped)
+        }
+        return update(containerID: containerID, status: .stopped)
     }
 
     @discardableResult
@@ -47,12 +104,63 @@ public final class ContainerRuntime {
         store.replaceAll(with: list())
     }
 
+    public func importContainer(_ container: ContainerSummary) {
+        lock.withLock {
+            containers[container.id] = container
+            logs[container.id] = logs[container.id] ?? []
+        }
+        logStore?.append(containerID: container.id, line: "\(Date()): created via shim")
+        eventStore?.record(status: "shim", containerId: container.id, image: container.image, kind: "create")
+        persist()
+        pruneLogs()
+    }
+
+    public func logs(for id: UUID) -> [String] {
+        lock.withLock {
+            logs[id] ?? ["stub: no logs available"]
+        }
+    }
+
+    public func pruneLogs(maxEntries: Int = 500) {
+        lock.withLock {
+            for key in logs.keys {
+                logs[key] = logs[key]?.suffix(maxEntries)
+            }
+        }
+    }
+
+    public func workerStatuses() -> [String: String] {
+        [
+            "containerization": containerization.workerStatus
+        ]
+    }
+
     private func update(containerID: UUID, status: ContainerSummary.Status) -> ContainerSummary? {
         lock.withLock {
             guard var container = containers[containerID] else { return nil }
             container.status = status
             containers[containerID] = container
+            var containerLogs = logs[containerID] ?? []
+            containerLogs.append("\(Date()): status -> \(status.rawValue)")
+            logs[containerID] = containerLogs.suffix(200)
+            logStore?.append(containerID: containerID, line: "\(Date()): status -> \(status.rawValue)")
+            eventStore?.record(status: status.rawValue, containerId: containerID, image: container.image, kind: "state")
             return container
+        }
+        persist()
+        pruneLogs()
+    }
+
+    private func persist() {
+        guard let store else { return }
+        store.replaceAll(with: list())
+    }
+
+    private func hydrateLogs() {
+        guard let logStore else { return }
+        let ids = list().map(\.id)
+        ids.forEach { id in
+            logs[id] = logStore.fetch(containerID: id)
         }
     }
 }
@@ -79,5 +187,15 @@ public enum ContainerFixtures {
         .init(name: "Core Services", description: "API + worker + db", containerNames: ["api", "worker", "db"]),
         .init(name: "Analytics", description: "Clickhouse + ingestion", containerNames: []),
         .init(name: "Empty Stack", description: "Create your first stack", containerNames: [])
+    ]
+
+    public static let sampleVolumes: [VolumeSummary] = [
+        .init(name: "db-data", mountPath: "/var/lib/postgresql/data", sizeBytes: 5_000_000_000),
+        .init(name: "worker-cache", mountPath: "/var/cache/worker")
+    ]
+
+    public static let sampleNetworks: [NetworkSummary] = [
+        .init(name: "flyingdutchman_default", subnet: "10.42.0.0/16", connectedContainerIDs: []),
+        .init(name: "public", subnet: "192.168.64.0/24", connectedContainerIDs: [])
     ]
 }

@@ -33,6 +33,8 @@ struct CommandPaletteView: View {
                     }
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(.clear)
                 .frame(maxHeight: 320)
             }
         }

@@ -3,6 +3,11 @@ import ProjectDescription
 let project = Project(
     name: "FlyingDutchman",
     options: .options(automaticSchemesOptions: .disabled),
+    settings: .settings(
+        base: [
+            "MACOSX_DEPLOYMENT_TARGET": "15.0"
+        ]
+    ),
     packages: [
         .remote(url: "https://github.com/swift-server/hummingbird.git", requirement: .upToNextMajor(from: "2.0.0")),
         .remote(url: "https://github.com/swift-server/async-http-client.git", requirement: .upToNextMajor(from: "1.20.0")),
@@ -10,7 +15,8 @@ let project = Project(
         .remote(url: "https://github.com/apple/swift-log.git", requirement: .upToNextMajor(from: "1.6.0")),
         .remote(url: "https://github.com/swift-server/swift-service-lifecycle.git", requirement: .upToNextMajor(from: "2.0.0")),
         .remote(url: "https://github.com/groue/GRDB.swift.git", requirement: .upToNextMajor(from: "7.8.0")),
-        .remote(url: "https://github.com/apple/swift-nio.git", requirement: .upToNextMajor(from: "2.60.0"))
+        .remote(url: "https://github.com/apple/swift-nio.git", requirement: .upToNextMajor(from: "2.60.0")),
+        .remote(url: "https://github.com/swiftkube/client.git", requirement: .upToNextMajor(from: "0.20.0"))
     ],
     targets: [
         Target(
@@ -53,7 +59,8 @@ let project = Project(
             bundleId: "com.flyingdutchman.kubernetes",
             sources: ["Sources/FlyingDutchmanKubernetes/**"],
             dependencies: [
-                .target(name: "Shared")
+                .target(name: "Shared"),
+                .package(product: "SwiftkubeClient")
             ]
         ),
         Target(
@@ -118,6 +125,77 @@ let project = Project(
                 .target(name: "FlyingDutchmanNetworking"),
                 .target(name: "FlyingDutchmanPersistence")
             ]
+        ),
+        Target(
+            name: "FlyingDutchmanAppTests",
+            platform: .macOS,
+            product: .unitTests,
+            bundleId: "com.flyingdutchman.app.tests",
+            sources: ["Tests/FlyingDutchmanAppTests/**"],
+            dependencies: [
+                .target(name: "FlyingDutchmanApp")
+            ]
+        ),
+        Target(
+            name: "FlyingDutchmanEngineTests",
+            platform: .macOS,
+            product: .unitTests,
+            bundleId: "com.flyingdutchman.engine.tests",
+            sources: ["Tests/FlyingDutchmanEngineTests/**"],
+            dependencies: [
+                .target(name: "FlyingDutchmanEngine")
+            ]
+        ),
+        Target(
+            name: "FlyingDutchmanCLITests",
+            platform: .macOS,
+            product: .unitTests,
+            bundleId: "com.flyingdutchman.cli.tests",
+            sources: ["Tests/FlyingDutchmanCLITests/**"],
+            dependencies: [
+                .target(name: "FlyingDutchmanCLI")
+            ]
+        ),
+        Target(
+            name: "IntegrationTests",
+            platform: .macOS,
+            product: .unitTests,
+            bundleId: "com.flyingdutchman.integration.tests",
+            sources: ["Tests/IntegrationTests/**"],
+            dependencies: [
+                .target(name: "FlyingDutchmanNetworking"),
+                .target(name: "FlyingDutchmanPersistence")
+            ]
+        )
+    ],
+    schemes: [
+        Scheme(
+            name: "FlyingDutchmanApp",
+            shared: true,
+            buildAction: .buildAction(targets: ["FlyingDutchmanApp", "Shared", "FlyingDutchmanNetworking", "FlyingDutchmanPersistence"]),
+            testAction: .targets([
+                .target("FlyingDutchmanAppTests"),
+                .target("IntegrationTests")
+            ]),
+            runAction: .runAction(executable: .target("FlyingDutchmanApp"))
+        ),
+        Scheme(
+            name: "FlyingDutchmanEngine",
+            shared: true,
+            buildAction: .buildAction(targets: ["FlyingDutchmanEngine", "Shared", "FlyingDutchmanNetworking", "FlyingDutchmanPersistence", "FlyingDutchmanContainers"]),
+            testAction: .targets([
+                .target("FlyingDutchmanEngineTests")
+            ]),
+            runAction: .runAction(executable: .target("FlyingDutchmanEngine"))
+        ),
+        Scheme(
+            name: "FlyingDutchmanCLI",
+            shared: true,
+            buildAction: .buildAction(targets: ["FlyingDutchmanCLI", "Shared", "FlyingDutchmanNetworking", "FlyingDutchmanContainers"]),
+            testAction: .targets([
+                .target("FlyingDutchmanCLITests")
+            ]),
+            runAction: .runAction(executable: .target("FlyingDutchmanCLI"))
         )
     ]
 )

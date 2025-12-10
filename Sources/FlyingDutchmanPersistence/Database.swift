@@ -71,6 +71,51 @@ public final class DatabaseContainer {
                 }
             }
         }
+        migrator.registerMigration("v3_networks_volumes") { db in
+            if try !db.tableExists("volumes") {
+                try db.create(table: "volumes") { t in
+                    t.column("id", .text).primaryKey()
+                    t.column("name", .text).notNull()
+                    t.column("mountPath", .text).notNull()
+                    t.column("sizeBytes", .integer)
+                    t.column("createdAt", .datetime).notNull()
+                    t.column("updatedAt", .datetime).notNull()
+                }
+            }
+
+            if try !db.tableExists("networks") {
+                try db.create(table: "networks") { t in
+                    t.column("id", .text).primaryKey()
+                    t.column("name", .text).notNull()
+                    t.column("subnet", .text)
+                    t.column("connectedContainerIDs", .text).notNull().defaults(to: "[]")
+                    t.column("createdAt", .datetime).notNull()
+                    t.column("updatedAt", .datetime).notNull()
+                }
+            }
+        }
+        migrator.registerMigration("v4_container_logs") { db in
+            if try !db.tableExists("containerLogs") {
+                try db.create(table: "containerLogs") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("containerId", .text).notNull().indexed()
+                    t.column("line", .text).notNull()
+                    t.column("createdAt", .datetime).notNull()
+                }
+            }
+        }
+        migrator.registerMigration("v5_shim_events") { db in
+            if try !db.tableExists("shimEvents") {
+                try db.create(table: "shimEvents") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("status", .text).notNull()
+                    t.column("containerId", .text)
+                    t.column("image", .text)
+                    t.column("kind", .text).notNull()
+                    t.column("timestamp", .datetime).notNull()
+                }
+            }
+        }
         return migrator
     }()
 }

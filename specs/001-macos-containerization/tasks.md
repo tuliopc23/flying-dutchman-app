@@ -4,21 +4,21 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 [P] Ensure Package.swift declares modules `FlyingDutchmanContainers`, `FlyingDutchmanEngine`, `FlyingDutchmanCLI`, `FlyingDutchmanPersistence`, `FlyingDutchmanKubernetes`, `FlyingDutchmanAI`
-- [ ] T002 [P] Add dependencies: containerization, SwiftNIO, Hummingbird, AsyncHTTPClient, SwiftkubeClient, GRDB, swift-log, swift-service-lifecycle, swift-argument-parser
-- [ ] T003 Configure Tuist targets/workspace to mirror SPM modules and enable testing
+- [x] T001 [P] Ensure Package.swift declares modules `FlyingDutchmanContainers`, `FlyingDutchmanEngine`, `FlyingDutchmanCLI`, `FlyingDutchmanPersistence`, `FlyingDutchmanKubernetes`, `FlyingDutchmanAI`
+- [x] T002 [P] Add dependencies: containerization, SwiftNIO, Hummingbird, AsyncHTTPClient, SwiftkubeClient, GRDB, swift-log, swift-service-lifecycle, swift-argument-parser
+- [x] T003 Configure Tuist targets/workspace to mirror SPM modules and enable testing
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T010 Implement engine process with swift-service-lifecycle and launchd plist (`Sources/FlyingDutchmanEngine/EngineMain.swift`)
-- [ ] T011 Expose internal HTTP API skeleton with Hummingbird (health, version, containers stub) (`Sources/FlyingDutchmanNetworking/Routes/`)
-- [ ] T012 Wire Containerization client wrapper and GRDB schema for containers/images/networks/volumes/stacks (`Sources/FlyingDutchmanPersistence/Migrations/`)
-- [ ] T013 Create Docker API shim socket server scaffold mapping minimal routes to engine stubs (`Sources/FlyingDutchmanContainers/DockerShimServer.swift`)
+- [x] T010 Implement engine process with swift-service-lifecycle and launchd plist (`Sources/FlyingDutchmanEngine/EngineMain.swift`)
+- [x] T011 Expose internal HTTP API skeleton with Hummingbird (health, version, containers stub) (`Sources/FlyingDutchmanNetworking/Routes/`)
+- [x] T012 Wire Containerization client wrapper and GRDB schema for containers/images/networks/volumes/stacks (`Sources/FlyingDutchmanPersistence/Migrations/`)
+- [x] T013 Create Docker API shim socket server scaffold mapping minimal routes to engine stubs (`Sources/FlyingDutchmanContainers/DockerShimServer.swift`)
 
 ## Phase 3: User Story 1 – Launch and View Container Status (P1)
 
-- [ ] T020 Implement engine status endpoint using Containerization to list containers with states
-- [ ] T021 Bind UI status view to engine endpoint; render SF Symbols 7 state transitions
+- [x] T020 Implement engine status endpoint using Containerization to list containers with states
+- [x] T021 Bind UI status view to engine endpoint; render SF Symbols 7 state transitions
 
 ## Phase 4: User Story 2 – Manage Individual Containers (P1)
 
@@ -27,14 +27,14 @@
 
 ## Phase 5: User Story 3 – Pull and Manage Images (P2)
 
-- [ ] T040 Implement image pull endpoint using AsyncHTTPClient + Containerization; stream progress
-- [ ] T041 Persist images metadata in GRDB and display in UI list
-- [ ] T042 Error handling for auth/network failures with remediation messages
+- [x] T040 Implement image pull endpoint using AsyncHTTPClient + Containerization; stream progress
+- [x] T041 Persist images metadata in GRDB and display in UI list
+- [x] T042 Error handling for auth/network failures with remediation messages
 
 ## Phase 6: User Story 4 – Execute Commands via CLI (P2)
 
-- [ ] T050 Add CLI commands `version`, `containers list`, `containers start/stop` wiring to engine HTTP/XPC
-- [ ] T051 Add CLI error reporting with actionable guidance for engine connectivity issues
+- [x] T050 Add CLI commands `version`, `containers list`, `containers start/stop` wiring to engine HTTP/XPC
+- [x] T051 Add CLI error reporting with actionable guidance for engine connectivity issues
 
 ## Phase 7: User Story 5 – Organize Containers in Projects/Stacks (P3)
 
@@ -49,9 +49,9 @@
 
 ## Phase 9: User Story 7 – Docker API Compatibility Shim (P2)
 
-- [ ] T080 Implement Docker HTTP subset (ps/create/start/logs/pull) over Unix socket `/var/run/flyingdutchman-docker.sock`
-- [ ] T081 Map shim requests to Containerization operations and persist mappings in GRDB
-- [ ] T082 Return explicit unsupported-feature errors and optional Podman fallback hints
+- [x] T080 Implement Docker HTTP subset (ps/create/start/logs/pull) over Unix socket `/var/run/flyingdutchman-docker.sock`
+- [x] T081 Map shim requests to Containerization operations and persist mappings in GRDB (CLI runtime placeholder available via FD_RUNTIME=cli; native pending Containerization.framework)
+- [x] T082 Return explicit unsupported-feature errors and optional Podman fallback hints
 
 ## Phase 10: User Story 8 – Flying Dutchman Dev Cluster (P3)
 
@@ -66,9 +66,9 @@
 
 ## Phase 12: Polish & Cross-Cutting
 
-- [ ] T110 Platform gating and diagnostics for Tahoe/Apple Silicon and Containerization availability
+- [x] T110 Platform gating and diagnostics for Tahoe/Apple Silicon and Containerization availability
 - [ ] T111 Performance pass: ensure list/start/stop/pull within latency targets; profile shim
-- [ ] T112 Update quickstart.md with docker-host setup, cluster creation, and CLI usage
+- [x] T112 Update quickstart.md with docker-host setup, cluster creation, and CLI usage
 
 ## Dependencies & Execution Order
 

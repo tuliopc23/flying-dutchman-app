@@ -24,7 +24,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.6.0"),
         .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", from: "2.0.0"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.60.0")
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.60.0"),
+        .package(url: "https://github.com/swiftkube/client.git", from: "0.20.0")
     ],
     targets: [
         .target(
@@ -54,7 +55,8 @@ let package = Package(
         .target(
             name: "FlyingDutchmanKubernetes",
             dependencies: [
-                "Shared"
+                "Shared",
+                .product(name: "SwiftkubeClient", package: "client")
             ],
             path: "Sources/FlyingDutchmanKubernetes"
         ),
