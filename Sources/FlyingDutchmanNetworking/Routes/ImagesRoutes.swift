@@ -3,12 +3,11 @@ import Hummingbird
 import Shared
 import FlyingDutchmanPersistence
 
-struct ImagesRoutes {
+struct ImagesRoutes: @unchecked Sendable {
     let store: ImageStore?
 
-    func register(on router: HBRouter) {
-        router.get("/images") { request -> [ImageSummary] in
-            Loggers.make(category: "flyingdutchman.networking").debug("GET /images from \(request.remoteAddress?.description ?? \"unknown\")")
+    func register(on router: Router<BasicRequestContext>) {
+        router.get("/images") { _, _ -> [ImageSummary] in
             guard let store else { return [] }
             return store.fetchAll()
         }

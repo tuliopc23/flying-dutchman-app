@@ -3,14 +3,14 @@ import Shared
 
 /// Adapter that attempts to use the `container` CLI for basic lifecycle operations.
 /// Falls back to in-memory fixtures when the CLI is unavailable or returns errors.
-public final class ContainerCLIRuntime: ContainerRuntimeProtocol {
+public final class ContainerCLIRuntime: ContainerRuntimeProtocol, @unchecked Sendable {
     public let mode: ContainerRuntime.Mode = .containerization
     public let eventStore: EventRecorder?
 
     private let cliPath: String
     private let fallback: ContainerRuntime
 
-    public init?(store: AnyContainerStore? = nil, logStore: ContainerLogStore? = nil, eventStore: EventRecorder? = nil) {
+    public init?(store: AnyContainerStore? = nil, logStore: (any ContainerLogStoring)? = nil, eventStore: EventRecorder? = nil) {
         let path = ProcessInfo.processInfo.environment["FD_CONTAINER_CLI"] ?? "/usr/bin/container"
         guard FileManager.default.isExecutableFile(atPath: path) else { return nil }
         cliPath = path

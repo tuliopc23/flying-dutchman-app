@@ -4,7 +4,7 @@ import Shared
 public enum RuntimeFactory {
     public static func makeRuntime(
         store: AnyContainerStore? = nil,
-        logStore: ContainerLogStore? = nil,
+        logStore: (any ContainerLogStoring)? = nil,
         eventStore: EventRecorder? = nil
     ) -> ContainerRuntimeProtocol {
         let runtimeEnv = ProcessInfo.processInfo.environment["FD_RUNTIME"]?.lowercased()

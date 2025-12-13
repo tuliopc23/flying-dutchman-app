@@ -24,7 +24,7 @@ public enum DesignTokens {
     }
 
     public static func glassFieldBackground(for colorScheme: ColorScheme) -> some ShapeStyle {
-        colorScheme == .dark ? .thinMaterial.opacity(0.8) : .ultraThinMaterial
+        colorScheme == .dark ? .thinMaterial : .ultraThinMaterial
     }
 
     public static func glassStroke(for colorScheme: ColorScheme) -> Color {

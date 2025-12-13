@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DockerEvent: Codable, Identifiable, Hashable {
+public struct DockerEvent: Codable, Identifiable, Hashable, Sendable {
     public let id: String
     public let status: String
     public let from: String?

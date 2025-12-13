@@ -1,5 +1,6 @@
 import Shared
 import FlyingDutchmanContainers
+import FlyingDutchmanNetworking
 import SwiftUI
 
 @Observable

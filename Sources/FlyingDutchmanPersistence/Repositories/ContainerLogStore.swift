@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 import Shared
 
-public struct ContainerLogStore {
+public struct ContainerLogStore: ContainerLogStoring {
     private let dbQueue: DatabaseQueue
 
     public init(dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue) {

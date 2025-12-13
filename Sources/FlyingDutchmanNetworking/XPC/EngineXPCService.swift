@@ -3,7 +3,7 @@ import Shared
 import FlyingDutchmanContainers
 
 public final class EngineXPCService: NSObject, EngineXPCProtocol {
-    public func fetchStatus(reply: @escaping (EngineXPCStatus) -> Void) {
+    public func fetchStatus(reply: @escaping (NSData) -> Void) {
         let status = EngineXPCStatus(
             engine: "running",
             uptimeSeconds: EngineRuntime.uptimeSeconds,
@@ -13,6 +13,8 @@ public final class EngineXPCService: NSObject, EngineXPCProtocol {
                 "containerization": ContainerizationClient.shared.workerStatus
             ]
         )
-        reply(status)
+
+        let data = (try? JSONEncoder().encode(status)) ?? Data()
+        reply(data as NSData)
     }
 }

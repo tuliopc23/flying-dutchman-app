@@ -18,7 +18,7 @@ let package = Package(
         .library(name: "Shared", targets: ["Shared"])
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-server/hummingbird.git", from: "2.0.0"),
+        .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.0"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.20.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.6.0"),
@@ -39,7 +39,8 @@ let package = Package(
             name: "FlyingDutchmanPersistence",
             dependencies: [
                 "Shared",
-                .product(name: "GRDB", package: "GRDB.swift")
+                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "GRDBSQLite", package: "GRDB.swift")
             ],
             path: "Sources/FlyingDutchmanPersistence"
         ),
@@ -47,6 +48,9 @@ let package = Package(
             name: "FlyingDutchmanContainers",
             dependencies: [
                 "Shared",
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
             ],
@@ -73,7 +77,8 @@ let package = Package(
                 "Shared",
                 "FlyingDutchmanContainers",
                 .product(name: "Hummingbird", package: "hummingbird"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "GRDBSQLite", package: "GRDB.swift")
             ],
             path: "Sources/FlyingDutchmanNetworking"
         ),

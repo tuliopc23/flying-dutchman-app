@@ -3,12 +3,11 @@ import FlyingDutchmanPersistence
 import Shared
 import Hummingbird
 
-struct VolumesRoutes {
+struct VolumesRoutes: @unchecked Sendable {
     let store: VolumeStore?
 
-    func register(on router: HBRouter) {
-        router.get("/volumes") { request in
-            Loggers.make(category: "flyingdutchman.networking").debug("GET /volumes from \(request.remoteAddress?.description ?? \"unknown\")")
+    func register(on router: Router<BasicRequestContext>) {
+        router.get("/volumes") { _, _ in
             return store?.fetchAll() ?? []
         }
     }

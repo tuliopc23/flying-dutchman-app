@@ -3,12 +3,11 @@ import FlyingDutchmanPersistence
 import Shared
 import Hummingbird
 
-struct NetworksRoutes {
+struct NetworksRoutes: @unchecked Sendable {
     let store: NetworkStore?
 
-    func register(on router: HBRouter) {
-        router.get("/networks") { request in
-            Loggers.make(category: "flyingdutchman.networking").debug("GET /networks from \(request.remoteAddress?.description ?? \"unknown\")")
+    func register(on router: Router<BasicRequestContext>) {
+        router.get("/networks") { _, _ in
             return store?.fetchAll() ?? []
         }
     }

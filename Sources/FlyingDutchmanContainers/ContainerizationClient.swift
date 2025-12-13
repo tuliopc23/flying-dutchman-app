@@ -2,7 +2,7 @@ import Foundation
 import Shared
 
 /// Adapter that will call Apple Containerization when present, while falling back to an in-memory stub otherwise.
-public final class ContainerizationClient {
+public final class ContainerizationClient: @unchecked Sendable {
     public enum Availability: String {
         case native
         case missingFramework

@@ -3,7 +3,7 @@ import NIOConcurrencyHelpers
 import Shared
 
 /// Stub runtime layer that mimics Containerization operations for early phases.
-public protocol ContainerRuntimeProtocol {
+public protocol ContainerRuntimeProtocol: Sendable {
     var mode: ContainerRuntime.Mode { get }
     var eventStore: EventRecorder? { get }
     func list() -> [ContainerSummary]
@@ -16,7 +16,7 @@ public protocol ContainerRuntimeProtocol {
     func workerStatuses() -> [String: String]
 }
 
-public final class ContainerRuntime: ContainerRuntimeProtocol {
+public final class ContainerRuntime: ContainerRuntimeProtocol, @unchecked Sendable {
     public enum Mode: String {
         case containerization
         case stub
@@ -30,12 +30,12 @@ public final class ContainerRuntime: ContainerRuntimeProtocol {
     public let mode: Mode
     private var logs: [UUID: [String]] = [:]
     private let store: AnyContainerStore?
-    private let logStore: ContainerLogStore?
+    private let logStore: (any ContainerLogStoring)?
     public let eventStore: EventRecorder?
 
     public convenience init(
         store: AnyContainerStore? = nil,
-        logStore: ContainerLogStore? = nil,
+        logStore: (any ContainerLogStoring)? = nil,
         eventStore: EventRecorder? = nil,
         containerization: ContainerizationClient = .shared
     ) {
@@ -58,7 +58,7 @@ public final class ContainerRuntime: ContainerRuntimeProtocol {
         initialContainers: [ContainerSummary],
         containerization: ContainerizationClient,
         store: AnyContainerStore?,
-        logStore: ContainerLogStore?,
+        logStore: (any ContainerLogStoring)?,
         eventStore: EventRecorder?
     ) {
         containers = Dictionary(uniqueKeysWithValues: initialContainers.map { ($0.id, $0) })
@@ -136,7 +136,7 @@ public final class ContainerRuntime: ContainerRuntimeProtocol {
     }
 
     private func update(containerID: UUID, status: ContainerSummary.Status) -> ContainerSummary? {
-        lock.withLock {
+        let updated: ContainerSummary? = lock.withLock {
             guard var container = containers[containerID] else { return nil }
             container.status = status
             containers[containerID] = container
@@ -149,6 +149,7 @@ public final class ContainerRuntime: ContainerRuntimeProtocol {
         }
         persist()
         pruneLogs()
+        return updated
     }
 
     private func persist() {
@@ -163,11 +164,6 @@ public final class ContainerRuntime: ContainerRuntimeProtocol {
             logs[id] = logStore.fetch(containerID: id)
         }
     }
-}
-
-public protocol AnyContainerStore {
-    func fetchAll() -> [ContainerSummary]
-    func replaceAll(with summaries: [ContainerSummary])
 }
 
 public enum ContainerFixtures {

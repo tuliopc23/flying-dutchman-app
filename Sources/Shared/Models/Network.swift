@@ -1,6 +1,6 @@
 import Foundation
 
-public struct NetworkSummary: Codable, Identifiable, Hashable {
+public struct NetworkSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var subnet: String?

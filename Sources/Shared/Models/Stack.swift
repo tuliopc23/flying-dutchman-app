@@ -1,6 +1,6 @@
 import Foundation
 
-public struct StackSummary: Codable, Identifiable, Hashable {
+public struct StackSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var description: String?

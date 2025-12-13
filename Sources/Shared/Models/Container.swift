@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ContainerSummary: Codable, Identifiable, Hashable {
+public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var image: String
@@ -8,7 +8,7 @@ public struct ContainerSummary: Codable, Identifiable, Hashable {
     public var ports: [String]
     public var createdAt: Date
 
-    public enum Status: String, Codable {
+    public enum Status: String, Codable, Sendable {
         case running
         case stopped
         case paused
@@ -33,4 +33,9 @@ public struct ContainerSummary: Codable, Identifiable, Hashable {
         self.ports = ports
         self.createdAt = createdAt
     }
+}
+
+public protocol AnyContainerStore {
+    func fetchAll() -> [ContainerSummary]
+    func replaceAll(with summaries: [ContainerSummary])
 }

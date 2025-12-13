@@ -16,9 +16,15 @@ public enum EngineXPCClient {
                 return
             }
 
-            proxy.fetchStatus { status in
-                connection.invalidate()
-                continuation.resume(returning: status)
+            proxy.fetchStatus { payload in
+                defer { connection.invalidate() }
+                do {
+                    let data = payload as Data
+                    let status = try JSONDecoder().decode(EngineXPCStatus.self, from: data)
+                    continuation.resume(returning: status)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }

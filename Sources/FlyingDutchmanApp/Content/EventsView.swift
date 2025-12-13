@@ -1,6 +1,11 @@
 import Shared
 import FlyingDutchmanContainers
+import FlyingDutchmanNetworking
 import SwiftUI
+
+#if canImport(AppKit)
+import AppKit
+#endif
 
 @Observable
 final class EventsViewModel {
@@ -107,9 +112,10 @@ struct EventsView: View {
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 Button {
-                                    #if canImport(UIKit)
-                                    let line = "\(event.action) · \(event.status) · \(event.from ?? \"\") · \(event.time)"
-                                    UIPasteboard.general.string = line
+                                    #if canImport(AppKit)
+                                    let line = "\(event.action) · \(event.status) · \(event.from ?? "") · \(event.time)"
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(line, forType: .string)
                                     #endif
                                 } label: {
                                     Image(systemName: "doc.on.doc")

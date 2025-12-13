@@ -1,10 +1,11 @@
 import Foundation
 
 @objc public protocol EngineXPCProtocol {
-    func fetchStatus(reply: @escaping (EngineXPCStatus) -> Void)
+    /// Returns JSON-encoded `EngineXPCStatus` data.
+    func fetchStatus(reply: @escaping (NSData) -> Void)
 }
 
-public struct EngineXPCStatus: Codable {
+public struct EngineXPCStatus: Codable, Sendable {
     public let engine: String
     public let uptimeSeconds: Int
     public let workers: [String: String]

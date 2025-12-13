@@ -3,12 +3,11 @@ import Hummingbird
 import Shared
 import FlyingDutchmanPersistence
 
-struct StacksRoutes {
+struct StacksRoutes: @unchecked Sendable {
     let store: StackStore?
 
-    func register(on router: HBRouter) {
-        router.get("/stacks") { request -> [StackSummary] in
-            Loggers.make(category: "flyingdutchman.networking").debug("GET /stacks from \(request.remoteAddress?.description ?? \"unknown\")")
+    func register(on router: Router<BasicRequestContext>) {
+        router.get("/stacks") { _, _ -> [StackSummary] in
             guard let store else { return [] }
             return store.fetchAll()
         }

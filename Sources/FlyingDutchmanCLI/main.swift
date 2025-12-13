@@ -6,7 +6,7 @@ import FlyingDutchmanNetworking
 
 @main
 struct FlyingDutchmanCLI: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "flyingdutchman",
         abstract: "Flying Dutchman CLI (foundation stub)",
         version: AppConfig.version,
@@ -15,7 +15,7 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
 }
 
 struct Version: ParsableCommand {
-    static var configuration = CommandConfiguration(abstract: "Show version")
+    static let configuration = CommandConfiguration(abstract: "Show version")
     func run() throws {
         CLIOutput.section("Flying Dutchman")
         CLIOutput.line("Version", AppConfig.version)
@@ -23,7 +23,7 @@ struct Version: ParsableCommand {
 }
 
 struct Doctor: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(abstract: "Show diagnostics")
+    static let configuration = CommandConfiguration(abstract: "Show diagnostics")
     @Flag(help: "Output as JSON")
     var json: Bool = false
     func run() async throws {
@@ -73,7 +73,7 @@ struct Doctor: AsyncParsableCommand {
 }
 
 struct Containers: ParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         abstract: "Container operations",
         subcommands: [List.self, Start.self, Stop.self, Restart.self, Logs.self],
         defaultSubcommand: List.self
@@ -82,7 +82,7 @@ struct Containers: ParsableCommand {
 
 extension Containers {
     struct List: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "List containers")
+        static let configuration = CommandConfiguration(abstract: "List containers")
         @Flag(help: "Output as JSON")
         var json: Bool = false
 
@@ -117,7 +117,7 @@ extension Containers {
     }
 
     struct Start: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Start a container by id or name")
+        static let configuration = CommandConfiguration(abstract: "Start a container by id or name")
 
         @Argument(help: "Container UUID or name")
         var identifier: String
@@ -125,7 +125,8 @@ extension Containers {
         func run() async throws {
             let data = await ContainerData.fetch()
             guard let target = data.resolve(identifier: identifier) else {
-                throw ValidationError("Container '\(identifier)' not found (available: \(data.containers.map { $0.name }.joined(separator: \", \")))")
+                let available = data.containers.map(\.name).joined(separator: ", ")
+                throw ValidationError("Container '\(identifier)' not found (available: \(available))")
             }
 
             do {
@@ -141,7 +142,7 @@ extension Containers {
     }
 
     struct Stop: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Stop a container by id or name")
+        static let configuration = CommandConfiguration(abstract: "Stop a container by id or name")
 
         @Argument(help: "Container UUID or name")
         var identifier: String
@@ -149,7 +150,8 @@ extension Containers {
         func run() async throws {
             let data = await ContainerData.fetch()
             guard let target = data.resolve(identifier: identifier) else {
-                throw ValidationError("Container '\(identifier)' not found (available: \(data.containers.map { $0.name }.joined(separator: \", \")))")
+                let available = data.containers.map(\.name).joined(separator: ", ")
+                throw ValidationError("Container '\(identifier)' not found (available: \(available))")
             }
 
             do {
@@ -165,7 +167,7 @@ extension Containers {
     }
 
     struct Restart: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Restart a container by id or name")
+        static let configuration = CommandConfiguration(abstract: "Restart a container by id or name")
 
         @Argument(help: "Container UUID or name")
         var identifier: String
@@ -173,7 +175,8 @@ extension Containers {
         func run() async throws {
             let data = await ContainerData.fetch()
             guard let target = data.resolve(identifier: identifier) else {
-                throw ValidationError("Container '\(identifier)' not found (available: \(data.containers.map { $0.name }.joined(separator: \", \")))")
+                let available = data.containers.map(\.name).joined(separator: ", ")
+                throw ValidationError("Container '\(identifier)' not found (available: \(available))")
             }
 
             do {
@@ -189,7 +192,7 @@ extension Containers {
     }
 
     struct Logs: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Fetch container logs (stubbed if engine offline)")
+        static let configuration = CommandConfiguration(abstract: "Fetch container logs (stubbed if engine offline)")
 
         @Argument(help: "Container UUID or name")
         var identifier: String
@@ -200,7 +203,8 @@ extension Containers {
         func run() async throws {
             let data = await ContainerData.fetch()
             guard let target = data.resolve(identifier: identifier) else {
-                throw ValidationError("Container '\(identifier)' not found (available: \(data.containers.map { $0.name }.joined(separator: \", \")))")
+                let available = data.containers.map(\.name).joined(separator: ", ")
+                throw ValidationError("Container '\(identifier)' not found (available: \(available))")
             }
 
             do {
@@ -245,14 +249,14 @@ private struct ContainerData {
 }
 
 struct Images: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         abstract: "Image operations",
         subcommands: [List.self, Pull.self],
         defaultSubcommand: List.self
     )
 
     struct List: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "List images (stubbed if engine offline)")
+        static let configuration = CommandConfiguration(abstract: "List images (stubbed if engine offline)")
         @Flag(help: "Output as JSON")
         var json: Bool = false
         func run() async throws {
@@ -291,7 +295,7 @@ struct Images: AsyncParsableCommand {
     }
 
     struct Pull: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Pull an image reference (stubbed)")
+        static let configuration = CommandConfiguration(abstract: "Pull an image reference (stubbed)")
 
         @Argument(help: "Image reference, e.g., ghcr.io/fd/api:dev")
         var reference: String
@@ -309,14 +313,14 @@ struct Images: AsyncParsableCommand {
 }
 
 struct Stacks: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         abstract: "Stack operations",
         subcommands: [List.self],
         defaultSubcommand: List.self
     )
 
     struct List: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "List stacks (stubbed if engine offline)")
+        static let configuration = CommandConfiguration(abstract: "List stacks (stubbed if engine offline)")
         @Flag(help: "Output as JSON")
         var json: Bool = false
         func run() async throws {
@@ -354,14 +358,14 @@ struct Stacks: AsyncParsableCommand {
 }
 
 struct Volumes: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         abstract: "Volume operations",
         subcommands: [List.self],
         defaultSubcommand: List.self
     )
 
     struct List: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "List volumes (stubbed if engine offline)")
+        static let configuration = CommandConfiguration(abstract: "List volumes (stubbed if engine offline)")
         @Flag(help: "Output as JSON")
         var json: Bool = false
         func run() async throws {
@@ -399,14 +403,14 @@ struct Volumes: AsyncParsableCommand {
 }
 
 struct Networks: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         abstract: "Network operations",
         subcommands: [List.self],
         defaultSubcommand: List.self
     )
 
     struct List: AsyncParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "List networks (stubbed if engine offline)")
+        static let configuration = CommandConfiguration(abstract: "List networks (stubbed if engine offline)")
         @Flag(help: "Output as JSON")
         var json: Bool = false
         func run() async throws {
@@ -443,7 +447,7 @@ struct Networks: AsyncParsableCommand {
 }
 
 struct Events: AsyncParsableCommand {
-    static var configuration = CommandConfiguration(abstract: "Show recent engine/shim events (stub)")
+    static let configuration = CommandConfiguration(abstract: "Show recent engine/shim events (stub)")
 
     @Flag(help: "Output as JSON")
     var json: Bool = false
@@ -527,7 +531,7 @@ private enum CLIOutput {
     }
 }
 
-private struct DoctorReport {
+private struct DoctorReport: Encodable {
     let platform: RuntimeChecks.PlatformStatus
     let containerTool: RuntimeChecks.ToolCheck
     let containerization: RuntimeChecks.ToolCheck
@@ -536,6 +540,52 @@ private struct DoctorReport {
     let xpc: EngineXPCStatus?
     let httpError: String?
     let xpcError: String?
+
+    func encode(to encoder: Encoder) throws {
+        struct ToolPayload: Encodable {
+            let name: String
+            let status: String
+            let message: String
+        }
+
+        struct PlatformPayload: Encodable {
+            let osVersion: String
+            let isAppleSilicon: Bool
+            let isSupported: Bool
+            let message: String
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case platform
+            case containerTool
+            case containerization
+            case http
+            case detail
+            case xpc
+            case httpError
+            case xpcError
+        }
+
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        let os = platform.osVersion
+        let platformPayload = PlatformPayload(
+            osVersion: "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)",
+            isAppleSilicon: platform.isAppleSilicon,
+            isSupported: platform.isSupported,
+            message: platform.message
+        )
+
+        try container.encode(platformPayload, forKey: .platform)
+        try container.encode(ToolPayload(name: containerTool.name, status: containerTool.status, message: containerTool.message), forKey: .containerTool)
+        try container.encode(ToolPayload(name: containerization.name, status: containerization.status, message: containerization.message), forKey: .containerization)
+
+        try container.encodeIfPresent(http, forKey: .http)
+        try container.encodeIfPresent(detail, forKey: .detail)
+        try container.encodeIfPresent(xpc, forKey: .xpc)
+        try container.encodeIfPresent(httpError, forKey: .httpError)
+        try container.encodeIfPresent(xpcError, forKey: .xpcError)
+    }
 
     static func fetch() async -> DoctorReport {
         let platform = RuntimeChecks.platformSupport()

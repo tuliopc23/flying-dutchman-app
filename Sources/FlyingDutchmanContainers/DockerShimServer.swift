@@ -2,6 +2,7 @@ import Foundation
 import Logging
 import NIO
 import NIOHTTP1
+import NIOPosix
 import Shared
 
 /// Minimal Docker API compatibility shim backed by the stub runtime.
@@ -11,14 +12,41 @@ public enum DockerShimServer {
         ProcessInfo.processInfo.environment["FD_DOCKER_SHIM_SOCKET"] ?? "/var/run/flyingdutchman-docker.sock"
     }
 
-    private static var group: EventLoopGroup?
-    private static var channel: Channel?
+    private actor ShimState {
+        var group: EventLoopGroup?
+        var channel: Channel?
+
+        func isRunning() -> Bool {
+            channel != nil
+        }
+
+        func set(group: EventLoopGroup, channel: Channel) {
+            self.group = group
+            self.channel = channel
+        }
+
+        func stopIfRunning() throws -> Bool {
+            guard let channel, let group else { return false }
+            try channel.close().wait()
+            try group.syncShutdownGracefully()
+            self.channel = nil
+            self.group = nil
+            return true
+        }
+
+        func clear() {
+            channel = nil
+            group = nil
+        }
+    }
+
+    private static let state = ShimState()
 
     public static func startStub(
         runtime: ContainerRuntimeProtocol = ContainerRuntime.shared,
         logger: Logger = Loggers.make(category: "flyingdutchman.dockershim")
-    ) {
-        guard channel == nil else {
+    ) async {
+        if await state.isRunning() {
             logger.info("Docker shim stub already running at \(socketPath)")
             return
         }
@@ -28,7 +56,6 @@ public enum DockerShimServer {
             try? FileManager.default.removeItem(atPath: socketPath)
 
             let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-            self.group = group
 
             let bootstrap = ServerBootstrap(group: group)
                 .serverChannelOption(ChannelOptions.backlog, value: 256)
@@ -39,26 +66,22 @@ public enum DockerShimServer {
                     }
                 }
 
-            let address = try UNIXDomainSocketAddress(path: socketPath)
+            let address = try SocketAddress(unixDomainSocketPath: socketPath)
             let channel = try bootstrap.bind(to: address).wait()
-            self.channel = channel
+            await state.set(group: group, channel: channel)
             logger.info("Docker shim stub listening on \(socketPath)")
         } catch {
             logger.error("Failed to start Docker shim stub: \(error.localizedDescription)")
-            try? group?.syncShutdownGracefully()
-            group = nil
-            channel = nil
+            await state.clear()
             logger.warning("Docker shim fell back to stub mode; start engine with Containerization for full support.")
         }
     }
 
-    public static func stop(logger: Logger = Loggers.make(category: "flyingdutchman.dockershim")) {
+    public static func stop(logger: Logger = Loggers.make(category: "flyingdutchman.dockershim")) async {
         do {
-            try channel?.close().wait()
-            try group?.syncShutdownGracefully()
-            channel = nil
-            group = nil
-            logger.info("Docker shim stub stopped")
+            if try await state.stopIfRunning() {
+                logger.info("Docker shim stub stopped")
+            }
         } catch {
             logger.warning("Failed to stop Docker shim stub: \(error.localizedDescription)")
         }
@@ -138,7 +161,7 @@ private final class DockerShimHandler: ChannelInboundHandler {
         case (.GET, let uri) where uri.contains("/logs"):
             handleLogs(uri: uri, context: context)
         case (.GET, "/events"):
-            let wantsSSE = head.headers.contains(name: "Accept") { $0.contains("text/event-stream") }
+            let wantsSSE = head.headers.first(name: "Accept")?.contains("text/event-stream") == true
             handleEvents(context: context, stream: wantsSSE)
         default:
             // Handle start/stop: /containers/<id>/start or /containers/<id>/stop
@@ -177,11 +200,12 @@ private final class DockerShimHandler: ChannelInboundHandler {
     }
 
     private func handleCreate(context: ChannelHandlerContext) {
-        guard let bodyBuffer, let bytes = bodyBuffer.getData(at: 0, length: bodyBuffer.readableBytes) else {
+        guard let bodyBuffer,
+              let bytes = bodyBuffer.getBytes(at: bodyBuffer.readerIndex, length: bodyBuffer.readableBytes) else {
             respond(context: context, status: .badRequest, body: "missing body")
             return
         }
-        let payload = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any]
+        let payload = (try? JSONSerialization.jsonObject(with: Data(bytes))) as? [String: Any]
         let image = payload?["Image"] as? String ?? "unknown:latest"
         let name = (payload?["name"] as? String) ?? "shim-\(Int.random(in: 1000...9999))"
         let summary = ContainerSummary(name: name, image: image, status: .stopped, ports: [])

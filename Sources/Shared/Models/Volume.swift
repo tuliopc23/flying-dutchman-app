@@ -1,6 +1,6 @@
 import Foundation
 
-public struct VolumeSummary: Codable, Identifiable, Hashable {
+public struct VolumeSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var mountPath: String

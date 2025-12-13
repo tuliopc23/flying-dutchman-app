@@ -1,12 +1,12 @@
 import Foundation
 
-public struct Project: Identifiable, Hashable {
+public struct Project: Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var status: Status
     public var description: String?
 
-    public enum Status: String {
+    public enum Status: String, Sendable {
         case active
         case empty
     }

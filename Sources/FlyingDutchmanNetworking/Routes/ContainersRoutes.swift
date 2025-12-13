@@ -3,64 +3,54 @@ import Hummingbird
 import FlyingDutchmanContainers
 import Shared
 
-struct ContainersRoutes {
+struct ContainersRoutes: @unchecked Sendable {
     let runtime: ContainerRuntimeProtocol
     let store: AnyContainerStore?
 
-    func register(on router: HBRouter) {
-        router.get("/containers") { request in
-            Loggers.make(category: "flyingdutchman.networking").debug("GET /containers from \(request.remoteAddress?.description ?? \"unknown\")")
+    func register(on router: Router<BasicRequestContext>) {
+        router.get("/containers") { _, _ in
             runtime.list()
         }
 
-        router.get("/containers/:id") { request -> ContainerSummary in
-            let id = try containerID(from: request)
+        router.get("/containers/:id") { _, context -> ContainerSummary in
+            let id = try containerID(from: context)
             guard let summary = runtime.list().first(where: { $0.id == id }) else {
-                throw HBHTTPError(.notFound)
+                throw HTTPError(.notFound)
             }
             return summary
         }
 
-        router.post("/containers/:id/start") { request -> ContainerSummary in
-            Loggers.make(category: "flyingdutchman.networking").debug("POST /containers/\(request.parameters.get(\"id\") ?? \"\")/start")
-            let id = try containerID(from: request)
+        router.post("/containers/:id/start") { _, context -> ContainerSummary in
+            let id = try containerID(from: context)
             guard let updated = runtime.start(containerID: id) else {
-                throw HBHTTPError(.notFound)
+                throw HTTPError(.notFound)
             }
             persist()
             return updated
         }
 
-        router.post("/containers/:id/stop") { request -> ContainerSummary in
-            Loggers.make(category: "flyingdutchman.networking").debug("POST /containers/\(request.parameters.get(\"id\") ?? \"\")/stop")
-            let id = try containerID(from: request)
+        router.post("/containers/:id/stop") { _, context -> ContainerSummary in
+            let id = try containerID(from: context)
             guard let updated = runtime.stop(containerID: id) else {
-                throw HBHTTPError(.notFound)
+                throw HTTPError(.notFound)
             }
             persist()
             return updated
         }
 
-        router.post("/containers/:id/restart") { request -> ContainerSummary in
-            Loggers.make(category: "flyingdutchman.networking").debug("POST /containers/\(request.parameters.get(\"id\") ?? \"\")/restart")
-            let id = try containerID(from: request)
+        router.post("/containers/:id/restart") { _, context -> ContainerSummary in
+            let id = try containerID(from: context)
             guard let updated = runtime.restart(containerID: id) else {
-                throw HBHTTPError(.notFound)
+                throw HTTPError(.notFound)
             }
             persist()
             return updated
         }
 
-        router.get("/containers/:id/logs") { request -> HBResponse in
-            let id = try containerID(from: request)
+        router.get("/containers/:id/logs") { _, context -> String in
+            let id = try containerID(from: context)
             let logs = runtime.logs(for: id)
-            let joined = logs.joined(separator: "\n") + "\n"
-            var buffer = ByteBuffer()
-            buffer.writeString(joined)
-            var headers = HTTPHeaders()
-            headers.add(name: "Content-Type", value: "text/plain")
-            headers.add(name: "Content-Length", value: "\(buffer.readableBytes)")
-            return HBResponse(status: .ok, headers: headers, body: .byteBuffer(buffer))
+            return logs.joined(separator: "\n") + "\n"
         }
     }
 
@@ -69,10 +59,7 @@ struct ContainersRoutes {
         runtime.export(to: store)
     }
 
-    private func containerID(from request: HBRequest) throws -> UUID {
-        guard let idString = request.parameters.get("id"), let uuid = UUID(uuidString: idString) else {
-            throw HBHTTPError(.badRequest)
-        }
-        return uuid
+    private func containerID(from context: BasicRequestContext) throws -> UUID {
+        try context.parameters.require("id", as: UUID.self)
     }
 }

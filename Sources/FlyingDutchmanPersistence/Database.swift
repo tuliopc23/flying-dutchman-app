@@ -1,23 +1,26 @@
 import Foundation
 import GRDB
 import Shared
-import FlyingDutchmanContainers
 
-public final class DatabaseContainer {
+public final class DatabaseContainer: @unchecked Sendable {
     public static let shared = DatabaseContainer()
     public let dbQueue: DatabaseQueue
 
     private init() {
         let logger = Loggers.make(category: "flyingdutchman.persistence")
         let url = DatabaseContainer.databaseURL()
+
+        var queue: DatabaseQueue
         do {
-            dbQueue = try DatabaseQueue(path: url.path)
-            try DatabaseContainer.migrator.migrate(dbQueue)
+            queue = try DatabaseQueue(path: url.path)
+            try DatabaseContainer.migrator.migrate(queue)
             logger.info("Initialized SQLite at \(url.path)")
         } catch {
             logger.error("Failed to open SQLite at \(url.path): \(error.localizedDescription). Using in-memory fallback.")
-            dbQueue = try! DatabaseQueue()
+            queue = try! DatabaseQueue()
         }
+
+        dbQueue = queue
     }
 
     private static func databaseURL() -> URL {
@@ -28,7 +31,7 @@ public final class DatabaseContainer {
         return dir.appendingPathComponent("flyingdutchman.sqlite")
     }
 
-    private static var migrator: DatabaseMigrator = {
+    private static let migrator: DatabaseMigrator = {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1_core_schema") { db in
             try db.create(table: "containers") { t in
@@ -62,13 +65,6 @@ public final class DatabaseContainer {
                 t.column("containerId", .text).notNull().indexed().references("containers", onDelete: .cascade)
                 t.column("stackId", .text).notNull().indexed().references("stacks", onDelete: .cascade)
                 t.primaryKey(["containerId", "stackId"])
-            }
-        }
-        migrator.registerMigration("v2_stack_container_names") { db in
-            if try db.tableExists("stacks"), try !db.columnExists("containerNames", in: "stacks") {
-                try db.alter(table: "stacks") { t in
-                    t.add(column: "containerNames", .text).notNull().defaults(to: "[]")
-                }
             }
         }
         migrator.registerMigration("v3_networks_volumes") { db in

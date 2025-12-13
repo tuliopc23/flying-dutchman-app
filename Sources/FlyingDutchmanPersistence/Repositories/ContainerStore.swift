@@ -1,7 +1,6 @@
 import Foundation
 import GRDB
 import Shared
-import FlyingDutchmanContainers
 
 public struct ContainerStore: AnyContainerStore {
     private let dbQueue: DatabaseQueue

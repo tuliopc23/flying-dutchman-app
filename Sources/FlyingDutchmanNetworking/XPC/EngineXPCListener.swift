@@ -1,14 +1,25 @@
 import Foundation
 import Shared
 
-public final class EngineXPCListener {
+public actor EngineXPCListener {
     public static let serviceName = "com.flyingdutchman.engine.xpc"
+    public static let shared = EngineXPCListener()
 
-    public static func start() {
-        let listener = NSXPCListener(machServiceName: serviceName)
-        listener.delegate = XPCDelegate()
+    private var listener: NSXPCListener?
+    private var delegate: NSXPCListenerDelegate?
+
+    public func start() {
+        guard listener == nil else { return }
+
+        let listener = NSXPCListener(machServiceName: Self.serviceName)
+        let delegate = XPCDelegate()
+        listener.delegate = delegate
+
+        self.listener = listener
+        self.delegate = delegate
+
         listener.resume()
-        Loggers.make(category: "flyingdutchman.xpc").info("XPC listener started: \(serviceName)")
+        Loggers.make(category: "flyingdutchman.xpc").info("XPC listener started: \(Self.serviceName)")
     }
 }
 

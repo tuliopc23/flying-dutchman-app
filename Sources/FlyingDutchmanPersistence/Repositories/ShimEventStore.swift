@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 import Shared
 
-public struct ShimEventStore: EventRecorder {
+public struct ShimEventStore: EventRecorder, @unchecked Sendable {
     private let dbQueue: DatabaseQueue
 
     public init(dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue) {

@@ -11,7 +11,7 @@ public enum ContainerizationStub {
 
     public static func currentState(runtime: ContainerRuntimeProtocol? = nil) -> EngineState {
         let workerStatuses = runtime?.workerStatuses() ?? [:]
-        EngineState(
+        return EngineState(
             engine: "running",
             uptimeSeconds: EngineRuntime.uptimeSeconds,
             workers: [

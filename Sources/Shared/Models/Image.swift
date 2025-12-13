@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ImageSummary: Codable, Identifiable, Hashable {
+public struct ImageSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var tag: String
