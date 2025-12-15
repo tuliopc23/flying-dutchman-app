@@ -51,14 +51,14 @@ struct RootContainerView: View {
             appearanceOverride: $appearanceOverride
         )
         .frame(minWidth: 960, minHeight: 600)
-        .task { await engineStatus.refresh() }
-        .task { await containersViewModel.load() }
-        .task { await imagesViewModel.load() }
-        .task { await volumesViewModel.load() }
-        .task { await networksViewModel.load() }
-        .task { await eventsViewModel.load() }
-        .task { await logsViewModel.load(containers: containersViewModel.containers) }
-        .task {
+        .task { @MainActor in await engineStatus.refresh() }
+        .task { @MainActor in await containersViewModel.load() }
+        .task { @MainActor in await imagesViewModel.load() }
+        .task { @MainActor in await volumesViewModel.load() }
+        .task { @MainActor in await networksViewModel.load() }
+        .task { @MainActor in await eventsViewModel.load() }
+        .task { @MainActor in await logsViewModel.load(containers: containersViewModel.containers) }
+.task { @MainActor in
             platformStatus = RuntimeChecks.platformSupport()
             containerizationStatus = RuntimeChecks.containerizationFramework()
         }
@@ -160,6 +160,7 @@ struct RootContainerView: View {
     }
 }
 
+@MainActor
 @Observable
 final class StatusViewModel {
     var statusText: String = "Checking…"

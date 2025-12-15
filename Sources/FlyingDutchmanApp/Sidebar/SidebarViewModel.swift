@@ -1,6 +1,7 @@
 import Foundation
 import Shared
 
+@MainActor
 @Observable
 final class SidebarViewModel {
     var projects: [Project] = Project.samples
@@ -17,9 +18,9 @@ final class SidebarViewModel {
 
     func requestFocus() {
         highlightSidebar = true
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
-            highlightSidebar = false
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.2))
+            self?.highlightSidebar = false
         }
     }
 

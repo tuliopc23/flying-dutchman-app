@@ -1,7 +1,9 @@
 import Shared
 import FlyingDutchmanContainers
+import FlyingDutchmanNetworking
 import SwiftUI
 
+@MainActor
 @Observable
 final class ImageListViewModel {
     var images: [ImageSummary] = []
@@ -42,7 +44,7 @@ struct ImageListView: View {
                         ProgressView().controlSize(.small)
                     }
                     Button {
-                        Task { await viewModel.load() }
+                        Task { @MainActor in await viewModel.load() }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }

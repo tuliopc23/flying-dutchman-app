@@ -1,0 +1,37 @@
+# SwiftPM
+.build/
+.swiftpm/
+*.xcodeproj/
+*.playground
+Build/
+
+# Xcode & Xcode User Data
+.DS_Store
+xcuserdata/
+*.xcworkspace/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM/
+
+# Swift Package Manager
+Package.resolved
+.swiftpm/config/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tuist
+Tuist/Projects
+Tuist/Config

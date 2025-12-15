@@ -1,7 +1,9 @@
 import Shared
 import FlyingDutchmanContainers
+import FlyingDutchmanNetworking
 import SwiftUI
 
+@MainActor
 @Observable
 final class ContainerListViewModel {
     var containers: [ContainerSummary] = []
@@ -31,7 +33,7 @@ final class ContainerListViewModel {
             containers = try await EngineClient.listContainers()
         } catch {
             containers = ContainerFixtures.sampleContainers
-            error = "Showing mock data. Engine unreachable: \(error.localizedDescription)"
+            self.error = "Showing mock data. Engine unreachable: \(error.localizedDescription)"
         }
         isLoading = false
     }
@@ -73,7 +75,7 @@ struct ContainerListView: View {
                         ProgressView().controlSize(.small)
                     }
                     Button {
-                        Task { await viewModel.load() }
+                        Task { @MainActor in await viewModel.load() }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
@@ -133,14 +135,14 @@ struct ContainerListView: View {
         switch container.status {
         case .running:
             Button {
-                Task { await viewModel.stop(container) }
+                Task { @MainActor in await viewModel.stop(container) }
             } label: {
                 Label("Stop", systemImage: "stop.fill")
             }
             .buttonStyle(.bordered)
         case .stopped, .paused:
             Button {
-                Task { await viewModel.start(container) }
+                Task { @MainActor in await viewModel.start(container) }
             } label: {
                 Label("Start", systemImage: "play.fill")
             }

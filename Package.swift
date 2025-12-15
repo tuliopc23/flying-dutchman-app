@@ -76,6 +76,7 @@ let package = Package(
             dependencies: [
                 "Shared",
                 "FlyingDutchmanContainers",
+                "FlyingDutchmanPersistence",
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "GRDBSQLite", package: "GRDB.swift")

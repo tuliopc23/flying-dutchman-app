@@ -7,6 +7,7 @@ import SwiftUI
 import AppKit
 #endif
 
+@MainActor
 @Observable
 final class EventsViewModel {
     var events: [DockerEvent] = []
@@ -38,9 +39,9 @@ final class EventsViewModel {
     func scheduleStreaming() {
         guard isStreaming else { return }
         streamTask?.cancel()
-        streamTask = Task { [pollInterval, limit] in
+        streamTask = Task { @MainActor [pollInterval] in
             while !Task.isCancelled {
-                try await Task.sleep(for: .seconds(pollInterval))
+                try? await Task.sleep(for: .seconds(pollInterval))
                 await load(stream: true)
             }
         }
@@ -56,9 +57,9 @@ final class EventsViewModel {
 
     private func scheduleKeepAlive() {
         keepAliveTask?.cancel()
-        keepAliveTask = Task {
+        keepAliveTask = Task { @MainActor in
             while !Task.isCancelled {
-                try await Task.sleep(for: .seconds(max(10, pollInterval * 2)))
+                try? await Task.sleep(for: .seconds(max(10, pollInterval * 2)))
             }
         }
     }
@@ -76,12 +77,12 @@ struct EventsView: View {
                         ProgressView().controlSize(.small)
                     }
                     Button {
-                        Task { await viewModel.load(stream: true) }
+                        Task { @MainActor in await viewModel.load(stream: true) }
                     } label: {
                         Label("Stream", systemImage: "dot.radiowaves.left.and.right")
                     }
                     Button {
-                        Task { await viewModel.load() }
+                        Task { @MainActor in await viewModel.load() }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }

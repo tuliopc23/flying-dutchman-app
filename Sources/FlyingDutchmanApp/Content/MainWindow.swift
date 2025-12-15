@@ -67,7 +67,7 @@ struct MainWindow: View {
                         }
                         Spacer()
                         Button {
-                            Task { await statusViewModel.refresh() }
+                            Task { @MainActor in await statusViewModel.refresh() }
                         } label: {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
@@ -105,7 +105,7 @@ struct MainWindow: View {
                 }
                 ToolbarItemGroup {
                     Button {
-                        Task { await refreshCurrentSection() }
+                        Task { @MainActor in await refreshCurrentSection() }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
@@ -149,6 +149,7 @@ struct MainWindow: View {
         }
     }
 
+    @MainActor
     private func refreshCurrentSection() async {
         switch selectedSection {
         case .containers:

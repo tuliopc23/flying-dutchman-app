@@ -1,7 +1,9 @@
 import Shared
 import FlyingDutchmanContainers
+import FlyingDutchmanNetworking
 import SwiftUI
 
+@MainActor
 @Observable
 final class LogsViewModel {
     var lines: [String] = []
@@ -44,11 +46,11 @@ final class LogsViewModel {
     func scheduleFollow(containers: [ContainerSummary]) {
         guard follow else { return }
         followTask?.cancel()
-        followTask = Task { [pollInterval] in
+        followTask = Task { @MainActor [pollInterval] in
             while !Task.isCancelled {
                 let elapsed = Date().timeIntervalSince(lastLoaded)
                 let delay = max(1, pollInterval - elapsed)
-                try await Task.sleep(for: .seconds(delay))
+                try? await Task.sleep(for: .seconds(delay))
                 await load(containers: containers)
             }
         }
@@ -64,9 +66,9 @@ final class LogsViewModel {
 
     private func scheduleKeepAlive() {
         keepAliveTask?.cancel()
-        keepAliveTask = Task {
+        keepAliveTask = Task { @MainActor in
             while !Task.isCancelled {
-                try await Task.sleep(for: .seconds(max(10, pollInterval * 2)))
+                try? await Task.sleep(for: .seconds(max(10, pollInterval * 2)))
             }
         }
     }
@@ -91,12 +93,12 @@ struct LogsView: View {
                         ForEach(containers) { container in
                             Button(container.name) {
                                 viewModel.selectedContainer = container
-                                Task { await viewModel.load(containers: containers) }
+                                Task { @MainActor in await viewModel.load(containers: containers) }
                             }
                         }
                     }
                     Button {
-                        Task { await viewModel.load(containers: containers) }
+                        Task { @MainActor in await viewModel.load(containers: containers) }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }

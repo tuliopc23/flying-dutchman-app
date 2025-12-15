@@ -8,17 +8,28 @@ public enum RuntimeFactory {
         eventStore: EventRecorder? = nil
     ) -> ContainerRuntimeProtocol {
         let runtimeEnv = ProcessInfo.processInfo.environment["FD_RUNTIME"]?.lowercased()
-        if runtimeEnv == "cli", let cli = ContainerCLIRuntime(store: store, logStore: logStore, eventStore: eventStore) {
-            return cli
-        }
-        if runtimeEnv == "native" {
-            #if canImport(Containerization)
+
+        switch runtimeEnv {
+        case "cli":
+            if let cli = ContainerCLIRuntime(store: store, logStore: logStore, eventStore: eventStore) {
+                return cli
+            }
+            return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+
+        case "native":
             // TODO: Implement ContainerizationRuntime when framework APIs are available.
             return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
-            #else
+
+        case .none, "", "auto":
+            if ContainerizationClient.shared.isNativeAvailable {
+                return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+            }
+            if let cli = ContainerCLIRuntime(store: store, logStore: logStore, eventStore: eventStore) {
+                return cli
+            }
             return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
-            #endif
-        } else {
+
+        default:
             return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
         }
     }
