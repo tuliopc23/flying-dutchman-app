@@ -61,7 +61,10 @@ struct RootContainerView: View {
             selectedSection: $appModel.selectedSection,
             appearanceOverride: $appModel.appearanceOverride
         )
-        .frame(minWidth: 960, minHeight: 600)
+        .frame(
+            minWidth: 1000, 
+            minHeight: 700
+        )
         .task { @MainActor in await bootstrap() }
         .onChange(of: appModel.selectedSection) { _, newValue in
             persistUIState(section: newValue)
@@ -119,6 +122,7 @@ struct RootContainerView: View {
         }
         .onAppear { seedCommands() }
         .preferredColorScheme(appModel.appearanceOverride)
+        .background(DesignSystem.Colors.background)
     }
 
     @MainActor

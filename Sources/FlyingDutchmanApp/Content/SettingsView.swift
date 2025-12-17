@@ -70,8 +70,9 @@ struct SettingsView: View {
                 }
             }
         }
-        .padding(16)
+        .padding(DesignSystem.Inset.lg)
         .frame(width: 420)
+        .background(DesignSystem.Colors.background)
     }
 
     private func ensureState() -> UIState {

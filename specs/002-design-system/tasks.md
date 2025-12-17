@@ -5,36 +5,36 @@
 
 ## Phase 1: Token Foundation
 
-- [ ] T001 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Colors.swift` with Netherlands palette (Orange #FF6200, Blue #21468B, White) and semantic color tokens for light/dark modes
-- [ ] T002 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Spacing.swift` with spacing scale (.xxs through .xxxl: 2/4/8/12/16/24/32/48pt)
-- [ ] T003 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/CornerRadius.swift` with radius tokens (.tight/.regular/.comfortable/.spacious: 4/8/12/16pt) and shape helpers
-- [ ] T004 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Typography.swift` with SF Pro Display/Text/Mono font scale and dynamic type support
+- [x] T001 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Colors.swift` with Netherlands palette (Orange #FF6200, Blue #21468B, White) and semantic color tokens for light/dark modes
+- [x] T002 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Spacing.swift` with spacing scale (.xxs through .xxxl: 2/4/8/12/16/24/32/48pt)
+- [x] T003 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/CornerRadius.swift` with radius tokens (.tight/.regular/.comfortable/.spacious: 4/8/12/16pt) and shape helpers
+- [x] T004 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Typography.swift` with SF Pro Display/Text/Mono font scale and dynamic type support
 
 ## Phase 2: Visual Effects & Materials
 
-- [ ] T010 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Extensions/View+Glass.swift` with Liquid Glass helpers (`.glassEffect()`, `.glassSurface()`, `.glassToolbar()`)
-- [ ] T011 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Shadows.swift` with shadow presets (.subtle/.card/.floating/.prominent)
-- [ ] T012 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Animations.swift` with animation presets (.standard/.quick/.smooth/.bouncy spring curves)
+- [x] T010 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Extensions/View+Glass.swift` with Liquid Glass helpers (`.glassEffect()`, `.glassSurface()`, `.glassToolbar()`)
+- [x] T011 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Shadows.swift` with shadow presets (.subtle/.card/.floating/.prominent)
+- [x] T012 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Tokens/Animations.swift` with animation presets (.standard/.quick/.smooth/.bouncy spring curves)
 
 ## Phase 3: Components & Helpers
 
-- [ ] T020 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Extensions/Image+Symbols.swift` with SF Symbol helper methods (size/weight/rendering mode)
-- [ ] T021 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Extensions/View+Layout.swift` with spacing/sizing convenience modifiers
-- [ ] T022 [P0] Create unified window chrome helpers: `.unifiedChrome()` modifier (hidden title bar + toolbar background)
+- [x] T020 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Extensions/Image+Symbols.swift` with SF Symbol helper methods (size/weight/rendering mode)
+- [x] T021 [P0] Create `Sources/FlyingDutchmanApp/DesignSystem/Extensions/View+Layout.swift` with spacing/sizing convenience modifiers
+- [x] T022 [P0] Create unified window chrome helpers: `.unifiedChrome()` modifier (hidden title bar + toolbar background)
 
 ## Phase 4: Documentation & Showcase
 
-- [ ] T030 [P1] Create `specs/002-design-system/design-tokens.md` with comprehensive token tables (colors, spacing, typography, radii, shadows, animations)
-- [ ] T031 [P1] Create `Sources/FlyingDutchmanApp/DesignSystem/DesignSystemShowcase.swift` with SwiftUI Previews displaying all tokens visually
-- [ ] T032 [P1] Add "Design System" section to README.md with links to token documentation and preview instructions
+- [x] T030 [P1] Create `specs/002-design-system/design-tokens.md` with comprehensive token tables (colors, spacing, typography, radii, shadows, animations)
+- [x] T031 [P1] Create `Sources/FlyingDutchmanApp/DesignSystem/DesignSystemShowcase.swift` with SwiftUI Previews displaying all tokens visually
+- [x] T032 [P1] Add "Design System" section to README.md with links to token documentation and preview instructions
 
 ## Phase 5: Migration & Validation
 
-- [ ] T040 [P1] Audit existing views for hardcoded colors/spacing/radii and create migration checklist
-- [ ] T041 [P1] Migrate `MainWindow.swift` to use design system tokens (colors, glass effects, typography)
-- [ ] T042 [P1] Migrate `SidebarView.swift` to use design system tokens and `.backgroundExtensionEffect()` for edge-to-edge content
-- [ ] T043 [P1] Migrate `CommandPaletteView.swift` to use design system tokens and Liquid Glass materials
-- [ ] T044 [P2] Run grep audit to verify zero hardcoded hex colors, magic number spacings, or custom blur effects outside token files
+- [x] T040 [P1] Audit existing views for hardcoded colors/spacing/radii and create migration checklist
+- [x] T041 [P1] Migrate `MainWindow.swift` to use design system tokens (colors, glass effects, typography)
+- [x] T042 [P1] Migrate `SidebarView.swift` to use design system tokens and `.backgroundExtensionEffect()` for edge-to-edge content
+- [x] T043 [P1] Migrate `CommandPaletteView.swift` to use design system tokens and Liquid Glass materials
+- [x] T044 [P2] Run grep audit to verify zero hardcoded hex colors, magic number spacings, or custom blur effects outside token files
 
 ## Phase 6: Accessibility & Polish
 

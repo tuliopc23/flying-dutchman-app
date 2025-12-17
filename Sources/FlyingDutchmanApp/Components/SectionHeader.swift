@@ -14,18 +14,26 @@ struct SectionHeader<Content: View>: View {
     }
 
     var body: some View {
-        HStack {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .foregroundStyle(.primary)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.title3.weight(.semibold))
+        HStack(spacing: DesignSystem.Spacing.md) {
+            HStack(spacing: DesignSystem.Spacing.sm) {
+                Image.systemIcon(icon, size: DesignSystem.Size.iconLarge)
+                    .foregroundStyle(DesignSystem.Colors.accent)
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
+                    Text(title)
+                        .font(DesignSystem.Typography.title3)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                    
                     if let subtitle {
-                        Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                        Text(subtitle)
+                            .font(DesignSystem.Typography.caption1)
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
                     }
                 }
             }
-            Spacer(minLength: 12)
+            
+            Spacer(minLength: DesignSystem.Spacing.md)
+            
             actions
                 .buttonStyle(.borderless)
         }

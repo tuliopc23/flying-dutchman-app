@@ -51,11 +51,10 @@ final class ImageListViewModel {
 
 struct ImageListView: View {
     @Bindable var viewModel: ImageListViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
                 SectionHeader(title: "Images", subtitle: "Local and cached images", icon: "shippingbox.fill") {
                     if viewModel.isLoading {
                         ProgressView().controlSize(.small)
@@ -65,33 +64,36 @@ struct ImageListView: View {
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
+                    .buttonStyle(.glass)
                 }
 
                 TextField("Search images", text: $viewModel.searchQuery)
                     .textFieldStyle(.roundedBorder)
 
-                HStack(spacing: 10) {
+                HStack(spacing: DesignSystem.Spacing.sm) {
                     TextField("Pull image (e.g. postgres:16-alpine)", text: $viewModel.pullReference)
                         .textFieldStyle(.roundedBorder)
+                    
                     Button {
                         Task { @MainActor in await viewModel.pull() }
                     } label: {
                         Label(viewModel.isPulling ? "Pulling…" : "Pull", systemImage: "arrow.down.circle")
                     }
                     .disabled(viewModel.isPulling)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
+                    .tint(DesignSystem.Colors.accent)
                 }
 
                 if let pullMessage = viewModel.pullMessage {
                     Text(pullMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(DesignSystem.Typography.footnote)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
                 }
 
                 if let error = viewModel.error {
                     Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
+                        .font(DesignSystem.Typography.footnote)
+                        .foregroundStyle(DesignSystem.Colors.warning)
                 }
 
                 if viewModel.filtered.isEmpty {
@@ -101,24 +103,31 @@ struct ImageListView: View {
                         systemImage: "shippingbox"
                     )
                 } else {
-                    VStack(spacing: 10) {
+                    VStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.filtered, id: \.name) { image in
-                            HStack(spacing: 10) {
-                                Image(systemName: "shippingbox.circle")
-                                VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: DesignSystem.Spacing.md) {
+                                Image.systemIcon("shippingbox.circle", size: DesignSystem.Size.iconRegular)
+                                    .foregroundStyle(DesignSystem.Colors.accent)
+                                
+                                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
                                     Text("\(image.name):\(image.tag)")
+                                        .font(DesignSystem.Typography.body)
+                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                    
                                     Text(image.digest ?? "No digest")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                        .font(DesignSystem.Typography.caption2)
+                                        .foregroundStyle(DesignSystem.Colors.textTertiary)
                                 }
+                                
                                 Spacer()
+                                
                                 Text(image.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(DesignSystem.Typography.caption1)
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
                             }
-                            .padding(10)
-                            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                            .clipShape(DesignTokens.glassShape)
+                            .padding(DesignSystem.Inset.sm)
+                            .background(DesignSystem.Colors.surfaceSecondary)
+                            .cornerRadius(DesignSystem.CornerRadius.regular)
                         }
                     }
                 }

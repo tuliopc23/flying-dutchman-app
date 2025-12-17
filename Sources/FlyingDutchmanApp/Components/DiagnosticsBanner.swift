@@ -1,4 +1,3 @@
-import Shared
 import SwiftUI
 
 struct DiagnosticsBanner: View {
@@ -12,40 +11,42 @@ struct DiagnosticsBanner: View {
     let icon: String
     let tone: Tone
 
-    @Environment(\.colorScheme) private var colorScheme
-
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2.weight(.semibold))
+        HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+            Image.systemIcon(icon, size: DesignSystem.Size.iconLarge, weight: .semibold)
                 .foregroundStyle(toneColor)
-                .padding(.top, 2)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                 Text(title)
-                    .font(.headline)
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
                 Text(message)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(DesignSystem.Typography.subheadline)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
             }
 
             Spacer()
         }
-        .padding(12)
-        .background(DesignTokens.glassBackground(for: colorScheme))
+        .padding(DesignSystem.Inset.md)
+        .background(DesignSystem.Colors.surfacePrimary)
         .overlay(
-            DesignTokens.glassShape.strokeBorder(toneColor.opacity(0.4), lineWidth: 1.5)
+            RoundedRectangle(
+                cornerRadius: DesignSystem.CornerRadius.comfortable,
+                style: .continuous
+            )
+            .strokeBorder(toneColor.opacity(0.4), lineWidth: 1.5)
         )
-        .clipShape(DesignTokens.glassShape)
-        .shadow(color: .black.opacity(colorScheme == .dark ? 0.35 : 0.2), radius: 16, y: 8)
+        .cornerRadius(DesignSystem.CornerRadius.comfortable)
+        .shadowCard()
     }
 
     private var toneColor: Color {
         switch tone {
         case .warning:
-            return .orange
+            return DesignSystem.Colors.warning
         case .info:
-            return .blue
+            return DesignSystem.Colors.info
         }
     }
 }

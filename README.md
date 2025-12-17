@@ -16,6 +16,15 @@ experience inspired by Orbstack—fast, intuitive, and native to macOS.
 
 See `.specify/memory/constitution.md` for complete project principles and governance.
 
+### Design System
+Built for macOS Tahoe 26+, Flying Dutchman uses a token-based design system inspired by the Netherlands national football team.
+
+- **Palette**: Netherlands Orange (#FF6200), Royal Blue (#21468B), White.
+- **Material**: Native Liquid Glass via `.glassEffect()`.
+- **Typography**: SF Pro Display (Headings), SF Pro Text (Body), SF Mono (Code).
+- **Guidelines**: [Design Token Reference](specs/002-design-system/design-tokens.md)
+- **Showcase**: Run `DesignSystemShowcase.swift` in Xcode Previews.
+
 ## Status
 
 🚧 **Early Development** - Constitution ratified, MVP planning in progress.

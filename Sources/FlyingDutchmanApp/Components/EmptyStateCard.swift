@@ -6,18 +6,24 @@ struct EmptyStateCard: View {
     let systemImage: String
 
     var body: some View {
-        VStack(spacing: 10) {
-            Image(systemName: systemImage)
-                .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(.secondary)
+        VStack(spacing: DesignSystem.Spacing.md) {
+            Image.systemIcon(
+                systemImage,
+                size: DesignSystem.Size.iconHuge,
+                weight: .semibold
+            )
+            .foregroundStyle(DesignSystem.Colors.textSecondary)
+            
             Text(title)
-                .font(.headline)
+                .font(DesignSystem.Typography.headline)
+                .foregroundStyle(DesignSystem.Colors.textPrimary)
+            
             Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(DesignSystem.Typography.subheadline)
+                .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(28)
+        .padding(DesignSystem.Spacing.xxl)
     }
 }

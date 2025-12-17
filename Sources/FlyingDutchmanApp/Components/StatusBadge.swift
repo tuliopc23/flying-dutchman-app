@@ -8,7 +8,8 @@ struct StatusBadge: View {
         let isReady = state.lowercased() == "ready"
         Label(label, systemImage: isReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
             .labelStyle(.iconOnly)
-            .foregroundStyle(isReady ? .green : .orange)
+            .font(.system(size: DesignSystem.Size.iconRegular, weight: .medium))
+            .foregroundStyle(isReady ? DesignSystem.Colors.success : DesignSystem.Colors.warning)
             .help(label)
     }
 }
