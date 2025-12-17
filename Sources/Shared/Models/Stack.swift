@@ -21,3 +21,27 @@ public struct StackSummary: Codable, Identifiable, Hashable, Sendable {
         self.containerNames = containerNames
     }
 }
+
+public struct StackCreateRequest: Codable, Hashable, Sendable {
+    public var name: String
+    public var description: String?
+    public var containerNames: [String]
+
+    public init(name: String, description: String? = nil, containerNames: [String] = []) {
+        self.name = name
+        self.description = description
+        self.containerNames = containerNames
+    }
+}
+
+public struct StackActionResponse: Codable, Hashable, Sendable {
+    public var stack: StackSummary
+    public var affectedContainers: [ContainerSummary]
+    public var errors: [String]
+
+    public init(stack: StackSummary, affectedContainers: [ContainerSummary], errors: [String] = []) {
+        self.stack = stack
+        self.affectedContainers = affectedContainers
+        self.errors = errors
+    }
+}

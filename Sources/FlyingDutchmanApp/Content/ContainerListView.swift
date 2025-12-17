@@ -46,6 +46,10 @@ final class ContainerListViewModel {
         await mutate(container, action: EngineClient.stopContainer)
     }
 
+    func restart(_ container: ContainerSummary) async {
+        await mutate(container, action: EngineClient.restartContainer)
+    }
+
     private func mutate(
         _ container: ContainerSummary,
         action: @escaping (UUID) async throws -> ContainerSummary
@@ -65,7 +69,9 @@ final class ContainerListViewModel {
 
 struct ContainerListView: View {
     @Bindable var viewModel: ContainerListViewModel
+    var stack: StackSummary?
     @Environment(\.colorScheme) private var colorScheme
+    @State private var selectedContainer: ContainerSummary?
 
     var body: some View {
         GlassCard {
@@ -104,30 +110,45 @@ struct ContainerListView: View {
                     )
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(viewModel.filtered) { container in
-                            HStack(spacing: 12) {
-                                Image(systemName: DesignTokens.containerStatusSymbol(for: container.status))
-                                    .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(container.name)
-                                    Text(container.image)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    Text(container.ports.isEmpty ? "No exposed ports" : container.ports.joined(separator: ", "))
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                        ForEach(filteredForStack) { container in
+                            NavigationLink(value: container) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: DesignTokens.containerStatusSymbol(for: container.status))
+                                        .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
+                                        .symbolEffect(.variableColor.iterative, isActive: container.status == .running)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(container.name)
+                                            .foregroundStyle(.primary)
+                                        Text(container.image)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        Text(container.ports.isEmpty ? "No exposed ports" : container.ports.joined(separator: ", "))
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    actionButtons(for: container)
                                 }
-                                Spacer()
-                                actionButtons(for: container)
+                                .padding(10)
+                                .background(DesignTokens.glassFieldBackground(for: colorScheme))
+                                .clipShape(DesignTokens.glassShape)
                             }
-                            .padding(10)
-                            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                            .clipShape(DesignTokens.glassShape)
+                            .buttonStyle(.plain)
                         }
+                    }
+                    .navigationDestination(for: ContainerSummary.self) { container in
+                        ContainerDetailView(viewModel: ContainerDetailViewModel(container: container))
                     }
                 }
             }
         }
+    }
+
+    private var filteredForStack: [ContainerSummary] {
+        let base = viewModel.filtered
+        guard let stack else { return base }
+        let allowed = Set(stack.containerNames)
+        return base.filter { allowed.contains($0.name) }
     }
 
     @ViewBuilder
@@ -138,6 +159,12 @@ struct ContainerListView: View {
                 Task { @MainActor in await viewModel.stop(container) }
             } label: {
                 Label("Stop", systemImage: "stop.fill")
+            }
+            .buttonStyle(.bordered)
+            Button {
+                Task { @MainActor in await viewModel.restart(container) }
+            } label: {
+                Label("Restart", systemImage: "arrow.triangle.2.circlepath")
             }
             .buttonStyle(.bordered)
         case .stopped, .paused:

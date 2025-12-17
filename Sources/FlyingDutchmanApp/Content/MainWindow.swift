@@ -10,6 +10,7 @@ struct MainWindow: View {
     @Bindable var networksViewModel: NetworkListViewModel
     @Bindable var eventsViewModel: EventsViewModel
     @Bindable var logsViewModel: LogsViewModel
+    @Bindable var stacksViewModel: StacksViewModel
     @Bindable var commandRegistry: CommandRegistry
     @Binding var showPalette: Bool
     let platformStatus: RuntimeChecks.PlatformStatus?
@@ -21,7 +22,7 @@ struct MainWindow: View {
         NavigationSplitView {
             SidebarView(viewModel: sidebarViewModel)
         } detail: {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
                 if let platformStatus, !platformStatus.isSupported {
                     DiagnosticsBanner(
                         title: "Unsupported Platform",
@@ -41,24 +42,32 @@ struct MainWindow: View {
                 }
 
                 GlassCard {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: DesignSystem.Spacing.md) {
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             Text("Flying Dutchman Foundation")
-                                .font(.largeTitle.weight(.semibold))
-                            HStack(spacing: 8) {
-                                Image(systemName: DesignTokens.statusSymbol(for: statusViewModel.primaryStatus))
-                                    .foregroundStyle(DesignTokens.statusColor(for: statusViewModel.primaryStatus))
+                                .font(DesignSystem.Typography.title1)
+                                .foregroundStyle(DesignSystem.Colors.textPrimary)
+                            
+                            HStack(spacing: DesignSystem.Spacing.sm) {
+                                Image.systemIcon(
+                                    statusSymbol(for: statusViewModel.primaryStatus),
+                                    size: DesignSystem.Size.iconRegular
+                                )
+                                .foregroundStyle(statusColor(for: statusViewModel.primaryStatus))
+                                
                                 Text(statusViewModel.statusText)
-                                    .font(.title3)
-                                    .foregroundStyle(.secondary)
+                                    .font(DesignSystem.Typography.title3)
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                
                                 if let mode = statusViewModel.mode {
                                     Text("mode: \(mode)")
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
+                                        .font(DesignSystem.Typography.footnote)
+                                        .foregroundStyle(DesignSystem.Colors.textTertiary)
                                 }
                             }
+                            
                             if !statusViewModel.workerStatuses.isEmpty {
-                                HStack(spacing: 8) {
+                                HStack(spacing: DesignSystem.Spacing.sm) {
                                     ForEach(statusViewModel.workerStatuses.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
                                         StatusBadge(label: "\(key): \(value)", state: value)
                                     }
@@ -71,6 +80,7 @@ struct MainWindow: View {
                         } label: {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
+                        .buttonStyle(.glass)
                     }
                 }
 
@@ -81,11 +91,11 @@ struct MainWindow: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .padding(.top, 4)
+                .padding(.top, DesignSystem.Spacing.xs)
 
                 contentForSection
             }
-            .padding(24)
+            .padding(DesignSystem.Spacing.xl)
             .sheet(isPresented: $showPalette) {
                 CommandPaletteView(registry: commandRegistry) {
                     showPalette = false
@@ -95,20 +105,22 @@ struct MainWindow: View {
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
+                    VStack(spacing: DesignSystem.Spacing.xxs) {
                         Text("Flying Dutchman")
-                            .font(.headline)
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
                         Text(selectedSection.title)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(DesignSystem.Typography.caption1)
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
                     }
                 }
-                ToolbarItemGroup {
+                ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         Task { @MainActor in await refreshCurrentSection() }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
+                    .buttonStyle(.glass)
 
                     Menu {
                         Button("Light") { appearanceOverride = .light }
@@ -117,24 +129,28 @@ struct MainWindow: View {
                     } label: {
                         Label("Appearance", systemImage: "circle.lefthalf.filled")
                     }
+                    .buttonStyle(.glass)
 
                     Button {
                         showPalette = true
                     } label: {
                         Label("Command Palette", systemImage: "command")
                     }
+                    .buttonStyle(.glassProminent)
+                    .tint(DesignSystem.Colors.accent)
                 }
             }
         }
+        .unifiedChrome()
     }
 
     @ViewBuilder
     private var contentForSection: some View {
         switch selectedSection {
         case .containers:
-            VStack(spacing: 16) {
-                ProjectDetailView(project: sidebarViewModel.selected)
-                ContainerListView(viewModel: containersViewModel)
+            VStack(spacing: DesignSystem.Spacing.lg) {
+                StackDetailView(stack: sidebarViewModel.selectedStack)
+                ContainerListView(viewModel: containersViewModel, stack: sidebarViewModel.selectedStack)
             }
         case .images:
             ImageListView(viewModel: imagesViewModel)
@@ -146,6 +162,8 @@ struct MainWindow: View {
             LogsView(viewModel: logsViewModel, containers: containersViewModel.containers)
         case .events:
             EventsView(viewModel: eventsViewModel)
+        case .stacks:
+            StacksView(viewModel: stacksViewModel)
         }
     }
 
@@ -164,6 +182,30 @@ struct MainWindow: View {
             await logsViewModel.load(containers: containersViewModel.containers)
         case .events:
             await eventsViewModel.load()
+        case .stacks:
+            await stacksViewModel.load()
+        }
+    }
+    
+    // MARK: - Status Helpers (migrated from legacy DesignTokens)
+    
+    private func statusSymbol(for status: String) -> String {
+        switch status.lowercased() {
+        case "running", "ok", "ready", "healthy": return "checkmark.circle.fill"
+        case "stopped", "offline", "disabled": return "xmark.circle.fill"
+        case "paused", "warning", "degraded": return "exclamationmark.triangle.fill"
+        case "error", "failed", "critical": return "xmark.octagon.fill"
+        default: return "questionmark.circle.fill"
+        }
+    }
+    
+    private func statusColor(for status: String) -> Color {
+        switch status.lowercased() {
+        case "running", "ok", "ready", "healthy": return DesignSystem.Colors.success
+        case "stopped", "offline", "disabled": return DesignSystem.Colors.textTertiary
+        case "paused", "warning", "degraded": return DesignSystem.Colors.warning
+        case "error", "failed", "critical": return DesignSystem.Colors.error
+        default: return DesignSystem.Colors.textTertiary
         }
     }
 }

@@ -1,9 +1,9 @@
-import Shared
 import SwiftUI
 
+/// Glass card container using Flying Dutchman Design System
+/// Applies Liquid Glass material with proper padding and shadow
 struct GlassCard<Content: View>: View {
     let content: Content
-    @Environment(\.colorScheme) private var colorScheme
 
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -11,14 +11,9 @@ struct GlassCard<Content: View>: View {
 
     var body: some View {
         content
-            .padding(16)
+            .padding(DesignSystem.Inset.card)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DesignTokens.glassBackground(for: colorScheme))
-            .clipShape(DesignTokens.glassShape)
-            .overlay(
-                DesignTokens.glassShape
-                    .strokeBorder(DesignTokens.glassStroke(for: colorScheme))
-            )
-            .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.2), radius: 18, y: 8)
+            .glassCard()
+            .shadowCard()
     }
 }

@@ -10,6 +10,9 @@ final class ImageListViewModel {
     var error: String?
     var isLoading: Bool = false
     var searchQuery: String = ""
+    var pullReference: String = ""
+    var pullMessage: String?
+    var isPulling: Bool = false
 
     var filtered: [ImageSummary] {
         guard !searchQuery.isEmpty else { return images }
@@ -29,6 +32,20 @@ final class ImageListViewModel {
             self.error = "Showing mock images. Engine unreachable: \(error.localizedDescription)"
         }
         isLoading = false
+    }
+
+    func pull() async {
+        guard !pullReference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        isPulling = true
+        pullMessage = nil
+        error = nil
+        do {
+            pullMessage = try await EngineClient.pullImage(reference: pullReference)
+            await load()
+        } catch {
+            self.error = "Pull failed: \(error.localizedDescription)"
+        }
+        isPulling = false
     }
 }
 
@@ -52,6 +69,24 @@ struct ImageListView: View {
 
                 TextField("Search images", text: $viewModel.searchQuery)
                     .textFieldStyle(.roundedBorder)
+
+                HStack(spacing: 10) {
+                    TextField("Pull image (e.g. postgres:16-alpine)", text: $viewModel.pullReference)
+                        .textFieldStyle(.roundedBorder)
+                    Button {
+                        Task { @MainActor in await viewModel.pull() }
+                    } label: {
+                        Label(viewModel.isPulling ? "Pulling…" : "Pull", systemImage: "arrow.down.circle")
+                    }
+                    .disabled(viewModel.isPulling)
+                    .buttonStyle(.borderedProminent)
+                }
+
+                if let pullMessage = viewModel.pullMessage {
+                    Text(pullMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
 
                 if let error = viewModel.error {
                     Text(error)

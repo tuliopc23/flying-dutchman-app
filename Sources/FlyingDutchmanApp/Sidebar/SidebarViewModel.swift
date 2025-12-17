@@ -1,19 +1,33 @@
 import Foundation
 import Shared
+import FlyingDutchmanContainers
+import FlyingDutchmanNetworking
 
 @MainActor
 @Observable
 final class SidebarViewModel {
-    var projects: [Project] = Project.samples
-    var selected: Project?
+    var stacks: [StackSummary] = []
+    var selectedStack: StackSummary?
+    var error: String?
     var highlightSidebar: Bool = false
 
     init() {
-        selected = projects.first
     }
 
-    func select(_ project: Project) {
-        selected = project
+    func load() async {
+        error = nil
+        do {
+            stacks = try await EngineClient.listStacks()
+            selectedStack = selectedStack.flatMap { existing in stacks.first(where: { $0.id == existing.id }) } ?? stacks.first
+        } catch {
+            stacks = ContainerFixtures.sampleStacks
+            selectedStack = stacks.first
+            self.error = "Showing mock stacks. Engine unreachable: \(error.localizedDescription)"
+        }
+    }
+
+    func select(_ stack: StackSummary) {
+        selectedStack = stack
     }
 
     func requestFocus() {
@@ -24,5 +38,5 @@ final class SidebarViewModel {
         }
     }
 
-    var isEmpty: Bool { projects.isEmpty }
+    var isEmpty: Bool { stacks.isEmpty }
 }

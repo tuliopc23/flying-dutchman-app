@@ -24,6 +24,23 @@ public struct StackStore {
             }
         }
     }
+
+    public func create(_ request: StackCreateRequest) throws -> StackSummary {
+        let summary = StackSummary(name: request.name, description: request.description, containerNames: request.containerNames)
+        try dbQueue.write { db in
+            try StackRecord(from: summary).insert(db)
+        }
+        return summary
+    }
+
+    public func fetch(id: UUID) -> StackSummary? {
+        (try? dbQueue.read { db in
+            try StackRecord
+                .filter(Column("id") == id.uuidString)
+                .fetchOne(db)?
+                .toSummary()
+        }) ?? nil
+    }
 }
 
 private struct StackRecord: Codable, FetchableRecord, PersistableRecord {

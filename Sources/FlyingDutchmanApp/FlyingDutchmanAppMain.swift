@@ -6,34 +6,44 @@ import FlyingDutchmanContainers
 
 @main
 struct FlyingDutchmanApp: App {
+    @State private var appModel: AppModel = .init()
+
     var body: some Scene {
         WindowGroup {
             RootContainerView()
+                .environment(appModel)
         }
         .modelContainer(for: UIState.self)
+        .commands {
+            AppCommands()
+        }
+
+        Settings {
+            SettingsView()
+        }
     }
 }
 
 struct RootContainerView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppModel.self) private var appModel
 
     @State private var engineStatus: StatusViewModel = .init()
     @State private var sidebarModel: SidebarViewModel = .init()
     @State private var commandRegistry: CommandRegistry = .init()
-    @State private var showPalette: Bool = false
-    @State private var appearanceOverride: ColorScheme?
     @State private var containersViewModel: ContainerListViewModel = .init()
     @State private var imagesViewModel: ImageListViewModel = .init()
     @State private var volumesViewModel: VolumeListViewModel = .init()
     @State private var networksViewModel: NetworkListViewModel = .init()
     @State private var eventsViewModel: EventsViewModel = .init()
     @State private var logsViewModel: LogsViewModel = .init()
+    @State private var stacksViewModel: StacksViewModel = .init()
     @State private var platformStatus: RuntimeChecks.PlatformStatus?
     @State private var containerizationStatus: RuntimeChecks.ToolCheck?
-    @State private var selectedSection: AppSection = .containers
     @State private var uiState: UIState?
 
     var body: some View {
+        @Bindable var appModel = appModel
         MainWindow(
             statusViewModel: engineStatus,
             sidebarViewModel: sidebarModel,
@@ -43,52 +53,111 @@ struct RootContainerView: View {
             networksViewModel: networksViewModel,
             eventsViewModel: eventsViewModel,
             logsViewModel: logsViewModel,
+            stacksViewModel: stacksViewModel,
             commandRegistry: commandRegistry,
-            showPalette: $showPalette,
+            showPalette: $appModel.showPalette,
             platformStatus: platformStatus,
             containerizationStatus: containerizationStatus,
-            selectedSection: $selectedSection,
-            appearanceOverride: $appearanceOverride
+            selectedSection: $appModel.selectedSection,
+            appearanceOverride: $appModel.appearanceOverride
         )
         .frame(minWidth: 960, minHeight: 600)
-        .task { @MainActor in await engineStatus.refresh() }
-        .task { @MainActor in await containersViewModel.load() }
-        .task { @MainActor in await imagesViewModel.load() }
-        .task { @MainActor in await volumesViewModel.load() }
-        .task { @MainActor in await networksViewModel.load() }
-        .task { @MainActor in await eventsViewModel.load() }
-        .task { @MainActor in await logsViewModel.load(containers: containersViewModel.containers) }
-.task { @MainActor in
-            platformStatus = RuntimeChecks.platformSupport()
-            containerizationStatus = RuntimeChecks.containerizationFramework()
-        }
-        .task { loadUIState() }
-        .onChange(of: selectedSection) { _, newValue in
+        .task { @MainActor in await bootstrap() }
+        .onChange(of: appModel.selectedSection) { _, newValue in
             persistUIState(section: newValue)
         }
-        .onChange(of: appearanceOverride) { _, newValue in
+        .onChange(of: appModel.appearanceOverride) { _, newValue in
             persistAppearance(override: newValue)
         }
+        .onChange(of: uiState?.engineHost) { _, _ in
+            guard let uiState else { return }
+            configureEngineClient(with: uiState)
+        }
+        .onChange(of: uiState?.enginePort) { _, _ in
+            guard let uiState else { return }
+            configureEngineClient(with: uiState)
+        }
+        .onChange(of: uiState?.defaultFollowLogs) { _, _ in
+            guard let uiState else { return }
+            configureEngineClient(with: uiState)
+        }
+        .onChange(of: uiState?.logsPollIntervalSeconds) { _, _ in
+            guard let uiState else { return }
+            configureEngineClient(with: uiState)
+        }
+        .onChange(of: uiState?.eventsPollIntervalSeconds) { _, _ in
+            guard let uiState else { return }
+            configureEngineClient(with: uiState)
+        }
+        .onChange(of: uiState?.eventsLimit) { _, _ in
+            guard let uiState else { return }
+            configureEngineClient(with: uiState)
+        }
+        .onChange(of: logsViewModel.follow) { _, newValue in
+            guard let uiState else { return }
+            uiState.defaultFollowLogs = newValue
+            uiState.lastUpdated = Date()
+            try? modelContext.save()
+        }
+        .onChange(of: logsViewModel.pollInterval) { _, newValue in
+            guard let uiState else { return }
+            uiState.logsPollIntervalSeconds = newValue
+            uiState.lastUpdated = Date()
+            try? modelContext.save()
+        }
+        .onChange(of: eventsViewModel.pollInterval) { _, newValue in
+            guard let uiState else { return }
+            uiState.eventsPollIntervalSeconds = newValue
+            uiState.lastUpdated = Date()
+            try? modelContext.save()
+        }
+        .onChange(of: eventsViewModel.limit) { _, newValue in
+            guard let uiState else { return }
+            uiState.eventsLimit = newValue
+            uiState.lastUpdated = Date()
+            try? modelContext.save()
+        }
         .onAppear { seedCommands() }
-        .preferredColorScheme(appearanceOverride)
+        .preferredColorScheme(appModel.appearanceOverride)
+    }
+
+    @MainActor
+    private func bootstrap() async {
+        loadUIState()
+        platformStatus = RuntimeChecks.platformSupport()
+        containerizationStatus = RuntimeChecks.containerizationFramework()
+
+        async let status: Void = engineStatus.refresh()
+        async let stacks: Void = sidebarModel.load()
+        async let containers: Void = containersViewModel.load()
+        async let images: Void = imagesViewModel.load()
+        async let volumes: Void = volumesViewModel.load()
+        async let networks: Void = networksViewModel.load()
+        async let events: Void = eventsViewModel.load()
+        async let stacksSection: Void = stacksViewModel.load()
+
+        _ = await (status, stacks, containers, images, volumes, networks, events, stacksSection)
+        await logsViewModel.load(containers: containersViewModel.containers)
     }
 
     private func loadUIState() {
         if let existing = try? modelContext.fetch(FetchDescriptor<UIState>()).first {
             uiState = existing
-            selectedSection = AppSection(rawValue: existing.selectedSection) ?? .containers
+            appModel.selectedSection = AppSection(rawValue: existing.selectedSection) ?? .containers
             if let appearance = existing.appearanceOverride {
                 switch appearance {
-                case "light": appearanceOverride = .light
-                case "dark": appearanceOverride = .dark
-                default: appearanceOverride = nil
+                case "light": appModel.appearanceOverride = .light
+                case "dark": appModel.appearanceOverride = .dark
+                default: appModel.appearanceOverride = nil
                 }
             }
+            configureEngineClient(with: existing)
         } else {
             let state = UIState()
             modelContext.insert(state)
             uiState = state
             try? modelContext.save()
+            configureEngineClient(with: state)
         }
     }
 
@@ -104,6 +173,14 @@ struct RootContainerView: View {
         uiState.appearanceOverride = override.map { $0 == .dark ? "dark" : "light" }
         uiState.lastUpdated = Date()
         try? modelContext.save()
+    }
+
+    private func configureEngineClient(with uiState: UIState) {
+        EngineClient.configure(host: uiState.engineHost, port: uiState.enginePort)
+        logsViewModel.follow = uiState.defaultFollowLogs
+        logsViewModel.pollInterval = uiState.logsPollIntervalSeconds
+        eventsViewModel.limit = uiState.eventsLimit
+        eventsViewModel.pollInterval = uiState.eventsPollIntervalSeconds
     }
 
     private func seedCommands() {
@@ -129,32 +206,39 @@ struct RootContainerView: View {
             CommandAction(title: "Refresh Events", subtitle: "Reload recent engine events", icon: "waveform.path") {
                 await eventsViewModel.load()
             },
+            CommandAction(title: "Refresh Stacks", subtitle: "Reload projects", icon: "square.stack.3d.up") {
+                await sidebarModel.load()
+                await stacksViewModel.load()
+            },
             CommandAction(title: "Switch to Light Appearance", subtitle: "Overrides system setting", icon: "sun.max") {
-                await MainActor.run { appearanceOverride = .light }
+                await MainActor.run { appModel.appearanceOverride = .light }
             },
             CommandAction(title: "Switch to Dark Appearance", subtitle: "Overrides system setting", icon: "moon") {
-                await MainActor.run { appearanceOverride = .dark }
+                await MainActor.run { appModel.appearanceOverride = .dark }
             },
             CommandAction(title: "Reset Appearance to System", subtitle: "Follow macOS mode", icon: "circle.lefthalf.filled") {
-                await MainActor.run { appearanceOverride = nil }
+                await MainActor.run { appModel.appearanceOverride = nil }
             },
             CommandAction(title: "Go to Containers", subtitle: "Primary list", icon: AppSection.containers.systemImage) {
-                await MainActor.run { selectedSection = .containers }
+                await MainActor.run { appModel.selectedSection = .containers }
             },
             CommandAction(title: "Go to Images", subtitle: "View images", icon: AppSection.images.systemImage) {
-                await MainActor.run { selectedSection = .images }
+                await MainActor.run { appModel.selectedSection = .images }
             },
             CommandAction(title: "Go to Volumes", subtitle: "Storage", icon: AppSection.volumes.systemImage) {
-                await MainActor.run { selectedSection = .volumes }
+                await MainActor.run { appModel.selectedSection = .volumes }
             },
             CommandAction(title: "Go to Networks", subtitle: "Connectivity", icon: AppSection.networks.systemImage) {
-                await MainActor.run { selectedSection = .networks }
+                await MainActor.run { appModel.selectedSection = .networks }
             },
             CommandAction(title: "Go to Logs", subtitle: "Container logs", icon: AppSection.logs.systemImage) {
-                await MainActor.run { selectedSection = .logs }
+                await MainActor.run { appModel.selectedSection = .logs }
             },
             CommandAction(title: "Go to Events", subtitle: "Runtime events", icon: AppSection.events.systemImage) {
-                await MainActor.run { selectedSection = .events }
+                await MainActor.run { appModel.selectedSection = .events }
+            },
+            CommandAction(title: "Go to Stacks", subtitle: "Projects", icon: AppSection.stacks.systemImage) {
+                await MainActor.run { appModel.selectedSection = .stacks }
             }
         ]
     }

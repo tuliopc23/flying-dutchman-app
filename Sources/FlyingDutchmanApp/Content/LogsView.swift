@@ -3,6 +3,10 @@ import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import SwiftUI
 
+#if canImport(AppKit)
+import AppKit
+#endif
+
 @MainActor
 @Observable
 final class LogsViewModel {
@@ -121,8 +125,9 @@ struct LogsView: View {
                                     .font(.system(.footnote, design: .monospaced))
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 Button {
-                                    #if canImport(UIKit)
-                                    UIPasteboard.general.string = line
+                                    #if canImport(AppKit)
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(line, forType: .string)
                                     #endif
                                 } label: {
                                     Image(systemName: "doc.on.doc")

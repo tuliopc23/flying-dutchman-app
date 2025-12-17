@@ -6,40 +6,58 @@ struct SidebarView: View {
 
     var body: some View {
         ZStack {
-            List(selection: $viewModel.selected) {
-                Section("Projects") {
+            List(selection: $viewModel.selectedStack) {
+                Section("Stacks") {
                     if viewModel.isEmpty {
                         EmptyStateView()
                             .listRowSeparator(.hidden)
                     } else {
-                        ForEach(viewModel.projects) { project in
-                            HStack(spacing: 8) {
+                        ForEach(viewModel.stacks) { stack in
+                            HStack(spacing: DesignSystem.Spacing.sm) {
                                 Circle()
-                                    .fill(project.status == .active ? .green : .gray.opacity(0.4))
+                                    .fill(stack.containerNames.isEmpty 
+                                        ? DesignSystem.Colors.textTertiary.opacity(0.4) 
+                                        : DesignSystem.Colors.success)
                                     .frame(width: 10, height: 10)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(project.name)
-                                    if let desc = project.description {
-                                        Text(desc).font(.caption).foregroundStyle(.secondary)
+                                
+                                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
+                                    Text(stack.name)
+                                        .font(DesignSystem.Typography.body)
+                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                    
+                                    if let desc = stack.description {
+                                        Text(desc)
+                                            .font(DesignSystem.Typography.caption1)
+                                            .foregroundStyle(DesignSystem.Colors.textSecondary)
                                     }
                                 }
                             }
                             .contentShape(Rectangle())
-                            .onTapGesture { viewModel.select(project) }
+                            .tag(stack)
                         }
                     }
                 }
             }
             .listStyle(.sidebar)
+            .glassSidebar()
 
             if viewModel.highlightSidebar {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(.blue.opacity(0.55), lineWidth: 2)
-                    .shadow(color: .blue.opacity(0.3), radius: 12)
-                    .padding(6)
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.25), value: viewModel.highlightSidebar)
-                    .allowsHitTesting(false)
+                RoundedRectangle(
+                    cornerRadius: DesignSystem.CornerRadius.comfortable,
+                    style: .continuous
+                )
+                .strokeBorder(
+                    DesignSystem.Colors.primary.opacity(0.55),
+                    lineWidth: 2
+                )
+                .shadow(
+                    color: DesignSystem.Colors.primary.opacity(0.3),
+                    radius: 12
+                )
+                .padding(DesignSystem.Spacing.xs)
+                .transition(.opacity)
+                .animate(DesignSystem.Animations.quick, value: viewModel.highlightSidebar)
+                .allowsHitTesting(false)
             }
         }
     }

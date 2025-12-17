@@ -78,18 +78,30 @@ public final class ContainerRuntime: ContainerRuntimeProtocol, @unchecked Sendab
 
     @discardableResult
     public func start(containerID: UUID) -> ContainerSummary? {
-        guard !containerization.isNativeAvailable else {
-            // TODO: Invoke Containerization start; stub retains in-memory mutation for now.
-            return update(containerID: containerID, status: .running)
+        if containerization.isNativeAvailable {
+            // TODO: Once Containerization.framework is fully integrated:
+            // 1. Look up container by ID in containerization framework
+            // 2. Call .start() on the container instance
+            // 3. Wait for state transition to .running
+            // 4. Update local state + persist
+            // For now, we simulate the native behavior:
+            logStore?.append(containerID: containerID, line: "\(Date()): [native] starting container")
+            eventStore?.record(status: "starting", containerId: containerID, image: containers[containerID]?.image ?? "", kind: "native-start")
         }
         return update(containerID: containerID, status: .running)
     }
 
     @discardableResult
     public func stop(containerID: UUID) -> ContainerSummary? {
-        guard !containerization.isNativeAvailable else {
-            // TODO: Invoke Containerization stop; stub retains in-memory mutation for now.
-            return update(containerID: containerID, status: .stopped)
+        if containerization.isNativeAvailable {
+            // TODO: Once Containerization.framework is fully integrated:
+            // 1. Look up container by ID in containerization framework
+            // 2. Call .stop() on the container instance
+            // 3. Wait for graceful shutdown
+            // 4. Update local state + persist
+            // For now, we simulate the native behavior:
+            logStore?.append(containerID: containerID, line: "\(Date()): [native] stopping container")
+            eventStore?.record(status: "stopping", containerId: containerID, image: containers[containerID]?.image ?? "", kind: "native-stop")
         }
         return update(containerID: containerID, status: .stopped)
     }

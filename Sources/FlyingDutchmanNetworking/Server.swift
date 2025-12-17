@@ -55,7 +55,7 @@ public struct EngineServer {
 
         ContainersRoutes(runtime: runtime, store: store).register(on: router)
         ImagesRoutes(store: imageStore).register(on: router)
-        StacksRoutes(store: stackStore).register(on: router)
+        StacksRoutes(runtime: runtime, store: stackStore).register(on: router)
         VolumesRoutes(store: volumeStore).register(on: router)
         NetworksRoutes(store: networkStore).register(on: router)
 
@@ -148,5 +148,6 @@ public struct EngineServer {
 extension ContainerSummary: ResponseEncodable {}
 extension ImageSummary: ResponseEncodable {}
 extension StackSummary: ResponseEncodable {}
+extension StackActionResponse: ResponseEncodable {}
 extension VolumeSummary: ResponseEncodable {}
 extension NetworkSummary: ResponseEncodable {}

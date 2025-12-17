@@ -4,28 +4,39 @@ import SwiftUI
 struct CommandPaletteView: View {
     @Bindable var registry: CommandRegistry
     var onDismiss: (() -> Void)?
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             TextField("Search commands", text: $registry.query)
                 .textFieldStyle(.plain)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                .clipShape(DesignTokens.glassShape)
+                .padding(DesignSystem.Inset.sm)
+                .font(DesignSystem.Typography.body)
+                .background(DesignSystem.Colors.surfaceSecondary)
+                .cornerRadius(DesignSystem.CornerRadius.regular)
+            
             if registry.filtered().isEmpty {
-                Text("No commands").foregroundStyle(.secondary)
+                Text("No commands")
+                    .font(DesignSystem.Typography.body)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    .padding(DesignSystem.Spacing.lg)
             } else {
                 List(registry.filtered()) { action in
-                    HStack {
-                        Image(systemName: action.icon)
-                        VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        Image.systemIcon(action.icon, size: DesignSystem.Size.iconRegular)
+                            .foregroundStyle(DesignSystem.Colors.accent)
+                        
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
                             Text(action.title)
+                                .font(DesignSystem.Typography.body)
+                                .foregroundStyle(DesignSystem.Colors.textPrimary)
+                            
                             if let subtitle = action.subtitle {
-                                Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                                Text(subtitle)
+                                    .font(DesignSystem.Typography.caption1)
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
                             }
                         }
+                        Spacer()
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -38,14 +49,9 @@ struct CommandPaletteView: View {
                 .frame(maxHeight: 320)
             }
         }
-        .padding(16)
-        .background(DesignTokens.glassBackground(for: colorScheme))
-        .clipShape(DesignTokens.glassShape)
-        .overlay(
-            DesignTokens.glassShape.strokeBorder(DesignTokens.glassStroke(for: colorScheme))
-        )
-        .shadow(color: .black.opacity(colorScheme == .dark ? 0.45 : 0.2), radius: 20, y: 10)
-        .padding()
+        .padding(DesignSystem.Inset.lg)
+        .glassCard()
+        .shadowProminent()
     }
 
     private func trigger(_ action: CommandAction) {
