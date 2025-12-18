@@ -1,6 +1,8 @@
 # Tasks: macOS Containerization
 
 **Input**: `specs/001-macos-containerization/` (spec + plan + research)
+**Last Updated**: 2024-12-18
+**Status**: Phase A.1 Complete ✅
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -15,6 +17,22 @@
 - [x] T012 Wire Containerization client wrapper and GRDB schema for containers/images/networks/volumes/stacks (`Sources/FlyingDutchmanPersistence/Migrations/`)
 - [x] T013 Create Docker API shim socket server scaffold mapping minimal routes to engine stubs (`Sources/FlyingDutchmanContainers/DockerShimServer.swift`)
 
+### Phase A.1: GRDB Repositories & Models (Complete ✅)
+
+**Completed**: 2024-12-18 | **Commit**: `f8824775`
+
+- [x] T012a ContainerStore with CRUD + search, fetchRunning, replaceAll, seedIfEmpty (`Sources/FlyingDutchmanPersistence/Repositories/ContainerStore.swift`)
+- [x] T012b ImageStore with CRUD + search by name/tag (`Sources/FlyingDutchmanPersistence/Repositories/ImageStore.swift`)
+- [x] T012c VolumeStore with CRUD + replaceAll (`Sources/FlyingDutchmanPersistence/Repositories/VolumeStore.swift`)
+- [x] T012d NetworkStore with CRUD + replaceAll (`Sources/FlyingDutchmanPersistence/Repositories/NetworkStore.swift`)
+- [x] T012e StackStore with CRUD + create from request (`Sources/FlyingDutchmanPersistence/Repositories/StackStore.swift`)
+- [x] T012f ContainerLogStore with append, fetch with limit, auto-prune (`Sources/FlyingDutchmanPersistence/Repositories/ContainerLogStore.swift`)
+- [x] T012g ShimEventStore for Docker event recording (`Sources/FlyingDutchmanPersistence/Repositories/ShimEventStore.swift`)
+- [x] T012h SeedData utility with sample data and test generators (`Sources/FlyingDutchmanPersistence/SeedData.swift`)
+- [x] T012i Database migrations: v1_core_schema, v3_networks_volumes, v4_container_logs, v5_shim_events
+- [x] T012j ContainerStoreTests with 12 test cases (`Tests/FlyingDutchmanPersistenceTests/ContainerStoreTests.swift`)
+- [x] T012k Concurrency fixes: nonisolated fetchAll(), @MainActor EngineClient, Sendable conformance
+
 ## Phase 3: User Story 1 – Launch and View Container Status (P1)
 
 - [x] T020 Implement engine status endpoint using Containerization to list containers with states
@@ -28,7 +46,7 @@
 ## Phase 5: User Story 3 – Pull and Manage Images (P2)
 
 - [x] T040 Implement image pull endpoint using AsyncHTTPClient + Containerization; stream progress
-- [x] T041 Persist images metadata in GRDB and display in UI list
+- [x] T041 Persist images metadata in GRDB and display in UI list (ImageStore complete)
 - [x] T042 Error handling for auth/network failures with remediation messages
 
 ## Phase 6: User Story 4 – Execute Commands via CLI (P2)
@@ -38,13 +56,14 @@
 
 ## Phase 7: User Story 5 – Organize Containers in Projects/Stacks (P3)
 
-- [ ] T060 Define GRDB models for projects/stacks and relationships to containers
+- [x] T060 Define GRDB models for projects/stacks and relationships to containers (StackStore complete)
 - [ ] T061 Implement start/stop stack operations with dependency ordering
 - [ ] T062 UI list and actions for stacks with empty-state guidance
 
 ## Phase 8: User Story 6 – Access Logs and Metrics (P3)
 
-- [ ] T070 Implement log streaming path (Containerization → NIO → UI) with filters
+- [x] T070a ContainerLogStore persistence layer complete (append, fetch, prune)
+- [ ] T070b Implement log streaming path (Containerization → NIO → UI) with filters
 - [ ] T071 Add metrics sampling (CPU/mem) and display with SF Symbol draw effects
 
 ## Phase 9: User Story 7 – Docker API Compatibility Shim (P2)
@@ -75,3 +94,28 @@
 - Phases 1–2 block all user stories; shim (Phase 9) depends on engine APIs (T010–T013).
 - Dev cluster (Phase 10) depends on Containerization + networking + persistence groundwork.
 - Pipelines/AI (Phase 11) optional; enable after core container flows are stable.
+
+---
+
+## Implementation Progress
+
+### Completed Phases
+| Phase | Status | Date | Commit |
+|-------|--------|------|--------|
+| A.1 GRDB Repositories | ✅ Complete | 2024-12-18 | `f8824775` |
+
+### Next Up
+| Phase | Description | Blockers |
+|-------|-------------|----------|
+| A.2 | Docker Shim Server | None (A.1 complete) |
+| A.3 | Live UI Integration | A.1, A.2 |
+| A.4 | Apple Containerization Runtime | A.1 |
+| A.5 | NIO Log Streaming | A.4 |
+
+### Build Status
+- ✅ FlyingDutchmanPersistence
+- ✅ FlyingDutchmanEngine
+- ✅ FlyingDutchmanCLI
+- ✅ FlyingDutchmanContainers
+- ✅ FlyingDutchmanNetworking
+- ⚠️ FlyingDutchmanApp (UI fixes needed for macOS 26 availability)
