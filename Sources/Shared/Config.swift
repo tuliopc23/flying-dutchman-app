@@ -18,12 +18,12 @@ public enum Loggers {
     }
 }
 
-public struct EngineStatus: Codable {
+public struct EngineStatus: Codable, Sendable {
     public let status: String
     public let engine: String
 }
 
-public struct EngineStatusDetail: Codable {
+public struct EngineStatusDetail: Codable, Sendable {
     public let engine: String
     public let uptimeSeconds: Int
     public let workers: [String: String]

@@ -1,6 +1,7 @@
 import Foundation
 import NIOConcurrencyHelpers
 import Shared
+import FlyingDutchmanPersistence
 
 /// Stub runtime layer that mimics Containerization operations for early phases.
 public protocol ContainerRuntimeProtocol: Sendable {
@@ -43,13 +44,13 @@ public final class ContainerRuntime: ContainerRuntimeProtocol, @unchecked Sendab
         if let store = store {
             let stored = store.fetchAll()
             if stored.isEmpty {
-                initial = ContainerFixtures.sampleContainers
+                initial = SeedData.sampleContainers
                 store.replaceAll(with: initial)
             } else {
                 initial = stored
             }
         } else {
-            initial = ContainerFixtures.sampleContainers
+            initial = SeedData.sampleContainers
         }
         self.init(initialContainers: initial, containerization: containerization, store: store, logStore: logStore, eventStore: eventStore)
     }

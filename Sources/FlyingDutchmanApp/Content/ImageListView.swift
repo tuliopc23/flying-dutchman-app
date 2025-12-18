@@ -1,7 +1,11 @@
 import Shared
+import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
+import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import SwiftUI
+import FlyingDutchmanPersistence
 
 @MainActor
 @Observable
@@ -28,7 +32,7 @@ final class ImageListViewModel {
         do {
             images = try await EngineClient.listImages()
         } catch {
-            images = ContainerFixtures.sampleImages
+            images = SeedData.sampleImages
             self.error = "Showing mock images. Engine unreachable: \(error.localizedDescription)"
         }
         isLoading = false

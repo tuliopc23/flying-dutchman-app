@@ -9,7 +9,7 @@ public struct StackStore {
         self.dbQueue = dbQueue
     }
 
-    public func fetchAll() -> [StackSummary] {
+    public nonisolated func fetchAll() -> [StackSummary] {
         (try? dbQueue.read { db in
             try StackRecord.fetchAll(db).map { $0.toSummary() }
         }) ?? []

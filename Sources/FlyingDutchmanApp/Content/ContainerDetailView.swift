@@ -1,6 +1,9 @@
 import Shared
+import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import SwiftUI
+import FlyingDutchmanPersistence
 
 @MainActor
 @Observable
@@ -319,7 +322,7 @@ struct ContainerDetailView: View {
     NavigationStack {
         ContainerDetailView(
             viewModel: ContainerDetailViewModel(
-                container: ContainerFixtures.sampleContainers[0]
+                container: SeedData.sampleContainers[0]
             )
         )
     }
@@ -329,7 +332,7 @@ struct ContainerDetailView: View {
     NavigationStack {
         ContainerDetailView(
             viewModel: ContainerDetailViewModel(
-                container: ContainerFixtures.sampleContainers[2]
+                container: SeedData.sampleContainers[2]
             )
         )
     }

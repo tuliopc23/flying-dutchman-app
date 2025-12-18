@@ -1,7 +1,11 @@
 import Shared
+import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
+import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import SwiftUI
+import FlyingDutchmanPersistence
 
 @MainActor
 @Observable
@@ -17,7 +21,7 @@ final class NetworkListViewModel {
         do {
             networks = try await EngineClient.listNetworks()
         } catch {
-            networks = ContainerFixtures.sampleNetworks
+            networks = SeedData.sampleNetworks
             self.error = "Showing mock networks. Engine unreachable: \(error.localizedDescription)"
         }
         isLoading = false

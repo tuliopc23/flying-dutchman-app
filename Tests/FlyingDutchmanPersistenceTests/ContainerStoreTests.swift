@@ -9,13 +9,13 @@ final class ContainerStoreTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        dbQueue = DatabaseQueue()
+        dbQueue = try DatabaseQueue()
         try DatabaseContainer.migrator.migrate(dbQueue)
-        store = await ContainerStore(dbQueue: dbQueue)
+        store = ContainerStore(dbQueue: dbQueue)
     }
 
-    func testFetchAllReturnsEmptyInitially() async {
-        let containers = await store.fetchAll()
+    func testFetchAllReturnsEmptyInitially() {
+        let containers = store.fetchAll()
         XCTAssertTrue(containers.isEmpty)
     }
 
@@ -120,8 +120,8 @@ final class ContainerStoreTests: XCTestCase {
             ContainerSummary(name: "c2", image: "redis", status: .stopped, ports: [])
         ]
 
-        await store.replaceAll(with: containers)
-        let result = await store.fetchAll()
+        store.replaceAll(with: containers)
+        let result = store.fetchAll()
         XCTAssertEqual(result.count, 2)
     }
 
@@ -133,17 +133,19 @@ final class ContainerStoreTests: XCTestCase {
         await store.seedIfEmpty(with: containers)
         await store.seedIfEmpty(with: containers)
 
-        let result = await store.fetchAll()
+        let result = store.fetchAll()
         XCTAssertEqual(result.count, 1)
     }
 
     func testCount() async throws {
-        XCTAssertEqual(try await store.count(), 0)
+        let initialCount = try await store.count()
+        XCTAssertEqual(initialCount, 0)
 
         let container = ContainerSummary(name: "test", image: "nginx", status: .running, ports: [])
         try await store.insert(container)
 
-        XCTAssertEqual(try await store.count(), 1)
+        let finalCount = try await store.count()
+        XCTAssertEqual(finalCount, 1)
     }
 
     func testPortsArePreserved() async throws {

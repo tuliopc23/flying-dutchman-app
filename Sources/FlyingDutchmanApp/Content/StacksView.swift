@@ -1,7 +1,11 @@
 import Shared
+import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
+import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import SwiftUI
+import FlyingDutchmanPersistence
 
 @MainActor
 @Observable
@@ -30,7 +34,7 @@ final class StacksViewModel {
         do {
             stacks = try await EngineClient.listStacks()
         } catch {
-            stacks = ContainerFixtures.sampleStacks
+            stacks = SeedData.sampleStacks
             self.error = "Showing mock stacks. Engine unreachable: \(error.localizedDescription)"
         }
         isLoading = false

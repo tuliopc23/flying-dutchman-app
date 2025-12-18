@@ -12,7 +12,7 @@ public actor VolumeStore {
 
     // MARK: - Read Operations
 
-    public func fetchAll() -> [VolumeSummary] {
+    public nonisolated func fetchAll() -> [VolumeSummary] {
         (try? dbQueue.read { db in
             try VolumeRecord.fetchAll(db).map { $0.toSummary() }
         }) ?? []

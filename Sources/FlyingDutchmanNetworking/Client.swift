@@ -3,19 +3,19 @@ import Shared
 import FlyingDutchmanContainers
 
 public enum EngineClient {
-    private static var configuredHost: String = AppConfig.Engine.host
-    private static var configuredPort: Int = AppConfig.Engine.port
+    @MainActor private static var configuredHost: String = AppConfig.Engine.host
+    @MainActor private static var configuredPort: Int = AppConfig.Engine.port
 
-    public static func configure(host: String, port: Int) {
+    @MainActor public static func configure(host: String, port: Int) {
         configuredHost = host
         configuredPort = port
     }
 
-    private static var baseURL: String {
+    @MainActor private static var baseURL: String {
         "http://\(configuredHost):\(configuredPort)"
     }
 
-    public static func fetchHealth() async throws -> EngineStatus {
+    @MainActor public static func fetchHealth() async throws -> EngineStatus {
         let (data, response) = try await URLSession.shared.data(from: URL(string: "\(baseURL)/health")!)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
@@ -23,7 +23,7 @@ public enum EngineClient {
         return try JSONDecoder().decode(EngineStatus.self, from: data)
     }
 
-    public static func fetchStatus() async throws -> EngineStatusDetail {
+    @MainActor public static func fetchStatus() async throws -> EngineStatusDetail {
         let url = URL(string: "\(baseURL)/status")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -32,7 +32,7 @@ public enum EngineClient {
         return try JSONDecoder().decode(EngineStatusDetail.self, from: data)
     }
 
-    public static func listContainers() async throws -> [ContainerSummary] {
+    @MainActor public static func listContainers() async throws -> [ContainerSummary] {
         let url = URL(string: "\(baseURL)/containers")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -41,7 +41,7 @@ public enum EngineClient {
         return try JSONDecoder().decode([ContainerSummary].self, from: data)
     }
 
-    public static func fetchContainer(id: UUID) async throws -> ContainerSummary {
+    @MainActor public static func fetchContainer(id: UUID) async throws -> ContainerSummary {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -50,19 +50,19 @@ public enum EngineClient {
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
     }
 
-    public static func startContainer(id: UUID) async throws -> ContainerSummary {
+    @MainActor public static func startContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "start")
     }
 
-    public static func stopContainer(id: UUID) async throws -> ContainerSummary {
+    @MainActor public static func stopContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "stop")
     }
 
-    public static func restartContainer(id: UUID) async throws -> ContainerSummary {
+    @MainActor public static func restartContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "restart")
     }
 
-    private static func mutateContainer(id: UUID, action: String) async throws -> ContainerSummary {
+    @MainActor private static func mutateContainer(id: UUID, action: String) async throws -> ContainerSummary {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)/\(action)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -73,7 +73,7 @@ public enum EngineClient {
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
     }
 
-    public static func listImages() async throws -> [ImageSummary] {
+    @MainActor public static func listImages() async throws -> [ImageSummary] {
         let url = URL(string: "\(baseURL)/images")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -82,7 +82,7 @@ public enum EngineClient {
         return try JSONDecoder().decode([ImageSummary].self, from: data)
     }
 
-    public static func pullImage(reference: String) async throws -> String {
+    @MainActor public static func pullImage(reference: String) async throws -> String {
         let url = URL(string: "\(baseURL)/images/pull")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -96,7 +96,7 @@ public enum EngineClient {
         return payload?["message"] as? String ?? "Pull started"
     }
 
-    public static func listStacks() async throws -> [StackSummary] {
+    @MainActor public static func listStacks() async throws -> [StackSummary] {
         let url = URL(string: "\(baseURL)/stacks")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -105,7 +105,7 @@ public enum EngineClient {
         return try JSONDecoder().decode([StackSummary].self, from: data)
     }
 
-    public static func createStack(_ request: StackCreateRequest) async throws -> StackSummary {
+    @MainActor public static func createStack(_ request: StackCreateRequest) async throws -> StackSummary {
         let url = URL(string: "\(baseURL)/stacks")!
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
@@ -118,15 +118,15 @@ public enum EngineClient {
         return try JSONDecoder().decode(StackSummary.self, from: data)
     }
 
-    public static func startStack(id: UUID) async throws -> StackActionResponse {
+    @MainActor public static func startStack(id: UUID) async throws -> StackActionResponse {
         try await mutateStack(id: id, action: "start")
     }
 
-    public static func stopStack(id: UUID) async throws -> StackActionResponse {
+    @MainActor public static func stopStack(id: UUID) async throws -> StackActionResponse {
         try await mutateStack(id: id, action: "stop")
     }
 
-    private static func mutateStack(id: UUID, action: String) async throws -> StackActionResponse {
+    @MainActor private static func mutateStack(id: UUID, action: String) async throws -> StackActionResponse {
         let url = URL(string: "\(baseURL)/stacks/\(id.uuidString)/\(action)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -137,7 +137,7 @@ public enum EngineClient {
         return try JSONDecoder().decode(StackActionResponse.self, from: data)
     }
 
-    public static func listVolumes() async throws -> [VolumeSummary] {
+    @MainActor public static func listVolumes() async throws -> [VolumeSummary] {
         let url = URL(string: "\(baseURL)/volumes")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -146,7 +146,7 @@ public enum EngineClient {
         return try JSONDecoder().decode([VolumeSummary].self, from: data)
     }
 
-    public static func listNetworks() async throws -> [NetworkSummary] {
+    @MainActor public static func listNetworks() async throws -> [NetworkSummary] {
         let url = URL(string: "\(baseURL)/networks")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -155,7 +155,7 @@ public enum EngineClient {
         return try JSONDecoder().decode([NetworkSummary].self, from: data)
     }
 
-    public static func containerLogs(containerID: UUID) async throws -> [String] {
+    @MainActor public static func containerLogs(containerID: UUID) async throws -> [String] {
         let url = URL(string: "\(baseURL)/containers/\(containerID.uuidString)/logs")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -164,12 +164,12 @@ public enum EngineClient {
         let text = String(data: data, encoding: .utf8) ?? ""
         return text.split(separator: "\n").map(String.init)
     }
-    
-    public static func fetchLogs(id: UUID) async throws -> [String] {
+
+    @MainActor public static func fetchLogs(id: UUID) async throws -> [String] {
         try await containerLogs(containerID: id)
     }
 
-    public static func fetchEvents(stream: Bool = false, limit: Int = 50) async throws -> [DockerEvent] {
+    @MainActor public static func fetchEvents(stream: Bool = false, limit: Int = 50) async throws -> [DockerEvent] {
         var request = URLRequest(url: URL(string: "\(baseURL)/events")!)
         if limit != 50 {
             request.url = URL(string: "\(baseURL)/events?limit=\(limit)")!

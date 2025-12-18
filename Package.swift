@@ -48,6 +48,7 @@ let package = Package(
             name: "FlyingDutchmanContainers",
             dependencies: [
                 "Shared",
+                "FlyingDutchmanPersistence",
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
@@ -100,6 +101,7 @@ let package = Package(
                 "Shared",
                 "FlyingDutchmanContainers",
                 "FlyingDutchmanNetworking",
+                "FlyingDutchmanPersistence",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/FlyingDutchmanCLI"
@@ -132,6 +134,15 @@ let package = Package(
             name: "IntegrationTests",
             dependencies: ["FlyingDutchmanNetworking", "FlyingDutchmanPersistence"],
             path: "Tests/IntegrationTests"
+        ),
+        .testTarget(
+            name: "FlyingDutchmanPersistenceTests",
+            dependencies: [
+                "FlyingDutchmanPersistence",
+                "Shared",
+                .product(name: "GRDB", package: "GRDB.swift")
+            ],
+            path: "Tests/FlyingDutchmanPersistenceTests"
         )
     ]
 )

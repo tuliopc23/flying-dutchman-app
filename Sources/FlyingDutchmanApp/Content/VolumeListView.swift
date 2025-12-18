@@ -1,7 +1,11 @@
 import Shared
+import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
+import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import SwiftUI
+import FlyingDutchmanPersistence
 
 @MainActor
 @Observable
@@ -17,7 +21,7 @@ final class VolumeListViewModel {
         do {
             volumes = try await EngineClient.listVolumes()
         } catch {
-            volumes = ContainerFixtures.sampleVolumes
+            volumes = SeedData.sampleVolumes
             self.error = "Showing mock volumes. Engine unreachable: \(error.localizedDescription)"
         }
         isLoading = false

@@ -1,7 +1,11 @@
 import Foundation
+import FlyingDutchmanPersistence
 import Shared
+import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
+import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 
 @MainActor
 @Observable
@@ -20,7 +24,7 @@ final class SidebarViewModel {
             stacks = try await EngineClient.listStacks()
             selectedStack = selectedStack.flatMap { existing in stacks.first(where: { $0.id == existing.id }) } ?? stacks.first
         } catch {
-            stacks = ContainerFixtures.sampleStacks
+            stacks = SeedData.sampleStacks
             selectedStack = stacks.first
             self.error = "Showing mock stacks. Engine unreachable: \(error.localizedDescription)"
         }

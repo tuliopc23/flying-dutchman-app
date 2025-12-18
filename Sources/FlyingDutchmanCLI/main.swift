@@ -3,6 +3,7 @@ import ArgumentParser
 import Shared
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 
 @main
 struct FlyingDutchmanCLI: AsyncParsableCommand {
@@ -243,7 +244,7 @@ private struct ContainerData {
             return ContainerData(containers: containers, engineReachable: true, warning: nil)
         } catch {
             let warning = "Unreachable. \(error.localizedDescription)"
-            return ContainerData(containers: ContainerFixtures.sampleContainers, engineReachable: false, warning: warning)
+            return ContainerData(containers: SeedData.sampleContainers, engineReachable: false, warning: warning)
         }
     }
 }
@@ -277,7 +278,7 @@ struct Images: AsyncParsableCommand {
                 }
             } catch {
                 CLIOutput.warn("Images", "Unreachable. Showing mock data.")
-                let fallback = ContainerFixtures.sampleImages
+                let fallback = SeedData.sampleImages
                 if json {
                     CLIOutput.json(fallback)
                 } else {
@@ -340,7 +341,7 @@ struct Stacks: AsyncParsableCommand {
                 }
             } catch {
                 CLIOutput.warn("Stacks", "Unreachable. Showing mock data.")
-                let fallback = ContainerFixtures.sampleStacks
+                let fallback = SeedData.sampleStacks
                 if json {
                     CLIOutput.json(fallback)
                 } else {
@@ -385,7 +386,7 @@ struct Volumes: AsyncParsableCommand {
                 }
             } catch {
                 CLIOutput.warn("Volumes", "Unreachable. Showing mock data.")
-                let fallback = ContainerFixtures.sampleVolumes
+                let fallback = SeedData.sampleVolumes
                 if json {
                     CLIOutput.json(fallback)
                 } else {
@@ -430,7 +431,7 @@ struct Networks: AsyncParsableCommand {
                 }
             } catch {
                 CLIOutput.warn("Networks", "Unreachable. Showing mock data.")
-                let fallback = ContainerFixtures.sampleNetworks
+                let fallback = SeedData.sampleNetworks
                 if json {
                     CLIOutput.json(fallback)
                 } else {

@@ -12,7 +12,7 @@ public actor NetworkStore {
 
     // MARK: - Read Operations
 
-    public func fetchAll() -> [NetworkSummary] {
+    public nonisolated func fetchAll() -> [NetworkSummary] {
         (try? dbQueue.read { db in
             try NetworkRecord.fetchAll(db).map { $0.toSummary() }
         }) ?? []

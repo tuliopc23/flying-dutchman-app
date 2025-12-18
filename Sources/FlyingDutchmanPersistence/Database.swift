@@ -31,7 +31,7 @@ public final class DatabaseContainer: @unchecked Sendable {
         return dir.appendingPathComponent("flyingdutchman.sqlite")
     }
 
-    private static let migrator: DatabaseMigrator = {
+    static let migrator: DatabaseMigrator = {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1_core_schema") { db in
             try db.create(table: "containers") { t in
