@@ -2,17 +2,70 @@ import Foundation
 import GRDB
 import Shared
 
-public struct NetworkStore {
+/// Thread-safe repository for network persistence operations
+public actor NetworkStore {
     private let dbQueue: DatabaseQueue
 
     public init(dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
+    // MARK: - Read Operations
+
     public func fetchAll() -> [NetworkSummary] {
         (try? dbQueue.read { db in
             try NetworkRecord.fetchAll(db).map { $0.toSummary() }
         }) ?? []
+    }
+
+    public func fetch(id: UUID) throws -> NetworkSummary? {
+        try dbQueue.read { db in
+            try NetworkRecord
+                .filter(Column("id") == id.uuidString)
+                .fetchOne(db)?
+                .toSummary()
+        }
+    }
+
+    public func fetch(name: String) throws -> NetworkSummary? {
+        try dbQueue.read { db in
+            try NetworkRecord
+                .filter(Column("name") == name)
+                .fetchOne(db)?
+                .toSummary()
+        }
+    }
+
+    // MARK: - Write Operations
+
+    public func insert(_ network: NetworkSummary) throws {
+        try dbQueue.write { db in
+            try NetworkRecord(from: network).insert(db)
+        }
+    }
+
+    public func update(_ network: NetworkSummary) throws {
+        try dbQueue.write { db in
+            var record = NetworkRecord(from: network)
+            record.updatedAt = Date()
+            try record.update(db)
+        }
+    }
+
+    public func upsert(_ network: NetworkSummary) throws {
+        try dbQueue.write { db in
+            var record = NetworkRecord(from: network)
+            record.updatedAt = Date()
+            try record.save(db)
+        }
+    }
+
+    public func delete(id: UUID) throws {
+        try dbQueue.write { db in
+            try NetworkRecord
+                .filter(Column("id") == id.uuidString)
+                .deleteAll(db)
+        }
     }
 
     public func replaceAll(with summaries: [NetworkSummary]) {
@@ -21,6 +74,14 @@ public struct NetworkStore {
             for summary in summaries {
                 try NetworkRecord(from: summary).insert(db)
             }
+        }
+    }
+
+    // MARK: - Utility
+
+    public func count() throws -> Int {
+        try dbQueue.read { db in
+            try NetworkRecord.fetchCount(db)
         }
     }
 

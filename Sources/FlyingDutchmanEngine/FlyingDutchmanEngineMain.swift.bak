@@ -19,14 +19,21 @@ struct FlyingDutchmanEngineMain {
             logger.warning("\(containerization.name): \(containerization.message)")
         }
 
-        // Seed all stores with sample data
-        await SeedData.seedAllIfEmpty()
-
         let containerStore = ContainerStore()
+        containerStore.seedIfEmpty(with: ContainerFixtures.sampleContainers)
+
         let imageStore = ImageStore()
+        imageStore.seedIfEmpty(with: ContainerFixtures.sampleImages)
+
         let stackStore = StackStore()
+        stackStore.seedIfEmpty(with: ContainerFixtures.sampleStacks)
+
         let volumeStore = VolumeStore()
+        volumeStore.seedIfEmpty(with: ContainerFixtures.sampleVolumes)
+
         let networkStore = NetworkStore()
+        networkStore.seedIfEmpty(with: ContainerFixtures.sampleNetworks)
+
         let logStore = ContainerLogStore()
         let eventStore = ShimEventStore()
 

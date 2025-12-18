@@ -2,17 +2,70 @@ import Foundation
 import GRDB
 import Shared
 
-public struct VolumeStore {
+/// Thread-safe repository for volume persistence operations
+public actor VolumeStore {
     private let dbQueue: DatabaseQueue
 
     public init(dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
+    // MARK: - Read Operations
+
     public func fetchAll() -> [VolumeSummary] {
         (try? dbQueue.read { db in
             try VolumeRecord.fetchAll(db).map { $0.toSummary() }
         }) ?? []
+    }
+
+    public func fetch(id: UUID) throws -> VolumeSummary? {
+        try dbQueue.read { db in
+            try VolumeRecord
+                .filter(Column("id") == id.uuidString)
+                .fetchOne(db)?
+                .toSummary()
+        }
+    }
+
+    public func fetch(name: String) throws -> VolumeSummary? {
+        try dbQueue.read { db in
+            try VolumeRecord
+                .filter(Column("name") == name)
+                .fetchOne(db)?
+                .toSummary()
+        }
+    }
+
+    // MARK: - Write Operations
+
+    public func insert(_ volume: VolumeSummary) throws {
+        try dbQueue.write { db in
+            try VolumeRecord(from: volume).insert(db)
+        }
+    }
+
+    public func update(_ volume: VolumeSummary) throws {
+        try dbQueue.write { db in
+            var record = VolumeRecord(from: volume)
+            record.updatedAt = Date()
+            try record.update(db)
+        }
+    }
+
+    public func upsert(_ volume: VolumeSummary) throws {
+        try dbQueue.write { db in
+            var record = VolumeRecord(from: volume)
+            record.updatedAt = Date()
+            try record.save(db)
+        }
+    }
+
+    public func delete(id: UUID) throws {
+        try dbQueue.write { db in
+            try VolumeRecord
+                .filter(Column("id") == id.uuidString)
+                .deleteAll(db)
+        }
     }
 
     public func replaceAll(with summaries: [VolumeSummary]) {
@@ -21,6 +74,14 @@ public struct VolumeStore {
             for summary in summaries {
                 try VolumeRecord(from: summary).insert(db)
             }
+        }
+    }
+
+    // MARK: - Utility
+
+    public func count() throws -> Int {
+        try dbQueue.read { db in
+            try VolumeRecord.fetchCount(db)
         }
     }
 
