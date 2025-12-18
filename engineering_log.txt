@@ -1,0 +1,47 @@
+Engineering Log: Flying Dutchman - Design System Refactor & Foundation Stabilization
+Date: 2025-12-17
+Project: Flying Dutchman (macOS Tahoe Container Management)
+
+## Executive Summary
+Successfully completed a major architectural pivot for the UI layer, moving from a legacy mock-up design to a high-fidelity, token-based Design System leveraging native macOS Tahoe 26+ APIs. All hardcoded UI values have been obliterated in favor of the new 'Flying Dutchman Design System'.
+
+## Current Implementation Status
+
+### 1. Design System (95% Complete)
+- **Palette**: Implemented Netherlands national football team colors (Orange #FF6200, Royal Blue #21468B, White).
+- **Materials**: Native Liquid Glass integration using `.glassEffect()`, `.glassCard()`, and `.glassSidebar()`.
+- **Typography**: Complete SF Pro scale (Display/Text/Mono) with Dynamic Type support.
+- **Chrome**: Adopted the Tahoe Unified Look—hidden title bar separation with floating glass toolbars and edge-to-edge sidebars.
+- **Tokens**: 100% token-based spacing (4pt grid), corner radii (continuous curves), and spring animations.
+
+### 2. Core Infrastructure (100% Phase 1-2)
+- **SPM/Tuist**: Workspace configured with FlyingDutchmanApp, Engine, Persistence, Networking, and CLI modules.
+- **Engine**: Swift-service-lifecycle managed daemon with Hummingbird HTTP and XPC stubs.
+- **Persistence**: GRDB bootstrap for engine metadata and SwiftData for UI state.
+
+### 3. Feature Readiness
+- **Main Dashboard**: Real-time engine status (HTTP/XPC/Workers) with native Tahoe look.
+- **Container Management**: List view, start/stop/restart operations (wired to engine stubs), and filtering.
+- **Image Management**: Image listing, pulling from registry (AsyncHTTPClient), and metadata persistence.
+- **Command Palette**: ⌘K fuzzy search for global actions, now using Liquid Glass Prominent materials.
+- **Stacks/Projects**: Sidebar selection logic and model relationships established.
+
+## What's Left for Beta Release
+
+### Phase A: Business Logic (The 'Engine' Room)
+- **Native Containerization**: Transition from mock engine stubs to actual `Containerization.framework` calls.
+- **Docker Shim**: Complete the /var/run/flyingdutchman-docker.sock implementation for CLI compatibility.
+- **Log Streaming**: Implement NIO-based streaming for container logs and metrics.
+
+### Phase B: Advanced Features
+- **Dev Cluster**: K3s-based dev cluster automation using Apple Virtualization.
+- **Stack Dependencies**: Orchestrate multi-container startup/shutdown ordering.
+- **AI Integration**: Feature-flagged hooks for Stakpak/SwiftAI diagnostics.
+
+### Phase C: Polish & Distribution
+- **App Icon**: Finalize multi-layered Liquid Glass icon via Icon Composer.
+- **Performance**: Latency audit (targets: <200ms for status updates, <500ms for CLI).
+- **Accessibility**: Final WCAG AA contrast audit and VoiceOver validation.
+
+## Conclusion
+The foundation is now visually and architecturally stable. The 'Unified Chrome' and 'Liquid Glass' aesthetic sets Flying Dutchman apart as a first-class macOS citizen. The focus now shifts from the surface to the engine—wiring the design to the native Apple Containerization runtime.
