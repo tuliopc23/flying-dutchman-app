@@ -16,17 +16,20 @@ public enum RuntimeFactory {
             }
             return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
 
-        case "native":
-            // TODO: Implement ContainerizationRuntime when framework APIs are available.
-            return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+        case "native", "containerization":
+            // Use Apple Containerization framework (OrbStack-style)
+            return ContainerizationRuntime()
 
         case .none, "", "auto":
+            // Default to Containerization if kernel is available
             if ContainerizationClient.shared.isNativeAvailable {
-                return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+                return ContainerizationRuntime()
             }
+            // Fall back to CLI if available
             if let cli = ContainerCLIRuntime(store: store, logStore: logStore, eventStore: eventStore) {
                 return cli
             }
+            // Last resort: mock runtime
             return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
 
         default:

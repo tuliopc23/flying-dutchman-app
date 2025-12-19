@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "FlyingDutchman",
     platforms: [
-        .macOS(.v15)
+        .macOS("26.0") // Tahoe
     ],
     products: [
         .executable(name: "FlyingDutchmanApp", targets: ["FlyingDutchmanApp"]),
@@ -25,7 +25,15 @@ let package = Package(
         .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", from: "2.0.0"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.60.0"),
-        .package(url: "https://github.com/swiftkube/client.git", from: "0.20.0")
+        .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.21.0"),
+        .package(url: "https://github.com/swiftkube/client.git", from: "0.20.0"),
+        .package(url: "https://github.com/apple/containerization.git", from: "0.1.0"),
+        .package(url: "https://github.com/apple/swift-system.git", from: "1.3.0"),
+        .package(url: "https://github.com/pointfreeco/swift-navigation.git", from: "2.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0"),
+        .package(url: "https://github.com/joelklabo/SwiftDataValidator.git", from: "0.1.0"),
+        .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
+        .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0")
     ],
     targets: [
         .target(
@@ -40,7 +48,8 @@ let package = Package(
             dependencies: [
                 "Shared",
                 .product(name: "GRDB", package: "GRDB.swift"),
-                .product(name: "GRDBSQLite", package: "GRDB.swift")
+                .product(name: "GRDBSQLite", package: "GRDB.swift"),
+                .product(name: "SwiftDataValidator", package: "SwiftDataValidator")
             ],
             path: "Sources/FlyingDutchmanPersistence"
         ),
@@ -52,8 +61,12 @@ let package = Package(
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
-                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Containerization", package: "containerization"),
+                .product(name: "ContainerizationOCI", package: "containerization"),
+                .product(name: "SystemPackage", package: "swift-system"),
+                .product(name: "ProcessEnv", package: "ProcessEnv")
             ],
             path: "Sources/FlyingDutchmanContainers"
         ),
@@ -80,7 +93,8 @@ let package = Package(
                 "FlyingDutchmanPersistence",
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
-                .product(name: "GRDBSQLite", package: "GRDB.swift")
+                .product(name: "GRDBSQLite", package: "GRDB.swift"),
+                .product(name: "Dependencies", package: "swift-dependencies")
             ],
             path: "Sources/FlyingDutchmanNetworking"
         ),
@@ -111,7 +125,10 @@ let package = Package(
             dependencies: [
                 "Shared",
                 "FlyingDutchmanNetworking",
-                "FlyingDutchmanPersistence"
+                "FlyingDutchmanPersistence",
+                .product(name: "SwiftNavigation", package: "swift-navigation"),
+                .product(name: "SwiftUINavigation", package: "swift-navigation"),
+                .product(name: "Dependencies", package: "swift-dependencies")
             ],
             path: "Sources/FlyingDutchmanApp"
         ),
