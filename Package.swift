@@ -31,7 +31,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-system.git", from: "1.3.0"),
         .package(url: "https://github.com/pointfreeco/swift-navigation.git", from: "2.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0"),
-        .package(url: "https://github.com/joelklabo/SwiftDataValidator.git", from: "0.1.0"),
         .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
         .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0")
     ],
@@ -48,8 +47,7 @@ let package = Package(
             dependencies: [
                 "Shared",
                 .product(name: "GRDB", package: "GRDB.swift"),
-                .product(name: "GRDBSQLite", package: "GRDB.swift"),
-                .product(name: "SwiftDataValidator", package: "SwiftDataValidator")
+                .product(name: "GRDBSQLite", package: "GRDB.swift")
             ],
             path: "Sources/FlyingDutchmanPersistence"
         ),
