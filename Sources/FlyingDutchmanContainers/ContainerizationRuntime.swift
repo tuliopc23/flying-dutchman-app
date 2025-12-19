@@ -3,6 +3,9 @@ import Containerization
 import ContainerizationOCI
 import Shared
 import FlyingDutchmanPersistence
+import FlyingDutchmanNetworking
+import NIOTransportServices
+import NIOCore
 import SystemPackage
 import Logging
 
@@ -13,8 +16,13 @@ public actor ContainerizationRuntime: ContainerRuntime {
     private let containerStore = ContainerStore()
     private let imageStore = ImageStore()
     
-    // Active container VMs tracked by container ID
+    // NIO Transport
+    private let group = NIOTSEventLoopGroup(loopCount: 1)
+    private let vsockConnector: VSOCKConnector
+    
+    // Active State
     private var activeContainers: [UUID: LinuxContainer] = [:]
+    private var controlPlanes: [UUID: Channel] = [:]
     
     // Kernel path - will be configurable later
     private let kernelPath: FilePath
@@ -22,11 +30,12 @@ public actor ContainerizationRuntime: ContainerRuntime {
     public init(kernelPath: FilePath? = nil) {
         // Default to bundled kernel or downloaded Kata kernel
         self.kernelPath = kernelPath ?? Self.defaultKernelPath()
+        self.vsockConnector = VSOCKConnector(group: self.group)
     }
     
     // MARK: - ContainerRuntime Protocol
     
-    public var name: String { "Apple Containerization" }
+    public var name: String { "Apple Containerization (VSOCK)" }
     
     public func listContainers() async throws -> [ContainerSummary] {
         // Return containers from GRDB, sync with active VMs
@@ -98,6 +107,22 @@ public actor ContainerizationRuntime: ContainerRuntime {
         // Store active container reference
         activeContainers[container.id] = linuxContainer
         
+        // Connect VSOCK Control Plane
+        // TODO: Get actual CID from linuxContainer.contextID when available in framework
+        let cid = UInt32(3) 
+        
+        do {
+            let channel = try await vsockConnector.connect(cid: cid, port: 1024)
+            controlPlanes[id] = channel
+            logger.info("Control plane connected for \(id) on CID \(cid)")
+            
+            // Send initial ping
+            try await channel.writeAndFlush(ControlPlaneCommand.ping)
+        } catch {
+            logger.error("Failed to connect control plane: \(error)")
+            // We continue execution, but logs won't work
+        }
+        
         // Update container status
         var updated = container
         updated.status = .running
@@ -118,11 +143,18 @@ public actor ContainerizationRuntime: ContainerRuntime {
         
         logger.info("Stopping container \(container.id)")
         
-        // Stop the VM
+        // Try graceful stop via VSOCK
+        if let channel = controlPlanes[id] {
+            try? await channel.writeAndFlush(ControlPlaneCommand.stop)
+            try? await channel.close()
+        }
+        
+        // Force stop the VM
         try await linuxContainer.stop()
         
-        // Remove from active containers
+        // Cleanup state
         activeContainers.removeValue(forKey: container.id)
+        controlPlanes.removeValue(forKey: container.id)
         
         // Update container status
         var updated = container
@@ -149,15 +181,22 @@ public actor ContainerizationRuntime: ContainerRuntime {
     }
     
     public func getContainerLogs(id: UUID) async throws -> AsyncStream<String> {
-        guard let linuxContainer = activeContainers[id] else {
+        guard let channel = controlPlanes[id] else {
+            // If VM is running but control plane isn't, we can't stream logs yet
+            if activeContainers[id] != nil {
+                throw ContainerError.invalidState("Control plane connecting...")
+            }
             throw ContainerError.notFound(id)
         }
         
-        // TODO: Connect to vminitd GRPC for log streaming
-        // For now, return empty stream
         return AsyncStream { continuation in
-            continuation.yield("[Containerization] Log streaming not yet implemented")
-            continuation.finish()
+            let handler = LogStreamHandler(continuation: continuation)
+            
+            // Dynamically add the log handler to the pipeline
+            channel.pipeline.addHandler(handler).whenFailure { error in
+                logger.error("Failed to attach log stream: \(error)")
+                continuation.finish()
+            }
         }
     }
     
@@ -197,13 +236,12 @@ public actor ContainerizationRuntime: ContainerRuntime {
     // MARK: - Private Helpers
     
     private func parseImageReference(_ reference: String) throws -> ImageReference {
-        // Simple parser - enhance later
         let parts = reference.split(separator: ":")
         let name = String(parts[0])
         let tag = parts.count > 1 ? String(parts[1]) : "latest"
         
         return ImageReference(
-            registry: "docker.io",  // Default for now
+            registry: "docker.io",
             name: name,
             tag: tag
         )
@@ -213,8 +251,6 @@ public actor ContainerizationRuntime: ContainerRuntime {
         if let existing = try await imageStore.fetch(name: ref.name, tag: ref.tag) {
             return existing
         }
-        
-        // Pull if not exists
         return try await pullImage(reference: "\(ref.name):\(ref.tag)")
     }
     
@@ -227,10 +263,24 @@ public actor ContainerizationRuntime: ContainerRuntime {
             withIntermediateDirectories: true
         )
         
-        // TODO: Extract OCI image layers to rootfs
+        // Locate the image layers in Persistence
+        // In a real implementation, we'd iterate over image.layers and extract them
+        // For now we assume the base system is bootstrapped or single-layer
         logger.info("Preparing rootfs at \(rootfsDir)")
         
         return rootfsDir
+    }
+    
+    private func extractTar(at tarPath: FilePath, to destination: FilePath) async throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        process.arguments = ["-xf", tarPath.string, "-C", destination.string]
+        try process.run()
+        process.waitUntilExit()
+        
+        if process.terminationStatus != 0 {
+            throw ContainerError.extractionFailed(tarPath.string)
+        }
     }
     
     private func cleanupRootFS(for containerID: UUID) async throws {
@@ -239,7 +289,6 @@ public actor ContainerizationRuntime: ContainerRuntime {
     }
     
     private static func defaultKernelPath() -> FilePath {
-        // Look for kernel in app support directory
         let supportDir = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -288,6 +337,7 @@ enum ContainerError: LocalizedError {
     case notFound(UUID)
     case invalidState(String)
     case imageNotFound(String)
+    case extractionFailed(String)
     
     var errorDescription: String? {
         switch self {
@@ -297,6 +347,8 @@ enum ContainerError: LocalizedError {
             return "Invalid state: \(message)"
         case .imageNotFound(let image):
             return "Image \(image) not found"
+        case .extractionFailed(let path):
+            return "Failed to extract archive at \(path)"
         }
     }
 }

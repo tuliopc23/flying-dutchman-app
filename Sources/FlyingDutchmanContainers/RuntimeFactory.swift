@@ -22,6 +22,7 @@ public enum RuntimeFactory {
 
         case .none, "", "auto":
             // Default to Containerization if kernel is available
+            // This is now the primary path as per updated spec
             if ContainerizationClient.shared.isNativeAvailable {
                 return ContainerizationRuntime()
             }

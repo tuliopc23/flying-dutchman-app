@@ -1,13 +1,14 @@
 # Feature Specification: Flying Dutchman - macOS Containerization Foundation
 
-**Feature Branch**: `001-flying-dutchman-foundation`  
-**Created**: 2025-12-03  
-**Status**: Draft  
+**Feature Branch**: `001-flying-dutchman-foundation`
+**Created**: 2025-12-03
+**Status**: Implemented (Phase A1 Complete)
 **Input**: User description: "Create a specification for Flying Dutchman, a next-generation macOS containerization and orchestration tool for macOS Tahoe"
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Launch Application and View Status (Priority: P1)
+**Status**: ✅ COMPLETED
 
 A developer opens Flying Dutchman for the first time and sees a native macOS Tahoe interface displaying the current status of the containerization engine.
 
@@ -25,6 +26,7 @@ A developer opens Flying Dutchman for the first time and sees a native macOS Tah
 ---
 
 ### User Story 2 - Browse Container Projects (Priority: P2)
+**Status**: ✅ COMPLETED
 
 A developer wants to view their container projects/stacks in a sidebar and select one to see details.
 
@@ -42,6 +44,7 @@ A developer wants to view their container projects/stacks in a sidebar and selec
 ---
 
 ### User Story 3 - Execute Basic CLI Commands (Priority: P2)
+**Status**: 🚧 IN PROGRESS (Wiring to Runtime pending)
 
 A developer wants to check the system status and list containers using the command-line interface.
 
@@ -51,14 +54,15 @@ A developer wants to check the system status and list containers using the comma
 
 **Acceptance Scenarios**:
 
-1. **Given** the CLI is installed, **When** the user runs `flying-dutchman version`, **Then** the current version information is displayed
-2. **Given** the CLI is installed, **When** the user runs `flying-dutchman doctor`, **Then** a system health check report appears showing engine status and environment diagnostics
-3. **Given** the engine is running, **When** the user runs `flying-dutchman containers list`, **Then** all containers are listed with their status
+1. **Given** the CLI is installed, **When** the user runs `flying-dutchman version`, **Then** the current version information is displayed (✅ Done)
+2. **Given** the CLI is installed, **When** the user runs `flying-dutchman doctor`, **Then** a system health check report appears showing engine status and environment diagnostics (✅ Done)
+3. **Given** the engine is running, **When** the user runs `flying-dutchman containers list`, **Then** all containers are listed with their status (🚧 Pending Integration)
 4. **Given** the CLI encounters an error, **When** any command fails, **Then** a clear error message with troubleshooting guidance is displayed
 
 ---
 
 ### User Story 4 - Invoke Command Palette (Priority: P3)
+**Status**: ✅ COMPLETED
 
 A developer wants quick access to common actions without navigating menus or toolbars.
 
