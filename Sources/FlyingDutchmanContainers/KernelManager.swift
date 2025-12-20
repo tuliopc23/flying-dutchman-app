@@ -75,9 +75,9 @@ public actor KernelManager {
         
         // Stream to file
         var buffer = ByteBufferAllocator().buffer(capacity: 0)
-        for try await chunk in response.body {
-            var chunk = chunk
-            buffer.writeBuffer(&chunk)
+        if let body = response.body {
+             var chunk = body
+             buffer.writeBuffer(&chunk)
         }
         
         let data = Data(buffer: buffer)

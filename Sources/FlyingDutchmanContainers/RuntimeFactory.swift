@@ -14,7 +14,7 @@ public enum RuntimeFactory {
             if let cli = ContainerCLIRuntime(store: store, logStore: logStore, eventStore: eventStore) {
                 return cli
             }
-            return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+            return StubContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
 
         case "native", "containerization":
             // Use Apple Containerization framework (OrbStack-style)
@@ -31,10 +31,10 @@ public enum RuntimeFactory {
                 return cli
             }
             // Last resort: mock runtime
-            return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+            return StubContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
 
         default:
-            return ContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
+            return StubContainerRuntime(store: store, logStore: logStore, eventStore: eventStore)
         }
     }
 }

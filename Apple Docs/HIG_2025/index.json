@@ -1,0 +1,606 @@
+{
+  "base_url": "https://developer.apple.com/design/human-interface-guidelines/",
+  "count": 120,
+  "pages": [
+    {
+      "title": "Accessibility",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/accessibility",
+      "file": "Documentation/HIG_2025/accessibility.md"
+    },
+    {
+      "title": "Action Sheets",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/action-sheets",
+      "file": "Documentation/HIG_2025/action-sheets.md"
+    },
+    {
+      "title": "Alerts",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/alerts",
+      "file": "Documentation/HIG_2025/alerts.md"
+    },
+    {
+      "title": "App Icons",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/app-icons",
+      "file": "Documentation/HIG_2025/app-icons.md"
+    },
+    {
+      "title": "Apple Pay",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/apple-pay",
+      "file": "Documentation/HIG_2025/apple-pay.md"
+    },
+    {
+      "title": "Augmented Reality",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/augmented-reality",
+      "file": "Documentation/HIG_2025/augmented-reality.md"
+    },
+    {
+      "title": "Boxes",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/boxes",
+      "file": "Documentation/HIG_2025/boxes.md"
+    },
+    {
+      "title": "Branding",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/branding",
+      "file": "Documentation/HIG_2025/branding.md"
+    },
+    {
+      "title": "Buttons",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/buttons",
+      "file": "Documentation/HIG_2025/buttons.md"
+    },
+    {
+      "title": "Carplay",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/carplay",
+      "file": "Documentation/HIG_2025/carplay.md"
+    },
+    {
+      "title": "Charting Data",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/charting-data",
+      "file": "Documentation/HIG_2025/charting-data.md"
+    },
+    {
+      "title": "Charts",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/charts",
+      "file": "Documentation/HIG_2025/charts.md"
+    },
+    {
+      "title": "Collections",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/collections",
+      "file": "Documentation/HIG_2025/collections.md"
+    },
+    {
+      "title": "Color",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/color",
+      "file": "Documentation/HIG_2025/color.md"
+    },
+    {
+      "title": "Color Wells",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/color-wells",
+      "file": "Documentation/HIG_2025/color-wells.md"
+    },
+    {
+      "title": "Column Views",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/column-views",
+      "file": "Documentation/HIG_2025/column-views.md"
+    },
+    {
+      "title": "Combo Boxes",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/combo-boxes",
+      "file": "Documentation/HIG_2025/combo-boxes.md"
+    },
+    {
+      "title": "Components",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/components",
+      "file": "Documentation/HIG_2025/components.md"
+    },
+    {
+      "title": "Content",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/content",
+      "file": "Documentation/HIG_2025/content.md"
+    },
+    {
+      "title": "Context Menus",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/context-menus",
+      "file": "Documentation/HIG_2025/context-menus.md"
+    },
+    {
+      "title": "Controls",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/controls",
+      "file": "Documentation/HIG_2025/controls.md"
+    },
+    {
+      "title": "Dark Mode",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/dark-mode",
+      "file": "Documentation/HIG_2025/dark-mode.md"
+    },
+    {
+      "title": "Designing For Games",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-games",
+      "file": "Documentation/HIG_2025/designing-for-games.md"
+    },
+    {
+      "title": "Designing For Ios",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-ios",
+      "file": "Documentation/HIG_2025/designing-for-ios.md"
+    },
+    {
+      "title": "Designing For Ipados",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-ipados",
+      "file": "Documentation/HIG_2025/designing-for-ipados.md"
+    },
+    {
+      "title": "Designing For Macos",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-macos",
+      "file": "Documentation/HIG_2025/designing-for-macos.md"
+    },
+    {
+      "title": "Designing For Tvos",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-tvos",
+      "file": "Documentation/HIG_2025/designing-for-tvos.md"
+    },
+    {
+      "title": "Designing For Visionos",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-visionos",
+      "file": "Documentation/HIG_2025/designing-for-visionos.md"
+    },
+    {
+      "title": "Designing For Watchos",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-watchos",
+      "file": "Documentation/HIG_2025/designing-for-watchos.md"
+    },
+    {
+      "title": "Disclosure Controls",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/disclosure-controls",
+      "file": "Documentation/HIG_2025/disclosure-controls.md"
+    },
+    {
+      "title": "Drag And Drop",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/drag-and-drop",
+      "file": "Documentation/HIG_2025/drag-and-drop.md"
+    },
+    {
+      "title": "Entering Data",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/entering-data",
+      "file": "Documentation/HIG_2025/entering-data.md"
+    },
+    {
+      "title": "Eyes",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/eyes",
+      "file": "Documentation/HIG_2025/eyes.md"
+    },
+    {
+      "title": "Feedback",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/feedback",
+      "file": "Documentation/HIG_2025/feedback.md"
+    },
+    {
+      "title": "File Management",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/file-management",
+      "file": "Documentation/HIG_2025/file-management.md"
+    },
+    {
+      "title": "Focus And Selection",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/focus-and-selection",
+      "file": "Documentation/HIG_2025/focus-and-selection.md"
+    },
+    {
+      "title": "Foundations",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/foundations",
+      "file": "Documentation/HIG_2025/foundations.md"
+    },
+    {
+      "title": "Generative Ai",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/generative-ai",
+      "file": "Documentation/HIG_2025/generative-ai.md"
+    },
+    {
+      "title": "Gestures",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/gestures",
+      "file": "Documentation/HIG_2025/gestures.md"
+    },
+    {
+      "title": "Getting Started",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/getting-started",
+      "file": "Documentation/HIG_2025/getting-started.md"
+    },
+    {
+      "title": "Going Full Screen",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/going-full-screen",
+      "file": "Documentation/HIG_2025/going-full-screen.md"
+    },
+    {
+      "title": "Gyro And Accelerometer",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/gyro-and-accelerometer",
+      "file": "Documentation/HIG_2025/gyro-and-accelerometer.md"
+    },
+    {
+      "title": "Healthkit",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/healthkit",
+      "file": "Documentation/HIG_2025/healthkit.md"
+    },
+    {
+      "title": "Icons",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/icons",
+      "file": "Documentation/HIG_2025/icons.md"
+    },
+    {
+      "title": "Image Views",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/image-views",
+      "file": "Documentation/HIG_2025/image-views.md"
+    },
+    {
+      "title": "Images",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/images",
+      "file": "Documentation/HIG_2025/images.md"
+    },
+    {
+      "title": "Immersive Experiences",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/immersive-experiences",
+      "file": "Documentation/HIG_2025/immersive-experiences.md"
+    },
+    {
+      "title": "In App Purchase",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/in-app-purchase",
+      "file": "Documentation/HIG_2025/in-app-purchase.md"
+    },
+    {
+      "title": "Inclusion",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/inclusion",
+      "file": "Documentation/HIG_2025/inclusion.md"
+    },
+    {
+      "title": "Inputs",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/inputs",
+      "file": "Documentation/HIG_2025/inputs.md"
+    },
+    {
+      "title": "Keyboards",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/keyboards",
+      "file": "Documentation/HIG_2025/keyboards.md"
+    },
+    {
+      "title": "Labels",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/labels",
+      "file": "Documentation/HIG_2025/labels.md"
+    },
+    {
+      "title": "Launching",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/launching",
+      "file": "Documentation/HIG_2025/launching.md"
+    },
+    {
+      "title": "Layout",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/layout",
+      "file": "Documentation/HIG_2025/layout.md"
+    },
+    {
+      "title": "Layout And Organization",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/layout-and-organization",
+      "file": "Documentation/HIG_2025/layout-and-organization.md"
+    },
+    {
+      "title": "Lists And Tables",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/lists-and-tables",
+      "file": "Documentation/HIG_2025/lists-and-tables.md"
+    },
+    {
+      "title": "Live Activities",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/live-activities",
+      "file": "Documentation/HIG_2025/live-activities.md"
+    },
+    {
+      "title": "Live Photos",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/live-photos",
+      "file": "Documentation/HIG_2025/live-photos.md"
+    },
+    {
+      "title": "Loading",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/loading",
+      "file": "Documentation/HIG_2025/loading.md"
+    },
+    {
+      "title": "Machine Learning",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/machine-learning",
+      "file": "Documentation/HIG_2025/machine-learning.md"
+    },
+    {
+      "title": "Managing Accounts",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/managing-accounts",
+      "file": "Documentation/HIG_2025/managing-accounts.md"
+    },
+    {
+      "title": "Managing Notifications",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/managing-notifications",
+      "file": "Documentation/HIG_2025/managing-notifications.md"
+    },
+    {
+      "title": "Maps",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/maps",
+      "file": "Documentation/HIG_2025/maps.md"
+    },
+    {
+      "title": "Materials",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/materials",
+      "file": "Documentation/HIG_2025/materials.md"
+    },
+    {
+      "title": "Menus",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/menus",
+      "file": "Documentation/HIG_2025/menus.md"
+    },
+    {
+      "title": "Menus And Actions",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/menus-and-actions",
+      "file": "Documentation/HIG_2025/menus-and-actions.md"
+    },
+    {
+      "title": "Modality",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/modality",
+      "file": "Documentation/HIG_2025/modality.md"
+    },
+    {
+      "title": "Motion",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/motion",
+      "file": "Documentation/HIG_2025/motion.md"
+    },
+    {
+      "title": "Multitasking",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/multitasking",
+      "file": "Documentation/HIG_2025/multitasking.md"
+    },
+    {
+      "title": "Navigation And Search",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/navigation-and-search",
+      "file": "Documentation/HIG_2025/navigation-and-search.md"
+    },
+    {
+      "title": "Nearby Interactions",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/nearby-interactions",
+      "file": "Documentation/HIG_2025/nearby-interactions.md"
+    },
+    {
+      "title": "Notifications",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/notifications",
+      "file": "Documentation/HIG_2025/notifications.md"
+    },
+    {
+      "title": "Offering Help",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/offering-help",
+      "file": "Documentation/HIG_2025/offering-help.md"
+    },
+    {
+      "title": "Onboarding",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/onboarding",
+      "file": "Documentation/HIG_2025/onboarding.md"
+    },
+    {
+      "title": "Page Controls",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/page-controls",
+      "file": "Documentation/HIG_2025/page-controls.md"
+    },
+    {
+      "title": "Panels",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/panels",
+      "file": "Documentation/HIG_2025/panels.md"
+    },
+    {
+      "title": "Patterns",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/patterns",
+      "file": "Documentation/HIG_2025/patterns.md"
+    },
+    {
+      "title": "Photo Editing",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/photo-editing",
+      "file": "Documentation/HIG_2025/photo-editing.md"
+    },
+    {
+      "title": "Pickers",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pickers",
+      "file": "Documentation/HIG_2025/pickers.md"
+    },
+    {
+      "title": "Playing Haptics",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/playing-haptics",
+      "file": "Documentation/HIG_2025/playing-haptics.md"
+    },
+    {
+      "title": "Pointing Devices",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pointing-devices",
+      "file": "Documentation/HIG_2025/pointing-devices.md"
+    },
+    {
+      "title": "Pop Up Buttons",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pop-up-buttons",
+      "file": "Documentation/HIG_2025/pop-up-buttons.md"
+    },
+    {
+      "title": "Popovers",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/popovers",
+      "file": "Documentation/HIG_2025/popovers.md"
+    },
+    {
+      "title": "Presentation",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/presentation",
+      "file": "Documentation/HIG_2025/presentation.md"
+    },
+    {
+      "title": "Privacy",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/privacy",
+      "file": "Documentation/HIG_2025/privacy.md"
+    },
+    {
+      "title": "Progress Indicators",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/progress-indicators",
+      "file": "Documentation/HIG_2025/progress-indicators.md"
+    },
+    {
+      "title": "Pull Down Buttons",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pull-down-buttons",
+      "file": "Documentation/HIG_2025/pull-down-buttons.md"
+    },
+    {
+      "title": "Ratings And Reviews",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/ratings-and-reviews",
+      "file": "Documentation/HIG_2025/ratings-and-reviews.md"
+    },
+    {
+      "title": "Right To Left",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/right-to-left",
+      "file": "Documentation/HIG_2025/right-to-left.md"
+    },
+    {
+      "title": "Scroll Views",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/scroll-views",
+      "file": "Documentation/HIG_2025/scroll-views.md"
+    },
+    {
+      "title": "Search Fields",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/search-fields",
+      "file": "Documentation/HIG_2025/search-fields.md"
+    },
+    {
+      "title": "Searching",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/searching",
+      "file": "Documentation/HIG_2025/searching.md"
+    },
+    {
+      "title": "Selection And Input",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/selection-and-input",
+      "file": "Documentation/HIG_2025/selection-and-input.md"
+    },
+    {
+      "title": "Settings",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/settings",
+      "file": "Documentation/HIG_2025/settings.md"
+    },
+    {
+      "title": "Sf Symbols",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sf-symbols",
+      "file": "Documentation/HIG_2025/sf-symbols.md"
+    },
+    {
+      "title": "Sheets",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sheets",
+      "file": "Documentation/HIG_2025/sheets.md"
+    },
+    {
+      "title": "Sign In With Apple",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple",
+      "file": "Documentation/HIG_2025/sign-in-with-apple.md"
+    },
+    {
+      "title": "Siri",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/siri",
+      "file": "Documentation/HIG_2025/siri.md"
+    },
+    {
+      "title": "Sliders",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sliders",
+      "file": "Documentation/HIG_2025/sliders.md"
+    },
+    {
+      "title": "Spatial Layout",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/spatial-layout",
+      "file": "Documentation/HIG_2025/spatial-layout.md"
+    },
+    {
+      "title": "Split Views",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/split-views",
+      "file": "Documentation/HIG_2025/split-views.md"
+    },
+    {
+      "title": "Steppers",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/steppers",
+      "file": "Documentation/HIG_2025/steppers.md"
+    },
+    {
+      "title": "System Experiences",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/system-experiences",
+      "file": "Documentation/HIG_2025/system-experiences.md"
+    },
+    {
+      "title": "Tab Bars",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+      "file": "Documentation/HIG_2025/tab-bars.md"
+    },
+    {
+      "title": "Tab Views",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/tab-views",
+      "file": "Documentation/HIG_2025/tab-views.md"
+    },
+    {
+      "title": "Tap To Pay On Iphone",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/tap-to-pay-on-iphone",
+      "file": "Documentation/HIG_2025/tap-to-pay-on-iphone.md"
+    },
+    {
+      "title": "Technologies",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/technologies",
+      "file": "Documentation/HIG_2025/technologies.md"
+    },
+    {
+      "title": "Text Fields",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/text-fields",
+      "file": "Documentation/HIG_2025/text-fields.md"
+    },
+    {
+      "title": "Text Views",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/text-views",
+      "file": "Documentation/HIG_2025/text-views.md"
+    },
+    {
+      "title": "The Menu Bar",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/the-menu-bar",
+      "file": "Documentation/HIG_2025/the-menu-bar.md"
+    },
+    {
+      "title": "Toggles",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/toggles",
+      "file": "Documentation/HIG_2025/toggles.md"
+    },
+    {
+      "title": "Token Fields",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/token-fields",
+      "file": "Documentation/HIG_2025/token-fields.md"
+    },
+    {
+      "title": "Toolbars",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/toolbars",
+      "file": "Documentation/HIG_2025/toolbars.md"
+    },
+    {
+      "title": "Typography",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/typography",
+      "file": "Documentation/HIG_2025/typography.md"
+    },
+    {
+      "title": "Voiceover",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/voiceover",
+      "file": "Documentation/HIG_2025/voiceover.md"
+    },
+    {
+      "title": "Wallet",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/wallet",
+      "file": "Documentation/HIG_2025/wallet.md"
+    },
+    {
+      "title": "Widgets",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/widgets",
+      "file": "Documentation/HIG_2025/widgets.md"
+    },
+    {
+      "title": "Windows",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/windows",
+      "file": "Documentation/HIG_2025/windows.md"
+    },
+    {
+      "title": "Workouts",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/workouts",
+      "file": "Documentation/HIG_2025/workouts.md"
+    },
+    {
+      "title": "Writing",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/writing",
+      "file": "Documentation/HIG_2025/writing.md"
+    }
+  ]
+}

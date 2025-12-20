@@ -1,6 +1,5 @@
 import Dependencies
 import Foundation
-import FlyingDutchmanPersistence
 
 // MARK: - Dependency Keys
 
@@ -21,27 +20,11 @@ public extension DependencyValues {
     }
 }
 
-// MARK: - Protocol Definition
-
-public protocol ContainerRuntimeProtocol: Sendable {
-    func listContainers() async throws -> [ContainerSummary]
-    func startContainer(id: UUID) async throws -> ContainerSummary
-    func stopContainer(id: UUID) async throws -> ContainerSummary
-    func createContainer(name: String, image: String, config: ContainerConfig) async throws -> ContainerSummary
-}
-
-// MARK: - Helper Types
-
-public struct ContainerConfig: Codable, Sendable {
-    public var ports: [String]?
-    public init(ports: [String]? = nil) {
-        self.ports = ports
-    }
-}
-
 // MARK: - Mock Implementations
 
-public final class MockRuntime: ContainerRuntimeProtocol, @unchecked Sendable {
+public actor MockRuntime: ContainerRuntimeProtocol {
+    public nonisolated let name = "Mock"
+    
     public init() {}
     public func listContainers() async throws -> [ContainerSummary] {
         [ContainerSummary(name: "mock-nginx", image: "nginx:latest", status: .running, ports: ["80:80"])]
@@ -49,12 +32,21 @@ public final class MockRuntime: ContainerRuntimeProtocol, @unchecked Sendable {
     public func startContainer(id: UUID) async throws -> ContainerSummary { throw fatalError("Mock") }
     public func stopContainer(id: UUID) async throws -> ContainerSummary { throw fatalError("Mock") }
     public func createContainer(name: String, image: String, config: ContainerConfig) async throws -> ContainerSummary { throw fatalError("Mock") }
+    public func removeContainer(id: UUID) async throws { throw fatalError("Mock") }
+    public func getContainerLogs(id: UUID) async throws -> AsyncStream<String> { throw fatalError("Mock") }
+    public func pullImage(reference: String) async throws -> ImageSummary { throw fatalError("Mock") }
+    public func listImages() async throws -> [ImageSummary] { [] }
 }
 
-public final class UnimplementedRuntime: ContainerRuntimeProtocol, @unchecked Sendable {
+public actor UnimplementedRuntime: ContainerRuntimeProtocol {
+    public nonisolated let name = "Unimplemented"
     public init() {}
     public func listContainers() async throws -> [ContainerSummary] { fatalError() }
     public func startContainer(id: UUID) async throws -> ContainerSummary { fatalError() }
     public func stopContainer(id: UUID) async throws -> ContainerSummary { fatalError() }
     public func createContainer(name: String, image: String, config: ContainerConfig) async throws -> ContainerSummary { fatalError() }
+    public func removeContainer(id: UUID) async throws { fatalError() }
+    public func getContainerLogs(id: UUID) async throws -> AsyncStream<String> { fatalError() }
+    public func pullImage(reference: String) async throws -> ImageSummary { fatalError() }
+    public func listImages() async throws -> [ImageSummary] { fatalError() }
 }

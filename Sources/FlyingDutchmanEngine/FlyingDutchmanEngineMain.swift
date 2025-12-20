@@ -33,14 +33,18 @@ struct FlyingDutchmanEngineMain {
         let runtime = RuntimeFactory.makeRuntime(store: containerStore, logStore: logStore, eventStore: eventStore)
 
         // Log runtime mode for diagnostics
-        let runtimeMode = runtime.mode.rawValue
+        let runtimeName = await runtime.name
         logger.info("Starting FlyingDutchmanEngine", metadata: [
-            "runtime_mode": "\(runtimeMode)",
+            "runtime_mode": "\(runtimeName)",
             "grdb_initialized": "true",
             "xpc_enabled": "true"
         ])
 
-        await DockerShimServer.startStub(runtime: runtime, logger: logger)
+        // Reconcile state on startup (if runtime supports it)
+        if let containerizationRuntime = runtime as? ContainerizationRuntime {
+            try? await containerizationRuntime.reconcileState()
+        }
+
         await EngineXPCListener.shared.start(runtime: runtime)
 
         do {

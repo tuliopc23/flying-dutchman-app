@@ -2,7 +2,7 @@ import Foundation
 import Shared
 
 /// Configuration for creating a container
-public struct ContainerConfig: Sendable {
+public struct ContainerConfig: Codable, Sendable {
     public let ports: [String]?
     public let env: [String: String]?
     public let volumes: [String]?
@@ -36,7 +36,7 @@ public struct ContainerConfig: Sendable {
 }
 
 /// Protocol that all container runtimes must implement
-public protocol ContainerRuntime: Actor {
+public protocol ContainerRuntimeProtocol: Actor {
     /// Human-readable name of the runtime
     var name: String { get }
     

@@ -22,7 +22,7 @@ public struct EngineServer {
     }
 
     public static func makeRouter(
-        runtime: ContainerRuntimeProtocol = ContainerRuntime.shared,
+        runtime: ContainerRuntimeProtocol,
         store: AnyContainerStore? = nil,
         imageStore: ImageStore? = nil,
         stackStore: StackStore? = nil,
@@ -38,13 +38,13 @@ public struct EngineServer {
                 engine: "running",
                 version: AppConfig.version,
                 uptimeSeconds: EngineRuntime.uptimeSeconds,
-                containerization: runtime.mode.rawValue,
-                workers: ContainerizationStub.currentState(runtime: runtime).workers
+                containerization: await runtime.name,
+                workers: await ContainerizationStub.currentState(runtime: runtime).workers
             )
         }
 
         router.get("/status") { _, _ in
-            let state = ContainerizationStub.currentState(runtime: runtime)
+            let state = await ContainerizationStub.currentState(runtime: runtime)
             return StatusResponse(
                 engine: state.engine,
                 uptimeSeconds: state.uptimeSeconds,
@@ -58,6 +58,9 @@ public struct EngineServer {
         StacksRoutes(runtime: runtime, store: stackStore).register(on: router)
         VolumesRoutes(store: volumeStore).register(on: router)
         NetworksRoutes(store: networkStore).register(on: router)
+        
+        // Docker API compatibility layer
+        DockerShimServer(runtime: runtime).register(on: router)
 
         router.get("/events") { request, context -> Response in
             struct EventsQuery: Decodable { let limit: Int? }
@@ -101,7 +104,7 @@ public struct EngineServer {
             let response = [
                 "status": "pulling",
                 "reference": payload.reference,
-                "message": "Stub pull started; engine running in \(runtime.mode.rawValue) mode."
+                "message": "Stub pull started; engine running in \(await runtime.name) mode."
             ]
             return EditedResponse(status: .accepted, response: response)
         }
@@ -112,7 +115,7 @@ public struct EngineServer {
     public static func start(
         host: String = AppConfig.Engine.host,
         port: Int = AppConfig.Engine.port,
-        runtime: ContainerRuntimeProtocol = ContainerRuntime.shared,
+        runtime: ContainerRuntimeProtocol,
         store: AnyContainerStore? = nil,
         imageStore: ImageStore? = nil,
         stackStore: StackStore? = nil,

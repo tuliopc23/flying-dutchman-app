@@ -35,7 +35,7 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     }
 }
 
-public protocol AnyContainerStore {
+public protocol AnyContainerStore: Sendable {
     func fetchAll() -> [ContainerSummary]
     func replaceAll(with summaries: [ContainerSummary])
 }

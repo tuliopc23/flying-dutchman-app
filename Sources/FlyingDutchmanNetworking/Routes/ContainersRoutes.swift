@@ -9,7 +9,7 @@ struct ContainersRoutes: @unchecked Sendable {
 
     func register(on router: Router<BasicRequestContext>) {
         router.get("/containers") { _, _ in
-            runtime.list()
+            try await runtime.listContainers()
         }
 
         router.post("/containers/create") { request, context -> EditedResponse<ContainerSummary> in
@@ -33,23 +33,27 @@ struct ContainersRoutes: @unchecked Sendable {
             }
 
             // Create container via runtime
-            let container = ContainerSummary(
+            let config = ContainerConfig(ports: payload.ports, env: payload.env)
+            let container = try await runtime.createContainer(
                 name: payload.name,
                 image: payload.image,
-                status: .stopped,
-                ports: payload.ports ?? []
+                config: config
             )
 
-            // Import into runtime and persist
-            runtime.importContainer(container)
-            persist()
+            // Persist to store if provided
+            if let store {
+                var all = store.fetchAll()
+                all.append(container)
+                store.replaceAll(with: all)
+            }
 
             return EditedResponse(status: .created, response: container)
         }
 
         router.get("/containers/:id") { _, context -> ContainerSummary in
             let id = try containerID(from: context)
-            guard let summary = runtime.list().first(where: { $0.id == id }) else {
+            let containers = try await runtime.listContainers()
+            guard let summary = containers.first(where: { $0.id == id }) else {
                 throw HTTPError(.notFound)
             }
             return summary
@@ -57,72 +61,109 @@ struct ContainersRoutes: @unchecked Sendable {
 
         router.post("/containers/:id/start") { _, context -> ContainerSummary in
             let id = try containerID(from: context)
-            guard let container = runtime.list().first(where: { $0.id == id }) else {
+            let containers = try await runtime.listContainers()
+            guard let container = containers.first(where: { $0.id == id }) else {
                 throw HTTPError(.notFound)
             }
             guard container.status == .stopped else {
                 throw HTTPError(.conflict)
             }
-            guard let updated = runtime.start(containerID: id) else {
-                throw HTTPError(.internalServerError)
+            let updated = try await runtime.startContainer(id: id)
+            
+            // Persist to store if provided
+            if let store {
+                var all = store.fetchAll()
+                if let index = all.firstIndex(where: { $0.id == updated.id }) {
+                    all[index] = updated
+                } else {
+                    all.append(updated)
+                }
+                store.replaceAll(with: all)
             }
-            persist()
+            
             return updated
         }
 
         router.post("/containers/:id/stop") { _, context -> ContainerSummary in
             let id = try containerID(from: context)
-            guard let container = runtime.list().first(where: { $0.id == id }) else {
+            let containers = try await runtime.listContainers()
+            guard let container = containers.first(where: { $0.id == id }) else {
                 throw HTTPError(.notFound)
             }
             guard container.status == .running else {
                 throw HTTPError(.conflict)
             }
-            guard let updated = runtime.stop(containerID: id) else {
-                throw HTTPError(.internalServerError)
+            let updated = try await runtime.stopContainer(id: id)
+            
+            // Persist to store if provided
+            if let store {
+                var all = store.fetchAll()
+                if let index = all.firstIndex(where: { $0.id == updated.id }) {
+                    all[index] = updated
+                } else {
+                    all.append(updated)
+                }
+                store.replaceAll(with: all)
             }
-            persist()
+            
             return updated
         }
 
         router.post("/containers/:id/restart") { _, context -> ContainerSummary in
             let id = try containerID(from: context)
-            guard let updated = runtime.restart(containerID: id) else {
-                throw HTTPError(.notFound)
+            // Stop first, then start
+            _ = try await runtime.stopContainer(id: id)
+            try? await Task.sleep(nanoseconds: 500_000_000) // Brief delay
+            let updated = try await runtime.startContainer(id: id)
+            
+            // Persist to store if provided
+            if let store {
+                var all = store.fetchAll()
+                if let index = all.firstIndex(where: { $0.id == updated.id }) {
+                    all[index] = updated
+                } else {
+                    all.append(updated)
+                }
+                store.replaceAll(with: all)
             }
-            persist()
+            
             return updated
         }
 
         router.delete("/containers/:id") { _, context -> HTTPResponse.Status in
             let id = try containerID(from: context)
-            guard runtime.list().contains(where: { $0.id == id }) else {
+            let containers = try await runtime.listContainers()
+            guard containers.contains(where: { $0.id == id }) else {
                 throw HTTPError(.notFound)
             }
 
             // Stop if running, then remove
-            if let container = runtime.list().first(where: { $0.id == id }), container.status == .running {
-                _ = runtime.stop(containerID: id)
+            if let container = containers.first(where: { $0.id == id }), container.status == .running {
+                _ = try? await runtime.stopContainer(id: id)
             }
 
-            // Remove from runtime (will clean up persistence via export)
-            // Note: ContainerRuntime doesn't have a remove method yet, so we'll just stop it
-            // The actual removal will be handled when we implement full lifecycle
-            persist()
+            // Remove container
+            try await runtime.removeContainer(id: id)
+            
+            // Remove from store if provided
+            if let store {
+                var all = store.fetchAll()
+                all.removeAll { $0.id == id }
+                store.replaceAll(with: all)
+            }
 
             return .noContent
         }
 
         router.get("/containers/:id/logs") { _, context -> String in
             let id = try containerID(from: context)
-            let logs = runtime.logs(for: id)
-            return logs.joined(separator: "\n") + "\n"
+            let logStream = try await runtime.getContainerLogs(id: id)
+            var logLines: [String] = []
+            for try await line in logStream {
+                logLines.append(line)
+            }
+            return logLines.joined(separator: "\n") + "\n"
         }
-    }
-
-    private func persist() {
-        guard let store else { return }
-        runtime.export(to: store)
     }
 
     private func containerID(from context: BasicRequestContext) throws -> UUID {

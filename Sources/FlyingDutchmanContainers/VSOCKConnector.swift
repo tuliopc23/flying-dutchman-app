@@ -2,6 +2,7 @@ import Foundation
 import NIOCore
 import NIOTransportServices
 import Logging
+import Network
 
 public final class VSOCKConnector: Sendable {
     private let group: NIOTSEventLoopGroup
@@ -13,7 +14,7 @@ public final class VSOCKConnector: Sendable {
 
     /// Connects to a guest VM via VSOCK using Apple's Network.framework bridge
     public func connect(cid: UInt32, port: UInt32) async throws -> Channel {
-        let bootstrap = NIOTSBootstrap(group: group)
+        let bootstrap = NIOTSConnectionBootstrap(group: group)
             .channelOption(NIOTSChannelOptions.waitForActivity, value: true)
             .channelInitializer { channel in
                 // Add our framing codec to the pipeline
@@ -24,7 +25,7 @@ public final class VSOCKConnector: Sendable {
         let endpoint = try NWEndpoint.vsock(cid: cid, port: port)
         
         logger.info("Connecting VSOCK to CID: \(cid) Port: \(port)")
-        return try await bootstrap.connect(to: endpoint).get()
+        return try await bootstrap.connect(endpoint: endpoint).get()
     }
 }
 

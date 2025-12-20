@@ -45,7 +45,7 @@ struct StacksRoutes: @unchecked Sendable {
             guard let store, let stack = store.fetch(id: id) else {
                 throw HTTPError(.notFound)
             }
-            return perform(action: "start", stack: stack)
+            return try await perform(action: "start", stack: stack)
         }
 
         router.post("/stacks/:id/stop") { _, context -> StackActionResponse in
@@ -53,12 +53,13 @@ struct StacksRoutes: @unchecked Sendable {
             guard let store, let stack = store.fetch(id: id) else {
                 throw HTTPError(.notFound)
             }
-            return perform(action: "stop", stack: stack)
+            return try await perform(action: "stop", stack: stack)
         }
     }
 
-    private func perform(action: String, stack: StackSummary) -> StackActionResponse {
-        let containersByName = Dictionary(uniqueKeysWithValues: runtime.list().map { ($0.name, $0) })
+    private func perform(action: String, stack: StackSummary) async throws -> StackActionResponse {
+        let containers = try await runtime.listContainers()
+        let containersByName = Dictionary(uniqueKeysWithValues: containers.map { ($0.name, $0) })
         var updated: [ContainerSummary] = []
         var errors: [String] = []
 
@@ -74,17 +75,17 @@ struct StacksRoutes: @unchecked Sendable {
                 errors.append("Container '\(name)' not found")
                 continue
             }
-            let result: ContainerSummary?
-            switch action {
-            case "stop":
-                result = runtime.stop(containerID: existing.id)
-            default:
-                result = runtime.start(containerID: existing.id)
-            }
-            if let result {
+            do {
+                let result: ContainerSummary
+                switch action {
+                case "stop":
+                    result = try await runtime.stopContainer(id: existing.id)
+                default:
+                    result = try await runtime.startContainer(id: existing.id)
+                }
                 updated.append(result)
-            } else {
-                errors.append("Failed to \(action) '\(name)'")
+            } catch {
+                errors.append("Failed to \(action) '\(name)': \(error.localizedDescription)")
             }
         }
 

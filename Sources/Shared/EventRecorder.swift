@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol EventRecorder {
+public protocol EventRecorder: Sendable {
     func record(status: String, containerId: UUID?, image: String?, kind: String, timestamp: Date)
     func recent(limit: Int) -> [[String: Any]]
 }
@@ -11,7 +11,7 @@ public extension EventRecorder {
     }
 }
 
-public protocol ContainerLogStoring {
+public protocol ContainerLogStoring: Sendable {
     func append(containerID: UUID, line: String, date: Date)
     func fetch(containerID: UUID, limit: Int) -> [String]
 }
