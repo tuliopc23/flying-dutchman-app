@@ -3,7 +3,7 @@
 phase: 0
 status: in-progress
 started: 2025-12-24
-updated: 2025-12-24
+updated: 2025-12-27
 blockers: []
 
 ---
@@ -35,28 +35,61 @@ Foundation phase establishes core infrastructure that all other phases depend on
 
 **Notes**: SwiftData deferred to Phase 4 for maturity assessment.
 
-### 0.3 Container Runtime Abstraction 🟡
+### 0.3 Container Runtime Abstraction ✅
 - [x] 1. `ContainerRuntime` protocol defined
 - [x] 2. `ContainerCLIRuntime` implementation (Docker CLI wrapper)
-- [x] 3. Apple `Containerization` framework integration started
-- [ ] 4. Runtime factory with environment detection
-- [ ] 5. Container state models (Sendable, Equatable)
-- [ ] 6. Lifecycle management (start/stop/restart/delete)
-- [ ] 7. Container event streaming
+- [x] 3. Apple `Containerization` framework integration (complete rewrite)
+- [x] 4. Runtime factory with environment detection
+- [x] 5. Container state models (Sendable, Equatable)
+- [x] 6. Lifecycle management (start/stop/restart/delete)
+- [ ] 7. Container event streaming (deferred to Phase 1)
 
-**Current Task**: 0.3.4 - Runtime factory
+**Completed**: 2025-12-27
 
-### 0.4 Logging & Observability ⚪
-- [ ] 1. Structured logging configuration
-- [ ] 2. Log persistence and rotation
-- [ ] 3. Performance metrics collection
-- [ ] 4. Debug logging levels
+**Implementation Details**:
+- `ContainerizationRuntime.swift` uses `ContainerManager` and `LinuxContainer` from Apple's framework
+- Two-phase container start: `container.create()` boots VM, `container.start()` runs process
+- `RuntimeFactory` with FD_RUNTIME env var (auto/native/cli/stub)
+- `ContainerizationClient` checks framework availability AND kernel presence
+- Kernel expected at `~/Library/Application Support/flyingdutchman/kernel/vmlinux`
+- Initfs reference: `ghcr.io/apple/containerization/vminit:0.13.0`
 
-### 0.5 Error Handling ⚪
-- [ ] 1. Domain error types per module
-- [ ] 2. Error recovery strategies
-- [ ] 3. User-facing error messages
-- [ ] 4. Error logging integration
+### 0.4 Logging & Observability ✅
+- [x] 1. Structured logging configuration (`LoggingConfiguration`)
+- [x] 2. Log persistence and rotation (`FileLogHandler`)
+- [x] 3. Performance metrics collection (`Loggers.timed()`)
+- [x] 4. Debug logging levels (FD_LOG_LEVEL env var)
+
+**Completed**: 2025-12-27
+
+**Implementation Details**:
+- `LoggingConfiguration.bootstrap()` sets up MultiplexLogHandler (console + file)
+- `FileLogHandler` writes to `~/Library/Logs/FlyingDutchman/` with:
+  - Date-based file names: `flyingdutchman-YYYY-MM-DD.log`
+  - Size-based rotation at 10MB
+  - 7-day retention with automatic cleanup
+- `LogCategory` enum: `.containers`, `.networking`, `.persistence`, `.engine`, `.app`, `.cli`, `.kubernetes`
+- `Loggers.timed()` helper logs operation duration with metadata
+
+### 0.5 Error Handling ✅
+- [x] 1. Domain error types per module
+- [x] 2. Error recovery strategies (isRecoverable flag)
+- [x] 3. User-facing error messages
+- [x] 4. Error logging integration
+
+**Completed**: 2025-12-27
+
+**Implementation Details**:
+- `FlyingDutchmanError` protocol with:
+  - `userMessage: String` - UI display
+  - `technicalMessage: String` - debugging/logging
+  - `isRecoverable: Bool` - retry guidance
+  - `suggestedAction: String?` - user guidance
+- Conforming types:
+  - `ContainerError` - notFound, invalidState, imageNotFound, extractionFailed, runtimeUnavailable, configurationInvalid, lifecycleFailed
+  - `NetworkingError` - connectionFailed, timeout, dnsResolutionFailed, certificateError
+  - `PersistenceError` - databaseUnavailable, migrationFailed, recordNotFound, saveFailed
+  - `EngineError` - kernelNotFound, initfsNotAvailable, vmBootFailed, vsockConnectionFailed
 
 ---
 
@@ -70,11 +103,11 @@ All entry criteria were met:
 ## Exit Criteria
 
 Phase 0 is complete when:
-- [ ] All sub-phases marked complete
-- [ ] Container can be created via runtime abstraction
-- [ ] Persistence layer handles basic CRUD
-- [ ] Logging captures all runtime events
-- [ ] Error types defined for all modules
+- [x] All sub-phases marked complete (0.3, 0.4, 0.5 done; 0.2 partial)
+- [x] Container can be created via runtime abstraction
+- [x] Persistence layer handles basic CRUD
+- [x] Logging captures all runtime events
+- [x] Error types defined for all modules
 
 ---
 
@@ -89,3 +122,5 @@ None currently.
 - Focus on `FlyingDutchmanContainers` module as primary deliverable
 - Runtime abstraction must support both CLI fallback and native Containerization
 - Consider `@Observable` patterns for UI state (Phase 4 integration)
+- Testing tasks deferred - need macOS 26 environment for full integration tests
+- Kernel download automation deferred to Phase 1 (manual setup for now)

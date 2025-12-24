@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Provide seamless network integration between containers and macOS, including full IPv6/ICMP support, VPN passthrough, automatic port forwarding, zero-config local domains, and HTTPS with local certificates for development workflows.
+
+## Requirements
 ### Requirement: Seamless container networking
 The system SHALL provide a container network stack with IPv6, ICMP (ping), traceroute, and support for VPN and DNS settings.
 

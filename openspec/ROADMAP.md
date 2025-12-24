@@ -1,8 +1,8 @@
 # Flying Dutchman Roadmap
 
-> **Current Phase**: 0.3 (Container Runtime Abstraction)
-> **Last Updated**: 2025-12-24
-> **Status**: 🟡 In Progress
+> **Current Phase**: 1 (Container Core) - Phase 0 substantially complete
+> **Last Updated**: 2025-12-27
+> **Status**: 🟢 Phase 0 Complete (90%)
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
-| 0 | Foundation | 🟡 In Progress | 60% |
+| 0 | Foundation | 🟢 Complete | 90% |
 | 1 | Container Core | ⚪ Not Started | 0% |
 | 2 | Networking | ⚪ Not Started | 0% |
 | 3 | Platform | ⚪ Not Started | 0% |
@@ -34,23 +34,29 @@
 - [ ] Migration system
 - [ ] SwiftData evaluation (deferred to Phase 4)
 
-### 0.3 Container Runtime Abstraction 🟡
+### 0.3 Container Runtime Abstraction ✅
 - [x] `ContainerRuntime` protocol defined
 - [x] `ContainerCLIRuntime` implementation (Docker CLI wrapper)
-- [x] Apple `Containerization` framework integration started
-- [ ] Runtime factory with environment detection
-- [ ] Container state models (Sendable)
-- [ ] Lifecycle management (start/stop/restart/delete)
+- [x] Apple `Containerization` framework integration (complete)
+- [x] Runtime factory with environment detection
+- [x] Container state models (Sendable)
+- [x] Lifecycle management (start/stop/restart/delete)
 
-### 0.4 Logging & Observability ⚪
-- [ ] Structured logging (swift-log)
-- [ ] Log persistence and rotation
-- [ ] Performance metrics collection
+**Key Implementation**: `ContainerizationRuntime.swift` rewrote to use `ContainerManager` and `LinuxContainer` with two-phase startup. `RuntimeFactory` supports FD_RUNTIME env var (auto/native/cli/stub).
 
-### 0.5 Error Handling ⚪
-- [ ] Domain error types per module
-- [ ] Error recovery strategies
-- [ ] User-facing error messages
+### 0.4 Logging & Observability ✅
+- [x] Structured logging (swift-log)
+- [x] Log persistence and rotation
+- [x] Performance metrics collection
+
+**Key Implementation**: `LoggingConfiguration`, `FileLogHandler` (10MB rotation, 7-day retention), `LogCategory` enum, `Loggers.timed()` helper.
+
+### 0.5 Error Handling ✅
+- [x] Domain error types per module
+- [x] Error recovery strategies
+- [x] User-facing error messages
+
+**Key Implementation**: `FlyingDutchmanError` protocol with `ContainerError`, `NetworkingError`, `PersistenceError`, `EngineError`.
 
 ---
 

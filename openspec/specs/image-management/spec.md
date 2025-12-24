@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Enable efficient container image management with native macOS filesystem access for image inspection, and fast multi-platform image builds powered by BuildKit with layer caching.
+
+## Requirements
 ### Requirement: Image exploration on macOS
 The system SHALL expose container image contents on the host for inspection.
 

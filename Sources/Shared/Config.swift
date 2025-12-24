@@ -13,7 +13,17 @@ public struct AppConfig {
 }
 
 public enum Loggers {
-    public static func make(category: String = "flyingdutchman.shared") -> Logger {
+    /// Creates a logger for the specified category.
+    /// - Parameter category: The log category
+    /// - Returns: A configured Logger instance
+    public static func make(category: LogCategory) -> Logger {
+        Logger(label: category.label)
+    }
+
+    /// Creates a logger with a custom label string.
+    /// - Parameter category: A custom logger label string
+    /// - Returns: A configured Logger instance
+    public static func make(category: String) -> Logger {
         Logger(label: category)
     }
 }

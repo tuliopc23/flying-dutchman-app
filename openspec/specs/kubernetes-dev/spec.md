@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Provide a lightweight, fast-starting local Kubernetes cluster optimized for development, with seamless macOS integration including direct service access and automatic domain routing for Ingress and LoadBalancer resources.
+
+## Requirements
 ### Requirement: Local Kubernetes cluster for development
 The system SHALL provide a lightweight single-node Kubernetes cluster optimized for development.
 

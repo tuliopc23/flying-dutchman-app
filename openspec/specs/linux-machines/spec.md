@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Provide lightweight Linux virtual machines with multiple distribution options, seamless macOS integration including file sharing, networking, and SSH access, enabling developers to run full Linux environments alongside their containerized workloads.
+
+## Requirements
 ### Requirement: Linux machines with multiple distros
 The system SHALL allow users to create Linux machines from a set of supported distributions and versions.
 

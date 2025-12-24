@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Provide powerful debugging capabilities for containers, including a pre-configured debug shell with common tools that works even with minimal or distroless images, and support for debugging containers on remote Docker hosts.
+
+## Requirements
 ### Requirement: Debug shell for containers
 The system SHALL provide a debug shell with built-in tools for container debugging, including minimal and distroless containers.
 

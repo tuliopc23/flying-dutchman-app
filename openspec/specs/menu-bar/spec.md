@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Provide quick access to container and machine management through a macOS menu bar applet, enabling users to monitor status, control resources, and access common actions without opening the main application window.
+
+## Requirements
 ### Requirement: Menu bar controls
 The system SHALL provide a menu bar applet to manage containers and machines from anywhere.
 

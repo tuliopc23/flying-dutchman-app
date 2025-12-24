@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Enable seamless file sharing between macOS and containers through bind mounts, Docker volumes, and native Finder access to container filesystems for easy inspection and debugging.
+
+## Requirements
 ### Requirement: Bind mounts and volumes
 The system SHALL support bind mounts for Mac files and volumes for persistent container storage.
 

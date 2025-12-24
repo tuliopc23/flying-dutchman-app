@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Ensure Flying Dutchman runs efficiently on macOS with minimal resource consumption when idle, configurable resource limits for workloads, and Apple Silicon optimizations including Rosetta x86 emulation support.
+
+## Requirements
 ### Requirement: Resource efficiency baseline
 The system SHALL minimize CPU, memory, and disk usage when idle and scale on demand.
 

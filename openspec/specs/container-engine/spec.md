@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Provide a Docker-compatible container engine that allows developers to run their existing Docker and Compose workflows on macOS without modification, while offering native UI integration for container lifecycle management, logging, and monitoring.
+
+## Requirements
 
 ### Requirement: Docker-compatible container engine
 The system SHALL provide a Docker-compatible container engine, including Compose, so that standard Docker workflows run without modification.
