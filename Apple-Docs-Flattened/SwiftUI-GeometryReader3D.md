@@ -1,0 +1,317 @@
+Source: https://developer.apple.com/documentation/SwiftUI/GeometryReader3D
+
+[ Skip Navigation ](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#app-main)
+  * [Global Nav Open Menu](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#ac-gn-menustate)[Global Nav Close Menu](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D)
+  * [Apple Developer](https://developer.apple.com/)
+
+
+[ Search Developer Cancel  ](https://developer.apple.com/search/)
+  * [Apple Developer](https://developer.apple.com/)
+  * [News](https://developer.apple.com/news/)
+  * [Discover](https://developer.apple.com/discover/)
+  * [Design](https://developer.apple.com/design/)
+  * [Develop](https://developer.apple.com/develop/)
+  * [Distribute](https://developer.apple.com/distribute/)
+  * [Support](https://developer.apple.com/support/)
+  * [Account](https://developer.apple.com/account/)
+  * [](https://developer.apple.com/search/)
+
+
+Cancel 
+Only search within “Documentation”
+### Quick Links
+  * [Downloads](https://developer.apple.com/download/)
+  * [Documentation](https://developer.apple.com/documentation/)
+  * [Sample Code](https://developer.apple.com/documentation/samplecode/)
+  * [Videos](https://developer.apple.com/videos/)
+  * [Forums](https://developer.apple.com/forums/)
+
+5 Quick Links
+[ Documentation ](https://developer.apple.com/documentation)
+[ Open Menu ](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D)
+  * SwiftLanguage: Swift
+
+
+[](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D)
+## [ SwiftUI  ](https://developer.apple.com/documentation/swiftui)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+1 of 63 symbols inside <root>
+Essentials
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+2 of 63 symbols inside <root> [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+3 of 63 symbols inside <root> [Learning SwiftUI](https://developer.apple.com/tutorials/swiftui-concepts)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+4 of 63 symbols inside <root> [Exploring SwiftUI Sample Apps](https://developer.apple.com/tutorials/sample-apps)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+5 of 63 symbols inside <root> [SwiftUI updates](https://developer.apple.com/documentation/updates/swiftui)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+6 of 63 symbols inside <root> containing 5 symbols[Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/swiftui/landmarks-building-an-app-with-liquid-glass)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+7 of 63 symbols inside <root>
+App structure
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+8 of 63 symbols inside <root> containing 21 symbols[App organization](https://developer.apple.com/documentation/swiftui/app-organization)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+9 of 63 symbols inside <root> containing 19 symbols[Scenes](https://developer.apple.com/documentation/swiftui/scenes)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+10 of 63 symbols inside <root> containing 82 symbols[Windows](https://developer.apple.com/documentation/swiftui/windows)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+11 of 63 symbols inside <root> containing 28 symbols[Immersive spaces](https://developer.apple.com/documentation/swiftui/immersive-spaces)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+12 of 63 symbols inside <root> containing 34 symbols[Documents](https://developer.apple.com/documentation/swiftui/documents)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+13 of 63 symbols inside <root> containing 65 symbols[Navigation](https://developer.apple.com/documentation/swiftui/navigation)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+14 of 63 symbols inside <root> containing 95 symbols[Modal presentations](https://developer.apple.com/documentation/swiftui/modal-presentations)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+15 of 63 symbols inside <root> containing 45 symbols[Toolbars](https://developer.apple.com/documentation/swiftui/toolbars)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+16 of 63 symbols inside <root> containing 36 symbols[Search](https://developer.apple.com/documentation/swiftui/search)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+17 of 63 symbols inside <root> containing 29 symbols[App extensions](https://developer.apple.com/documentation/swiftui/app-extensions)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+18 of 63 symbols inside <root>
+Data and storage
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+68 of 101 symbols inside -1185090660 [func drawingGroup(opaque: Bool, colorMode: ColorRenderingMode) -> some View](https://developer.apple.com/documentation/swiftui/view/drawinggroup\(opaque:colormode:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+69 of 101 symbols inside -1185090660 containing 28 symbols[BlendMode](https://developer.apple.com/documentation/swiftui/blendmode)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+69 of 101 symbols inside -1185090660 containing 28 symbols[BlendMode](https://developer.apple.com/documentation/swiftui/blendmode)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+70 of 101 symbols inside -1185090660 containing 4 symbols[ColorRenderingMode](https://developer.apple.com/documentation/swiftui/colorrenderingmode)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+71 of 101 symbols inside -1185090660 containing 14 symbols[CompositorContent](https://developer.apple.com/documentation/swiftui/compositorcontent)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+72 of 101 symbols inside -1185090660 containing 8 symbols[CompositorContentBuilder](https://developer.apple.com/documentation/swiftui/compositorcontentbuilder)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+73 of 101 symbols inside -1185090660 containing 3 symbols[AnyCompositorContent](https://developer.apple.com/documentation/swiftui/anycompositorcontent)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+74 of 101 symbols inside -1185090660 
+Measuring a view
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+75 of 101 symbols inside -1185090660 containing 3 symbols[GeometryReader](https://developer.apple.com/documentation/swiftui/geometryreader)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+76 of 101 symbols inside -1185090660 containing 3 symbols[GeometryReader3D](https://developer.apple.com/documentation/swiftui/geometryreader3d)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+1 of 3 symbols inside 191452017 
+Creating a geometry reader
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+2 of 3 symbols inside 191452017 [init(content: (GeometryProxy3D) -> Content)](https://developer.apple.com/documentation/swiftui/geometryreader3d/init\(content:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+3 of 3 symbols inside 191452017 [var content: (GeometryProxy3D) -> Content](https://developer.apple.com/documentation/swiftui/geometryreader3d/content)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+77 of 101 symbols inside -1185090660 containing 9 symbols[GeometryProxy](https://developer.apple.com/documentation/swiftui/geometryproxy)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+78 of 101 symbols inside -1185090660 containing 8 symbols[GeometryProxy3D](https://developer.apple.com/documentation/swiftui/geometryproxy3d)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+79 of 101 symbols inside -1185090660 [func coordinateSpace(NamedCoordinateSpace) -> some View](https://developer.apple.com/documentation/swiftui/view/coordinatespace\(_:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+80 of 101 symbols inside -1185090660 containing 7 symbols[CoordinateSpace](https://developer.apple.com/documentation/swiftui/coordinatespace)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+81 of 101 symbols inside -1185090660 containing 13 symbols[CoordinateSpaceProtocol](https://developer.apple.com/documentation/swiftui/coordinatespaceprotocol)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+82 of 101 symbols inside -1185090660 containing 4 symbols[PhysicalMetric](https://developer.apple.com/documentation/swiftui/physicalmetric)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+83 of 101 symbols inside -1185090660 containing 7 symbols[PhysicalMetricsConverter](https://developer.apple.com/documentation/swiftui/physicalmetricsconverter)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+84 of 101 symbols inside -1185090660 
+Responding to a geometry change
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+85 of 101 symbols inside -1185090660 [func onGeometryChange(for:of:action:)](https://developer.apple.com/documentation/swiftui/view/ongeometrychange\(for:of:action:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+86 of 101 symbols inside -1185090660 
+Accessing Metal shaders
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+87 of 101 symbols inside -1185090660 [func colorEffect(Shader, isEnabled: Bool) -> some View](https://developer.apple.com/documentation/swiftui/view/coloreffect\(_:isenabled:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+88 of 101 symbols inside -1185090660 [func distortionEffect(Shader, maxSampleOffset: CGSize, isEnabled: Bool) -> some View](https://developer.apple.com/documentation/swiftui/view/distortioneffect\(_:maxsampleoffset:isenabled:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+M
+89 of 101 symbols inside -1185090660 [func layerEffect(Shader, maxSampleOffset: CGSize, isEnabled: Bool) -> some View](https://developer.apple.com/documentation/swiftui/view/layereffect\(_:maxsampleoffset:isenabled:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+90 of 101 symbols inside -1185090660 containing 12 symbols[Shader](https://developer.apple.com/documentation/swiftui/shader)
+167 items were found. Tab back to navigate through them. 
+/ 
+Navigator is ready 
+  * [ SwiftUI ](https://developer.apple.com/documentation/swiftui)
+  * [ GeometryReader3D ](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D)
+  *     * GeometryReader3D 
+
+
+Structure
+# GeometryReader3D
+A container view that defines its content as a function of its own size and coordinate space.
+visionOS 1.0+
+```
+@frozen
+struct GeometryReader3D<Content> where Content : [View](https://developer.apple.com/documentation/swiftui/view)
+```
+
+## [Overview](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#overview)
+This view returns a flexible preferred size to its own container view.
+This container differs from [`GeometryReader`](https://developer.apple.com/documentation/swiftui/geometryreader) in that it also reads available depth, and thus also returns a flexible preferred depth to its parent layout. Use the 3D version only in situations where you need to read depth, because it affects depth layout when used in a container like a [`ZStack`](https://developer.apple.com/documentation/swiftui/zstack).
+## [Topics](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#topics)
+### [Creating a geometry reader](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#Creating-a-geometry-reader)
+[`init(content: (GeometryProxy3D) -> Content)`](https://developer.apple.com/documentation/swiftui/geometryreader3d/init\(content:\))
+[`var content: (GeometryProxy3D) -> Content`](https://developer.apple.com/documentation/swiftui/geometryreader3d/content)
+## [Relationships](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#relationships)
+### [Conforms To](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#conforms-to)
+  * [`View`](https://developer.apple.com/documentation/swiftui/view)
+
+
+## [See Also](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#see-also)
+### [Measuring a view](https://developer.apple.com/documentation/SwiftUI/GeometryReader3D#Measuring-a-view)
+[`struct GeometryReader`](https://developer.apple.com/documentation/swiftui/geometryreader)
+A container view that defines its content as a function of its own size and coordinate space.
+[`struct GeometryProxy`](https://developer.apple.com/documentation/swiftui/geometryproxy)
+A proxy for access to the size and coordinate space (for anchor resolution) of the container view.
+[`struct GeometryProxy3D`](https://developer.apple.com/documentation/swiftui/geometryproxy3d)
+A proxy for access to the size and coordinate space of the container view.
+[`func coordinateSpace(NamedCoordinateSpace) -> some View`](https://developer.apple.com/documentation/swiftui/view/coordinatespace\(_:\))
+Assigns a name to the view’s coordinate space, so other code can operate on dimensions like points and sizes relative to the named space.
+[`enum CoordinateSpace`](https://developer.apple.com/documentation/swiftui/coordinatespace)
+A resolved coordinate space created by the coordinate space protocol.
+[`protocol CoordinateSpaceProtocol`](https://developer.apple.com/documentation/swiftui/coordinatespaceprotocol)
+A frame of reference within the layout system.
+[`struct PhysicalMetric`](https://developer.apple.com/documentation/swiftui/physicalmetric)
+Provides access to a value in points that corresponds to the specified physical measurement.
+[`struct PhysicalMetricsConverter`](https://developer.apple.com/documentation/swiftui/physicalmetricsconverter)
+A physical metrics converter provides conversion between point values and their extent in 3D space, in the form of physical length measurements.
+Current page is GeometryReader3D 
+[Apple](https://www.apple.com)
+  1. [Developer](https://developer.apple.com/)
+  2. [ Documentation ](https://developer.apple.com/documentation/)
+
+
+###  Platforms 
+Toggle Menu 
+  * [iOS](https://developer.apple.com/ios/)
+  * [iPadOS](https://developer.apple.com/ipados/)
+  * [macOS](https://developer.apple.com/macos/)
+  * [tvOS](https://developer.apple.com/tvos/)
+  * [visionOS](https://developer.apple.com/visionos/)
+  * [watchOS](https://developer.apple.com/watchos/)
+
+
+###  Tools 
+Toggle Menu 
+  * [Swift](https://developer.apple.com/swift/)
+  * [SwiftUI](https://developer.apple.com/swiftui/)
+  * [Swift Playground](https://developer.apple.com/swift-playground/)
+  * [TestFlight](https://developer.apple.com/testflight/)
+  * [Xcode](https://developer.apple.com/xcode/)
+  * [Xcode Cloud](https://developer.apple.com/xcode-cloud/)
+  * [SF Symbols](https://developer.apple.com/sf-symbols/)
+
+
+###  Topics & Technologies 
+Toggle Menu 
+  * [Accessibility](https://developer.apple.com/accessibility/)
+  * [Accessories](https://developer.apple.com/accessories/)
+  * [App Extension](https://developer.apple.com/app-extensions/)
+  * [App Store](https://developer.apple.com/app-store/)
+  * [Audio & Video](https://developer.apple.com/audio/)
+  * [Augmented Reality](https://developer.apple.com/augmented-reality/)
+  * [Design](https://developer.apple.com/design/)
+  * [Distribution](https://developer.apple.com/distribute/)
+  * [Education](https://developer.apple.com/education/)
+  * [Fonts](https://developer.apple.com/fonts/)
+  * [Games](https://developer.apple.com/games/)
+  * [Health & Fitness](https://developer.apple.com/health-fitness/)
+  * [In-App Purchase](https://developer.apple.com/in-app-purchase/)
+  * [Localization](https://developer.apple.com/localization/)
+  * [Maps & Location](https://developer.apple.com/maps/)
+  * [Machine Learning & AI](https://developer.apple.com/machine-learning/)
+  * [Open Source](https://opensource.apple.com/)
+  * [Security](https://developer.apple.com/security/)
+  * [Safari & Web](https://developer.apple.com/safari/)
+
+
+###  Resources 
+Toggle Menu 
+  *   * [Documentation](https://developer.apple.com/documentation/)
+  * [Tutorials](https://developer.apple.com/learn/)
+  * [Downloads](https://developer.apple.com/download/)
+  * [Forums](https://developer.apple.com/forums/)
+  * [Videos](https://developer.apple.com/videos/)
+
+
+###  Support 
+Toggle Menu 
+  * [Support Articles](https://developer.apple.com/support/articles/)
+  * [Contact Us](https://developer.apple.com/contact/)
+  * [Bug Reporting](https://developer.apple.com/bug-reporting/)
+  * [System Status](https://developer.apple.com/system-status/)
+
+
+###  Account 
+Toggle Menu 
+  * [Apple Developer](https://developer.apple.com/account/)
+  * [App Store Connect](https://appstoreconnect.apple.com/)
+  * [Certificates, IDs, & Profiles](https://developer.apple.com/account/ios/certificate/)
+  * [Feedback Assistant](https://feedbackassistant.apple.com/)
+
+
+###  Programs 
+Toggle Menu 
+  * [Apple Developer Program](https://developer.apple.com/programs/)
+  * [Apple Developer Enterprise Program](https://developer.apple.com/programs/enterprise/)
+  * [App Store Small Business Program](https://developer.apple.com/app-store/small-business-program/)
+  * [MFi Program](https://mfi.apple.com/)
+  * [News Partner Program](https://developer.apple.com/programs/news-partner/)
+  * [Video Partner Program](https://developer.apple.com/programs/video-partner/)
+  * [Security Bounty Program](https://developer.apple.com/security-bounty/)
+  * [Security Research Device Program](https://developer.apple.com/programs/security-research-device/)
+
+
+###  Events 
+Toggle Menu 
+  * [Meet with Apple](https://developer.apple.com/events/)
+  * [Apple Developer Centers](https://developer.apple.com/events/developer-centers/)
+  * [App Store Awards](https://developer.apple.com/app-store/app-store-awards/)
+  * [Apple Design Awards](https://developer.apple.com/design/awards/)
+  * [Apple Developer Academies](https://developer.apple.com/academies/)
+  * [WWDC](https://developer.apple.com/wwdc/)
+
+
+To submit feedback on documentation, visit [Feedback Assistant](applefeedback://new?form_identifier=developertools.fba&answers%5B%3Aarea%5D=seedADC%3Adevpubs&answers%5B%3Adoc_type_req%5D=Technology%20Documentation&answers%5B%3Adocumentation_link_req%5D=https%3A%2F%2Fdeveloper.apple.com%2Fdocumentation%2FSwiftUI%2FGeometryReader3D).
+Select a color scheme preference
+Light
+Dark
+Auto
+Copyright © 2025 [Apple Inc.](https://www.apple.com) All rights reserved. 
+[ Terms of Use ](https://www.apple.com/legal/internet-services/terms/site.html)[ Privacy Policy ](https://www.apple.com/legal/privacy/)[ Agreements and Guidelines ](https://developer.apple.com/support/terms/)

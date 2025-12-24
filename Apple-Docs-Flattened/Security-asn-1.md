@@ -1,0 +1,333 @@
+Source: https://developer.apple.com/documentation/security/asn-1
+
+[ Skip Navigation ](https://developer.apple.com/documentation/security/asn-1#app-main)
+  * [Global Nav Open Menu](https://developer.apple.com/documentation/security/asn-1#ac-gn-menustate)[Global Nav Close Menu](https://developer.apple.com/documentation/security/asn-1)
+  * [Apple Developer](https://developer.apple.com/)
+
+
+[ Search Developer Cancel  ](https://developer.apple.com/search/)
+  * [Apple Developer](https://developer.apple.com/)
+  * [News](https://developer.apple.com/news/)
+  * [Discover](https://developer.apple.com/discover/)
+  * [Design](https://developer.apple.com/design/)
+  * [Develop](https://developer.apple.com/develop/)
+  * [Distribute](https://developer.apple.com/distribute/)
+  * [Support](https://developer.apple.com/support/)
+  * [Account](https://developer.apple.com/account/)
+  * [](https://developer.apple.com/search/)
+
+
+Cancel 
+Only search within “Documentation”
+### Quick Links
+  * [Downloads](https://developer.apple.com/download/)
+  * [Documentation](https://developer.apple.com/documentation/)
+  * [Sample Code](https://developer.apple.com/documentation/samplecode/)
+  * [Videos](https://developer.apple.com/videos/)
+  * [Forums](https://developer.apple.com/forums/)
+
+5 Quick Links
+[ Documentation ](https://developer.apple.com/documentation)
+[ Open Menu ](https://developer.apple.com/documentation/security/asn-1)
+  * SwiftLanguage:  Swift  Objective-C 
+Language: 
+    * Swift 
+    * [ Objective-C ](https://developer.apple.com/documentation/security/asn-1)
+
+
+[](https://developer.apple.com/documentation/security/asn-1)
+## [ Security  ](https://developer.apple.com/documentation/security)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+1 of 65 symbols inside <root>
+Essentials
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+2 of 65 symbols inside <root> [Security updates](https://developer.apple.com/documentation/updates/security)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+3 of 65 symbols inside <root>
+Authorization and authentication
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+4 of 65 symbols inside <root> containing 17 symbols[Password AutoFill](https://developer.apple.com/documentation/security/password-autofill)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+5 of 65 symbols inside <root> containing 8 symbols[Shared Web Credentials](https://developer.apple.com/documentation/security/shared-web-credentials)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+6 of 65 symbols inside <root> containing 31 symbols[Authorization Services](https://developer.apple.com/documentation/security/authorization-services)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+7 of 65 symbols inside <root> containing 5 symbols[Authorization Plug-ins](https://developer.apple.com/documentation/security/authorization-plug-ins)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+8 of 65 symbols inside <root> containing 10 symbols[Sessions](https://developer.apple.com/documentation/security/sessions)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+9 of 65 symbols inside <root> containing 2 symbols[One-time codes](https://developer.apple.com/documentation/security/one-time-codes)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+10 of 65 symbols inside <root>
+Secure data
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+11 of 65 symbols inside <root> containing 4 symbols[Keychain services](https://developer.apple.com/documentation/security/keychain-services)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+12 of 65 symbols inside <root> containing 4 symbols[Preventing Insecure Network Connections](https://developer.apple.com/documentation/security/preventing-insecure-network-connections)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+13 of 65 symbols inside <root>
+Secure code
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+14 of 65 symbols inside <root> containing 62 symbols[Code Signing Services](https://developer.apple.com/documentation/security/code-signing-services)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+15 of 65 symbols inside <root> containing 3 symbols[Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+16 of 65 symbols inside <root> [Preparing your app to work with pointer authentication](https://developer.apple.com/documentation/security/preparing-your-app-to-work-with-pointer-authentication)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+17 of 65 symbols inside <root> containing 33 symbols[App Sandbox](https://developer.apple.com/documentation/security/app-sandbox)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+18 of 65 symbols inside <root> containing 15 symbols[Hardened Runtime](https://developer.apple.com/documentation/security/hardened-runtime)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+25 of 65 symbols inside <root> [Defining launch environment and library constraints](https://developer.apple.com/documentation/security/defining-launch-environment-and-library-constraints)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+26 of 65 symbols inside <root> [Constraining a tool’s launch environment](https://developer.apple.com/documentation/security/constraining-a-tool's-launch-environment)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+26 of 65 symbols inside <root> [Constraining a tool’s launch environment](https://developer.apple.com/documentation/security/constraining-a-tool's-launch-environment)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+27 of 65 symbols inside <root>
+Cryptography
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+28 of 65 symbols inside <root> containing 3 symbols[Complying with Encryption Export Regulations](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+29 of 65 symbols inside <root> containing 8 symbols[Certificate, Key, and Trust Services](https://developer.apple.com/documentation/security/certificate-key-and-trust-services)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+30 of 65 symbols inside <root> containing 54 symbols[Cryptographic Message Syntax Services](https://developer.apple.com/documentation/security/cryptographic-message-syntax-services)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+31 of 65 symbols inside <root> containing 4 symbols[Randomization Services](https://developer.apple.com/documentation/security/randomization-services)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+32 of 65 symbols inside <root> containing 61 symbols[Security Transforms](https://developer.apple.com/documentation/security/security-transforms)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+33 of 65 symbols inside <root> containing 12 symbols[ASN.1](https://developer.apple.com/documentation/security/asn-1)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+1 of 12 symbols inside -1349193181 
+Encoding
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+T
+2 of 12 symbols inside -1349193181 [SecAsn1Item](https://developer.apple.com/documentation/security/secasn1item)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+3 of 12 symbols inside -1349193181 containing 7 symbols[SecAsn1Template_struct](https://developer.apple.com/documentation/security/secasn1template_struct)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+4 of 12 symbols inside -1349193181 containing 7 symbols[SecAsn1Template_struct](https://developer.apple.com/documentation/security/secasn1template_struct)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+T
+5 of 12 symbols inside -1349193181 [SecAsn1TemplateChooser](https://developer.apple.com/documentation/security/secasn1templatechooser)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+T
+6 of 12 symbols inside -1349193181 [SecAsn1TemplateChooserPtr](https://developer.apple.com/documentation/security/secasn1templatechooserptr)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+7 of 12 symbols inside -1349193181 containing 57 symbols[Type Tags](https://developer.apple.com/documentation/security/type-tags)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+8 of 12 symbols inside -1349193181 
+OID Comparison
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+T
+9 of 12 symbols inside -1349193181 [SecAsn1Oid](https://developer.apple.com/documentation/security/secasn1oid)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+10 of 12 symbols inside -1349193181 
+Public Key Info
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+11 of 12 symbols inside -1349193181 containing 6 symbols[SecAsn1AlgId](https://developer.apple.com/documentation/security/secasn1algid)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+12 of 12 symbols inside -1349193181 containing 6 symbols[SecAsn1PubKeyInfo](https://developer.apple.com/documentation/security/secasn1pubkeyinfo)Deprecated
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+34 of 65 symbols inside <root>
+Result codes
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+35 of 65 symbols inside <root> containing 399 symbols[Security Framework Result Codes](https://developer.apple.com/documentation/security/security-framework-result-codes)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+36 of 65 symbols inside <root>
+Legacy interfaces
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+37 of 65 symbols inside <root> containing 2178 symbols[Common Security Services Manager](https://developer.apple.com/documentation/security/common-security-services-manager)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+38 of 65 symbols inside <root> containing 90 symbols[Secure Transport](https://developer.apple.com/documentation/security/secure-transport)
+77 items were found. Tab back to navigate through them. 
+/ 
+Navigator is ready 
+Collection
+  * [ Security ](https://developer.apple.com/documentation/security)
+  * [ ASN.1 ](https://developer.apple.com/documentation/security/asn-1)
+  *     * ASN.1 
+
+
+API Collection
+# ASN.1
+Encode and decode Distinguished Encoding Rules (DER) and Basic Encoding Rules (BER) data streams.
+## [Overview](https://developer.apple.com/documentation/security/asn-1#Overview)
+You use an ASN.1 coder to encode and decode both DER and BER data streams based on templates that you supply, which in turn are based upon ASN.1 specifications. You must import this API explicitly:
+  * [ Swift ](https://developer.apple.com/documentation/security/asn-1)
+  * [ Objective-C ](https://developer.apple.com/documentation/security/asn-1)
+
+
+```
+import Security.SecAsn1Coder
+import Security.SecAsn1Templates
+
+```
+
+```
+#import <Security/SecAsn1Coder.h>
+#import <Security/SecAsn1Templates.h>
+
+```
+
+## [Topics](https://developer.apple.com/documentation/security/asn-1#topics)
+### [Encoding](https://developer.apple.com/documentation/security/asn-1#Encoding)
+[`typealias SecAsn1Item`](https://developer.apple.com/documentation/security/secasn1item)
+A structure holding DER encoded data.
+Deprecated
+[`struct SecAsn1Template_struct`](https://developer.apple.com/documentation/security/secasn1template_struct)
+A structure that defines one element of a BER or DER encoding.
+Deprecated
+[`struct SecAsn1Template_struct`](https://developer.apple.com/documentation/security/secasn1template_struct)
+A structure that defines one element of a BER or DER encoding.
+Deprecated
+[`typealias SecAsn1TemplateChooser`](https://developer.apple.com/documentation/security/secasn1templatechooser)
+Dynamically provides the sub-template to use during encode or decode.
+Deprecated
+[`typealias SecAsn1TemplateChooserPtr`](https://developer.apple.com/documentation/security/secasn1templatechooserptr)
+A pointer to the template chooser function.
+Deprecated
+[API Reference Type Tags](https://developer.apple.com/documentation/security/type-tags)
+Recognize BER and DER values for ASN.1 identifier octets.
+### [OID Comparison](https://developer.apple.com/documentation/security/asn-1#OID-Comparison)
+[`typealias SecAsn1Oid`](https://developer.apple.com/documentation/security/secasn1oid)
+An object identifier.
+Deprecated
+### [Public Key Info](https://developer.apple.com/documentation/security/asn-1#Public-Key-Info)
+[`struct SecAsn1AlgId`](https://developer.apple.com/documentation/security/secasn1algid)
+A structure identifying an ASN.1 algorithm by its OID, and its corresponding parameters.
+Deprecated
+[`struct SecAsn1PubKeyInfo`](https://developer.apple.com/documentation/security/secasn1pubkeyinfo)
+A structure containing a public key and its associated algorithm.
+Deprecated
+Current page is ASN.1 
+[Apple](https://www.apple.com)
+  1. [Developer](https://developer.apple.com/)
+  2. [ Documentation ](https://developer.apple.com/documentation/)
+
+
+###  Platforms 
+Toggle Menu 
+  * [iOS](https://developer.apple.com/ios/)
+  * [iPadOS](https://developer.apple.com/ipados/)
+  * [macOS](https://developer.apple.com/macos/)
+  * [tvOS](https://developer.apple.com/tvos/)
+  * [visionOS](https://developer.apple.com/visionos/)
+  * [watchOS](https://developer.apple.com/watchos/)
+
+
+###  Tools 
+Toggle Menu 
+  * [Swift](https://developer.apple.com/swift/)
+  * [SwiftUI](https://developer.apple.com/swiftui/)
+  * [Swift Playground](https://developer.apple.com/swift-playground/)
+  * [TestFlight](https://developer.apple.com/testflight/)
+  * [Xcode](https://developer.apple.com/xcode/)
+  * [Xcode Cloud](https://developer.apple.com/xcode-cloud/)
+  * [SF Symbols](https://developer.apple.com/sf-symbols/)
+
+
+###  Topics & Technologies 
+Toggle Menu 
+  * [Accessibility](https://developer.apple.com/accessibility/)
+  * [Accessories](https://developer.apple.com/accessories/)
+  * [App Extension](https://developer.apple.com/app-extensions/)
+  * [App Store](https://developer.apple.com/app-store/)
+  * [Audio & Video](https://developer.apple.com/audio/)
+  * [Augmented Reality](https://developer.apple.com/augmented-reality/)
+  * [Design](https://developer.apple.com/design/)
+  * [Distribution](https://developer.apple.com/distribute/)
+  * [Education](https://developer.apple.com/education/)
+  * [Fonts](https://developer.apple.com/fonts/)
+  * [Games](https://developer.apple.com/games/)
+  * [Health & Fitness](https://developer.apple.com/health-fitness/)
+  * [In-App Purchase](https://developer.apple.com/in-app-purchase/)
+  * [Localization](https://developer.apple.com/localization/)
+  * [Maps & Location](https://developer.apple.com/maps/)
+  * [Machine Learning & AI](https://developer.apple.com/machine-learning/)
+  * [Open Source](https://opensource.apple.com/)
+  * [Security](https://developer.apple.com/security/)
+  * [Safari & Web](https://developer.apple.com/safari/)
+
+
+###  Resources 
+Toggle Menu 
+  *   * [Documentation](https://developer.apple.com/documentation/)
+  * [Tutorials](https://developer.apple.com/learn/)
+  * [Downloads](https://developer.apple.com/download/)
+  * [Forums](https://developer.apple.com/forums/)
+  * [Videos](https://developer.apple.com/videos/)
+
+
+###  Support 
+Toggle Menu 
+  * [Support Articles](https://developer.apple.com/support/articles/)
+  * [Contact Us](https://developer.apple.com/contact/)
+  * [Bug Reporting](https://developer.apple.com/bug-reporting/)
+  * [System Status](https://developer.apple.com/system-status/)
+
+
+###  Account 
+Toggle Menu 
+  * [Apple Developer](https://developer.apple.com/account/)
+  * [App Store Connect](https://appstoreconnect.apple.com/)
+  * [Certificates, IDs, & Profiles](https://developer.apple.com/account/ios/certificate/)
+  * [Feedback Assistant](https://feedbackassistant.apple.com/)
+
+
+###  Programs 
+Toggle Menu 
+  * [Apple Developer Program](https://developer.apple.com/programs/)
+  * [Apple Developer Enterprise Program](https://developer.apple.com/programs/enterprise/)
+  * [App Store Small Business Program](https://developer.apple.com/app-store/small-business-program/)
+  * [MFi Program](https://mfi.apple.com/)
+  * [News Partner Program](https://developer.apple.com/programs/news-partner/)
+  * [Video Partner Program](https://developer.apple.com/programs/video-partner/)
+  * [Security Bounty Program](https://developer.apple.com/security-bounty/)
+  * [Security Research Device Program](https://developer.apple.com/programs/security-research-device/)
+
+
+###  Events 
+Toggle Menu 
+  * [Meet with Apple](https://developer.apple.com/events/)
+  * [Apple Developer Centers](https://developer.apple.com/events/developer-centers/)
+  * [App Store Awards](https://developer.apple.com/app-store/app-store-awards/)
+  * [Apple Design Awards](https://developer.apple.com/design/awards/)
+  * [Apple Developer Academies](https://developer.apple.com/academies/)
+  * [WWDC](https://developer.apple.com/wwdc/)
+
+
+To submit feedback on documentation, visit [Feedback Assistant](applefeedback://new?form_identifier=developertools.fba&answers%5B%3Aarea%5D=seedADC%3Adevpubs&answers%5B%3Adoc_type_req%5D=Technology%20Documentation&answers%5B%3Adocumentation_link_req%5D=https%3A%2F%2Fdeveloper.apple.com%2Fdocumentation%2Fsecurity%2Fasn-1).
+Select a color scheme preference
+Light
+Dark
+Auto
+Copyright © 2025 [Apple Inc.](https://www.apple.com) All rights reserved. 
+[ Terms of Use ](https://www.apple.com/legal/internet-services/terms/site.html)[ Privacy Policy ](https://www.apple.com/legal/privacy/)[ Agreements and Guidelines ](https://developer.apple.com/support/terms/)

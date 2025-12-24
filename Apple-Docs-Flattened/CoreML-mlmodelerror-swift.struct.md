@@ -1,0 +1,329 @@
+Source: https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct
+
+[ Skip Navigation ](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#app-main)
+  * [Global Nav Open Menu](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#ac-gn-menustate)[Global Nav Close Menu](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct)
+  * [Apple Developer](https://developer.apple.com/)
+
+
+[ Search Developer Cancel  ](https://developer.apple.com/search/)
+  * [Apple Developer](https://developer.apple.com/)
+  * [News](https://developer.apple.com/news/)
+  * [Discover](https://developer.apple.com/discover/)
+  * [Design](https://developer.apple.com/design/)
+  * [Develop](https://developer.apple.com/develop/)
+  * [Distribute](https://developer.apple.com/distribute/)
+  * [Support](https://developer.apple.com/support/)
+  * [Account](https://developer.apple.com/account/)
+  * [](https://developer.apple.com/search/)
+
+
+Cancel 
+Only search within “Documentation”
+### Quick Links
+  * [Downloads](https://developer.apple.com/download/)
+  * [Documentation](https://developer.apple.com/documentation/)
+  * [Sample Code](https://developer.apple.com/documentation/samplecode/)
+  * [Videos](https://developer.apple.com/videos/)
+  * [Forums](https://developer.apple.com/forums/)
+
+5 Quick Links
+[ Documentation ](https://developer.apple.com/documentation)
+[ Open Menu ](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct)
+  * SwiftLanguage: Swift
+
+
+[](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct)
+## [ Core ML  ](https://developer.apple.com/documentation/coreml)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+1 of 54 symbols inside <root>
+Core ML models
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+2 of 54 symbols inside <root> [Getting a Core ML Model](https://developer.apple.com/documentation/coreml/getting-a-core-ml-model)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+3 of 54 symbols inside <root> [Updating a Model File to a Model Package](https://developer.apple.com/documentation/coreml/updating-a-model-file-to-a-model-package)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+4 of 54 symbols inside <root> [Integrating a Core ML Model into Your App](https://developer.apple.com/documentation/coreml/integrating-a-core-ml-model-into-your-app)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+C
+5 of 54 symbols inside <root> containing 32 symbols[MLModel](https://developer.apple.com/documentation/coreml/mlmodel)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+6 of 54 symbols inside <root> containing 7 symbols[Model Customization](https://developer.apple.com/documentation/coreml/model-customization)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+Collection
+7 of 54 symbols inside <root> containing 4 symbols[Model Personalization](https://developer.apple.com/documentation/coreml/model-personalization)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+8 of 54 symbols inside <root>
+Model inputs and outputs
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+9 of 54 symbols inside <root> [Making Predictions with a Sequence of Inputs](https://developer.apple.com/documentation/coreml/making-predictions-with-a-sequence-of-inputs)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+C
+10 of 54 symbols inside <root> containing 47 symbols[MLFeatureValue](https://developer.apple.com/documentation/coreml/mlfeaturevalue)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+11 of 54 symbols inside <root> containing 18 symbols[MLSendableFeatureValue](https://developer.apple.com/documentation/coreml/mlsendablefeaturevalue)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+12 of 54 symbols inside <root> containing 3 symbols[MLFeatureProvider](https://developer.apple.com/documentation/coreml/mlfeatureprovider)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+C
+13 of 54 symbols inside <root> containing 5 symbols[MLDictionaryFeatureProvider](https://developer.apple.com/documentation/coreml/mldictionaryfeatureprovider)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+14 of 54 symbols inside <root> containing 3 symbols[MLBatchProvider](https://developer.apple.com/documentation/coreml/mlbatchprovider)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+C
+15 of 54 symbols inside <root> containing 5 symbols[MLArrayBatchProvider](https://developer.apple.com/documentation/coreml/mlarraybatchprovider)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+C
+16 of 54 symbols inside <root> containing 9 symbols[MLModelAsset](https://developer.apple.com/documentation/coreml/mlmodelasset)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+17 of 54 symbols inside <root>
+App integration
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+18 of 54 symbols inside <root> [Downloading and Compiling a Model on the User’s Device](https://developer.apple.com/documentation/coreml/downloading-and-compiling-a-model-on-the-user-s-device)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+40 of 54 symbols inside <root> [MLTensorScalar](https://developer.apple.com/documentation/coreml/mltensorscalar)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+41 of 54 symbols inside <root> containing 10 symbols[MLTensorRangeExpression](https://developer.apple.com/documentation/coreml/mltensorrangeexpression)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+rP
+41 of 54 symbols inside <root> containing 10 symbols[MLTensorRangeExpression](https://developer.apple.com/documentation/coreml/mltensorrangeexpression)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+42 of 54 symbols inside <root> [func pointwiseMin(_:_:)](https://developer.apple.com/documentation/coreml/pointwisemin\(_:_:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+43 of 54 symbols inside <root> [func pointwiseMax(_:_:)](https://developer.apple.com/documentation/coreml/pointwisemax\(_:_:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+44 of 54 symbols inside <root> [func withMLTensorComputePolicy(_:_:)](https://developer.apple.com/documentation/coreml/withmltensorcomputepolicy\(_:_:\))
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+45 of 54 symbols inside <root>
+Model structure
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+46 of 54 symbols inside <root> containing 11 symbols[MLModelStructure](https://developer.apple.com/documentation/coreml/mlmodelstructure-swift.enum)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+47 of 54 symbols inside <root>
+Model errors
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+S
+48 of 54 symbols inside <root> containing 16 symbols[MLModelError](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+1 of 16 symbols inside 522204522 
+Error Codes
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+2 of 16 symbols inside 522204522 [static var featureType: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/featuretype)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+3 of 16 symbols inside 522204522 [static var parameters: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/parameters)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+4 of 16 symbols inside 522204522 [static var modelCollection: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/modelcollection)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+5 of 16 symbols inside 522204522 [static var modelDecryptionKeyFetch: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/modeldecryptionkeyfetch)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+6 of 16 symbols inside 522204522 [static var modelDecryption: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/modeldecryption)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+7 of 16 symbols inside 522204522 [static var update: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/update)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+8 of 16 symbols inside 522204522 [static var customLayer: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/customlayer)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+9 of 16 symbols inside 522204522 [static var customModel: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/custommodel)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+10 of 16 symbols inside 522204522 [static var io: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/io)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+11 of 16 symbols inside 522204522 [static var predictionCancelled: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/predictioncancelled)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+12 of 16 symbols inside 522204522 [static var generic: MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/generic)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+13 of 16 symbols inside 522204522 containing 17 symbols[MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/code)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+14 of 16 symbols inside 522204522 
+Error Domain
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+V
+15 of 16 symbols inside 522204522 [let MLModelErrorDomain: String](https://developer.apple.com/documentation/coreml/mlmodelerrordomain)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+P
+16 of 16 symbols inside 522204522 [static var errorDomain: String](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/errordomain)
+To navigate the symbols, press Up Arrow, Down Arrow, Left Arrow or Right Arrow 
+E
+49 of 54 symbols inside <root> containing 17 symbols[MLModelError.Code](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/code)
+70 items were found. Tab back to navigate through them. 
+/ 
+Navigator is ready 
+  * [ Core ML ](https://developer.apple.com/documentation/coreml)
+  * [ MLModelError ](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct)
+  *     * MLModelError 
+
+
+Structure
+# MLModelError
+Information about a Core ML model error.
+iOS 11.0+iPadOS 11.0+Mac Catalyst 13.1+macOS 10.13+tvOS 11.0+visionOS 1.0+watchOS 4.0+
+```
+struct MLModelError
+```
+
+## [Topics](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#topics)
+### [Error Codes](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#Error-Codes)
+[`static var featureType: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/featuretype)
+An error code for problems related to model features.
+[`static var parameters: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/parameters)
+An error code for problems related to model parameters.
+[`static var modelCollection: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/modelcollection)
+An error code for problems related to retrieving a model collection from the deployment system.
+[`static var modelDecryptionKeyFetch: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/modeldecryptionkeyfetch)
+An error code for problems related to retrieving a model’s decryption key.
+[`static var modelDecryption: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/modeldecryption)
+An error code for problems related to decrypting models.
+[`static var update: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/update)
+An error code for problems related to on-device model updates.
+[`static var customLayer: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/customlayer)
+An error code for problems related to custom layers.
+[`static var customModel: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/custommodel)
+An error code for problems related to custom models.
+[`static var io: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/io)
+An error code for problems related to the system’s input or output.
+[`static var predictionCancelled: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/predictioncancelled)
+An error code for problems related to cancelling the prediction before it completes.
+[`static var generic: MLModelError.Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/generic)
+An error code for runtime issues that don’t apply to the other error codes.
+[`enum Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/code)
+Information about a Core ML model error.
+### [Error Domain](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#Error-Domain)
+[`let MLModelErrorDomain: String`](https://developer.apple.com/documentation/coreml/mlmodelerrordomain)
+The domain for Core ML errors.
+[`static var errorDomain: String`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/errordomain)
+## [Relationships](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#relationships)
+### [Conforms To](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#conforms-to)
+  * [`CustomNSError`](https://developer.apple.com/documentation/Foundation/CustomNSError)
+  * [`Equatable`](https://developer.apple.com/documentation/Swift/Equatable)
+  * [`Error`](https://developer.apple.com/documentation/Swift/Error)
+  * [`Hashable`](https://developer.apple.com/documentation/Swift/Hashable)
+  * [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+  * [`SendableMetatype`](https://developer.apple.com/documentation/Swift/SendableMetatype)
+
+
+## [See Also](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#see-also)
+### [Model errors](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct#Model-errors)
+[`enum Code`](https://developer.apple.com/documentation/coreml/mlmodelerror-swift.struct/code)
+Information about a Core ML model error.
+[`let MLModelErrorDomain: String`](https://developer.apple.com/documentation/coreml/mlmodelerrordomain)
+The domain for Core ML errors.
+Current page is MLModelError 
+[Apple](https://www.apple.com)
+  1. [Developer](https://developer.apple.com/)
+  2. [ Documentation ](https://developer.apple.com/documentation/)
+
+
+###  Platforms 
+Toggle Menu 
+  * [iOS](https://developer.apple.com/ios/)
+  * [iPadOS](https://developer.apple.com/ipados/)
+  * [macOS](https://developer.apple.com/macos/)
+  * [tvOS](https://developer.apple.com/tvos/)
+  * [visionOS](https://developer.apple.com/visionos/)
+  * [watchOS](https://developer.apple.com/watchos/)
+
+
+###  Tools 
+Toggle Menu 
+  * [Swift](https://developer.apple.com/swift/)
+  * [SwiftUI](https://developer.apple.com/swiftui/)
+  * [Swift Playground](https://developer.apple.com/swift-playground/)
+  * [TestFlight](https://developer.apple.com/testflight/)
+  * [Xcode](https://developer.apple.com/xcode/)
+  * [Xcode Cloud](https://developer.apple.com/xcode-cloud/)
+  * [SF Symbols](https://developer.apple.com/sf-symbols/)
+
+
+###  Topics & Technologies 
+Toggle Menu 
+  * [Accessibility](https://developer.apple.com/accessibility/)
+  * [Accessories](https://developer.apple.com/accessories/)
+  * [App Extension](https://developer.apple.com/app-extensions/)
+  * [App Store](https://developer.apple.com/app-store/)
+  * [Audio & Video](https://developer.apple.com/audio/)
+  * [Augmented Reality](https://developer.apple.com/augmented-reality/)
+  * [Design](https://developer.apple.com/design/)
+  * [Distribution](https://developer.apple.com/distribute/)
+  * [Education](https://developer.apple.com/education/)
+  * [Fonts](https://developer.apple.com/fonts/)
+  * [Games](https://developer.apple.com/games/)
+  * [Health & Fitness](https://developer.apple.com/health-fitness/)
+  * [In-App Purchase](https://developer.apple.com/in-app-purchase/)
+  * [Localization](https://developer.apple.com/localization/)
+  * [Maps & Location](https://developer.apple.com/maps/)
+  * [Machine Learning & AI](https://developer.apple.com/machine-learning/)
+  * [Open Source](https://opensource.apple.com/)
+  * [Security](https://developer.apple.com/security/)
+  * [Safari & Web](https://developer.apple.com/safari/)
+
+
+###  Resources 
+Toggle Menu 
+  *   * [Documentation](https://developer.apple.com/documentation/)
+  * [Tutorials](https://developer.apple.com/learn/)
+  * [Downloads](https://developer.apple.com/download/)
+  * [Forums](https://developer.apple.com/forums/)
+  * [Videos](https://developer.apple.com/videos/)
+
+
+###  Support 
+Toggle Menu 
+  * [Support Articles](https://developer.apple.com/support/articles/)
+  * [Contact Us](https://developer.apple.com/contact/)
+  * [Bug Reporting](https://developer.apple.com/bug-reporting/)
+  * [System Status](https://developer.apple.com/system-status/)
+
+
+###  Account 
+Toggle Menu 
+  * [Apple Developer](https://developer.apple.com/account/)
+  * [App Store Connect](https://appstoreconnect.apple.com/)
+  * [Certificates, IDs, & Profiles](https://developer.apple.com/account/ios/certificate/)
+  * [Feedback Assistant](https://feedbackassistant.apple.com/)
+
+
+###  Programs 
+Toggle Menu 
+  * [Apple Developer Program](https://developer.apple.com/programs/)
+  * [Apple Developer Enterprise Program](https://developer.apple.com/programs/enterprise/)
+  * [App Store Small Business Program](https://developer.apple.com/app-store/small-business-program/)
+  * [MFi Program](https://mfi.apple.com/)
+  * [News Partner Program](https://developer.apple.com/programs/news-partner/)
+  * [Video Partner Program](https://developer.apple.com/programs/video-partner/)
+  * [Security Bounty Program](https://developer.apple.com/security-bounty/)
+  * [Security Research Device Program](https://developer.apple.com/programs/security-research-device/)
+
+
+###  Events 
+Toggle Menu 
+  * [Meet with Apple](https://developer.apple.com/events/)
+  * [Apple Developer Centers](https://developer.apple.com/events/developer-centers/)
+  * [App Store Awards](https://developer.apple.com/app-store/app-store-awards/)
+  * [Apple Design Awards](https://developer.apple.com/design/awards/)
+  * [Apple Developer Academies](https://developer.apple.com/academies/)
+  * [WWDC](https://developer.apple.com/wwdc/)
+
+
+To submit feedback on documentation, visit [Feedback Assistant](applefeedback://new?form_identifier=developertools.fba&answers%5B%3Aarea%5D=seedADC%3Adevpubs&answers%5B%3Adoc_type_req%5D=Technology%20Documentation&answers%5B%3Adocumentation_link_req%5D=https%3A%2F%2Fdeveloper.apple.com%2Fdocumentation%2Fcoreml%2Fmlmodelerror-swift.struct).
+Select a color scheme preference
+Light
+Dark
+Auto
+Copyright © 2025 [Apple Inc.](https://www.apple.com) All rights reserved. 
+[ Terms of Use ](https://www.apple.com/legal/internet-services/terms/site.html)[ Privacy Policy ](https://www.apple.com/legal/privacy/)[ Agreements and Guidelines ](https://developer.apple.com/support/terms/)
