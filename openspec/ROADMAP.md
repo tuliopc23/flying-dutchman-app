@@ -169,7 +169,7 @@
 
 See [dependencies.md](./dependencies.md) for full package registry.
 
-### Core Dependencies (In Use)
+### Candidates (In Use)
 | Package | Purpose | Status |
 |---------|---------|--------|
 | apple/containerization | Container runtime | ✅ Integrated |
@@ -180,12 +180,13 @@ See [dependencies.md](./dependencies.md) for full package registry.
 | swiftkube/client | Kubernetes API | ✅ Integrated |
 | hummingbird | HTTP server | ✅ Integrated |
 
-### Candidates (Under Evaluation)
+### Planned (Evaluated & Selected)
 | Package | Purpose | Status |
 |---------|---------|--------|
-| libghosted | Terminal emulation | 🔍 Evaluating |
-| SwiftTerm | Terminal emulation alt | 🔍 Evaluating |
-| swift-certificates | HTTPS/CA | 🔍 Evaluating |
+| libghostty-vt | Terminal emulation | ✅ Selected (Phase 4.3) |
+| Citadel | SSH client | ✅ Selected (Phase 3.1, 4.3) |
+| DNSClient | DNS resolution | ✅ Selected (Phase 2.2) |
+| swift-certificates | HTTPS/CA | ✅ Selected (Phase 2.3) |
 
 ---
 

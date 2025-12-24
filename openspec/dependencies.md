@@ -75,30 +75,80 @@
 
 ---
 
-## Candidates Under Evaluation
+## Planned Dependencies (Evaluated)
 
 ### Terminal Emulation (Phase 4.3)
 
-| Package | Purpose | Pros | Cons | Status |
-|---------|---------|------|------|--------|
-| [libghosted](https://github.com/example/libghosted) | Terminal emulation | Lightweight, macOS native | Limited docs | 🔍 |
-| [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) | xterm-compatible terminal | Feature-rich, maintained | Heavier footprint | 🔍 |
+| Package | Version | Purpose | Module | Status |
+|---------|---------|---------|--------|--------|
+| [ghostty-org/ghostty (libghostty-vt)](https://github.com/ghostty-org/ghostty) | main (pinned commit) | VT terminal emulator | FlyingDutchmanApp | ✅ Selected |
 
-**Decision needed by**: Phase 4.3 start
+**Rationale**: High-performance Zig-based VT emulator with C API. Powers the native macOS Ghostty app. Supports modern protocols (Kitty keyboard, TrueColor), proper reflow/resize, and is standards-compliant (ECMA-48, xterm).
+
+**Integration Notes**:
+- Requires building with Zig (`zig build lib-vt`)
+- Swift integration via C module map pointing to `include/ghostty/vt.h`
+- Create SPM wrapper package with pre-built static library
+- Pin to specific commit (API still evolving toward 1.0)
+
+**Rejected Alternative**: SwiftTerm - heavier footprint, less performant for high-throughput
+
+### SSH Client (Phase 3.1, 4.3)
+
+| Package | Version | Purpose | Module | Status |
+|---------|---------|---------|--------|--------|
+| [orlandos-nl/Citadel](https://github.com/orlandos-nl/Citadel) | 0.9.0+ | High-level SSH client | FlyingDutchmanContainers, App | ✅ Selected |
+
+**Rationale**: High-level async/await SSH framework built on swift-nio-ssh. Provides SFTP, port forwarding, jump hosts, and easy command execution that the low-level Apple library lacks.
+
+**Features Used**:
+- `SSHClient.connect` for container/VM connections
+- `executeCommand` / `executeCommandStream` for debug shell
+- SFTP client for file management
+- Port forwarding for service proxying
+
+**Rejected Alternative**: apple/swift-nio-ssh directly - too low-level, no SFTP, requires extensive boilerplate
+
+### DNS Resolution (Phase 2.2)
+
+| Package | Version | Purpose | Module | Status |
+|---------|---------|---------|--------|--------|
+| [orlandos-nl/DNSClient](https://github.com/orlandos-nl/DNSClient) | 2.0.0+ | Pure Swift DNS Client | FlyingDutchmanNetworking | ✅ Selected |
+
+**Rationale**: Pure Swift implementation built on SwiftNIO, providing both client and server capabilities. Essential for implementing the custom DNS server required for `.fd.local` domain resolution.
+
+**Configuration Strategy**:
+```swift
+// Initialize DNS Client with NIO EventLoopGroup
+let client = try DNSClient(
+    group: eventLoopGroup,
+    host: "8.8.8.8" // Upstream resolver
+)
+
+// For custom server implementation (Phase 2.2)
+// DNSClient provides message parsing/serialization helpers
+// to build a UDP DNS server on port 53/5353
+```
+
+**Rejected Alternatives**: 
+- swift-async-dns-resolver - Wrapper around c-ares, less flexible for building a custom server
+- dnsmasq subprocess - external process management overhead
 
 ### HTTPS & Certificates (Phase 2.3)
 
-| Package | Purpose | Pros | Cons | Status |
-|---------|---------|------|------|--------|
-| [apple/swift-certificates](https://github.com/apple/swift-certificates) | X.509 certificates | Apple official, modern | Newer, less docs | 🔍 |
-| [swift-crypto](https://github.com/apple/swift-crypto) | Cryptographic primitives | Apple official, stable | Lower-level | ⏸️ |
+| Package | Version | Purpose | Module | Status |
+|---------|---------|---------|--------|--------|
+| [apple/swift-certificates](https://github.com/apple/swift-certificates) | 1.0.0+ | X.509 certificate generation | FlyingDutchmanNetworking | ✅ Selected |
 
-### DNS Server (Phase 2.2)
+**Rationale**: Apple official, Swift 6 compatible, pure Swift X.509 implementation. Enables programmatic CA creation and leaf certificate signing for automatic HTTPS on `*.fd.local` domains.
 
-| Package | Purpose | Pros | Cons | Status |
-|---------|---------|------|------|--------|
-| Custom NIO-based | Local DNS resolver | Full control | More work | 🔍 |
-| dnsmasq (subprocess) | DNS forwarding | Battle-tested | External process | 🔍 |
+**Implementation Plan**:
+1. Generate root CA on first launch (10-year validity)
+2. Store CA in macOS Keychain (prompt user to trust)
+3. Issue leaf certs per container/service on-demand (1-year validity)
+4. Export PEM for reverse proxy (Hummingbird TLS)
+
+**Dependencies**: Pulls in `swift-crypto` for cryptographic primitives
 
 ---
 
@@ -109,6 +159,9 @@
 | Vapor | Too heavy for embedded HTTP server | Hummingbird |
 | RealmSwift | Sync features unnecessary, binary size | GRDB |
 | Docker.swift | Unmaintained, incomplete API | Custom implementation |
+| SwiftTerm | Heavier footprint, less performant | libghostty-vt |
+| apple/swift-nio-ssh (direct) | Too low-level, no SFTP, excessive boilerplate | Citadel |
+| dnsmasq | External process management overhead | DNSClient |
 
 ---
 
