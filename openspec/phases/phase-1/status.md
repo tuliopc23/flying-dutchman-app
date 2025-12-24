@@ -1,17 +1,16 @@
 # Phase 1: Container Core - Status
 
 phase: 1
-status: not-started
-started: null
-updated: 2025-12-24
-blockers:
-  - Phase 0.3 (Runtime Abstraction) must complete first
+status: in-progress
+started: 2025-12-27
+updated: 2025-12-27
+blockers: []
 
 ---
 
 ## Overview
 
-Container Core phase delivers Docker-compatible container engine with full lifecycle support.
+Container Core phase delivers a Docker-compatible container engine with full lifecycle support, image management, and storage.
 
 **Primary Module**: `FlyingDutchmanContainers`
 **Capabilities**: `container-engine`, `container-storage`, `image-management`
@@ -20,57 +19,92 @@ Container Core phase delivers Docker-compatible container engine with full lifec
 
 ## Sub-phases
 
-### 1.1 Container Engine ⚪
-- [ ] 1. Container CRUD operations (create, read, update, delete)
-- [ ] 2. Container state machine (created → running → stopped → removed)
-- [ ] 3. Compose project parsing and execution
-- [ ] 4. Container logs streaming (follow mode)
-- [ ] 5. Container inspect/stats
+### 1.1 Container Engine 🟡
+- [ ] 1. Container CRUD operations (enhance existing)
+- [ ] 2. Container state machine
+- [ ] 3. Compose project support
+- [ ] 4. Container logs streaming
+- [ ] 5. Container event streaming (from Phase 0)
+- [ ] 6. VSOCK communication (from Phase 0)
 
-**Dependencies**: Phase 0.3 complete
+**Current Task**: 1.1.1 - Container CRUD operations
+
+**Notes**: Build on Phase 0 foundation. `ContainerizationRuntime` already has create/start/stop/remove. Need to add state machine, streaming, and Compose support.
 
 ### 1.2 Image Management ⚪
-- [ ] 1. Image pull from registry
-- [ ] 2. Image push to registry
-- [ ] 3. Image delete and prune
-- [ ] 4. BuildKit integration
-- [ ] 5. Multi-platform builds (`--platform`)
-- [ ] 6. Image layer caching
-- [ ] 7. Image filesystem exposure (`~/FlyingDutchman/images/`)
+- [ ] 1. Image pull/push/delete (basic pull exists)
+- [ ] 2. Kernel download automation (from Phase 0)
+- [ ] 3. BuildKit integration
+- [ ] 4. Multi-platform builds
+- [ ] 5. Image layer caching
+- [ ] 6. Image filesystem exposure (`~/FlyingDutchman/images/`)
+
+**Notes**: OCI registry pull exists in `ContainerizationRuntime`. Need to enhance with proper caching, BuildKit, and expose images to filesystem.
 
 ### 1.3 Storage ⚪
-- [ ] 1. Bind mount support (`-v host:container`)
-- [ ] 2. Named volumes (`docker volume create`)
+- [ ] 1. Bind mount support
+- [ ] 2. Named volumes
 - [ ] 3. Volume lifecycle management
-- [ ] 4. Container filesystem exposure (`~/FlyingDutchman/containers/`)
-- [ ] 5. Volume inspect and prune
+- [ ] 4. Filesystem exposure (`~/FlyingDutchman/containers/`)
 
 ---
 
 ## Entry Criteria
 
-- [ ] Phase 0.3 complete (Runtime Abstraction)
-- [ ] Phase 0.5 complete (Error Handling)
+All entry criteria met:
+- [x] Phase 0 complete
+- [x] `ContainerRuntime` protocol defined
+- [x] `ContainerizationRuntime` implemented
+- [x] Logging and error handling in place
+- [x] GRDB persistence working
 
 ## Exit Criteria
 
 Phase 1 is complete when:
-- [ ] `docker run` equivalent works via runtime
-- [ ] `docker-compose up` equivalent works
-- [ ] Images can be pulled, built, and pushed
-- [ ] Volumes persist across container restarts
-- [ ] Filesystem exposure works in Finder
+- [ ] Containers can be created, started, stopped, and removed via native runtime
+- [ ] Container state transitions are tracked and observable
+- [ ] Docker Compose projects work
+- [ ] Container logs can be streamed in real-time
+- [ ] Images can be pulled, cached, and deleted
+- [ ] Bind mounts and named volumes work
+- [ ] Container/image data exposed via filesystem
 
 ---
 
 ## Blockers
 
-1. **Phase 0.3 incomplete**: Runtime abstraction must be finalized before container operations.
+None currently.
 
 ---
 
-## Notes
+## Dependencies from Phase 0
 
-- This phase enables the core value proposition
-- Priority: Engine > Storage > Images (can pull images without full management)
-- Test with common images: nginx, postgres, redis
+Items deferred from Phase 0 that should be addressed in Phase 1:
+
+1. **Container event streaming** (0.3.7) → 1.1.5
+2. **VSOCK communication** (0.3.1.1.6) → 1.1.6
+3. **Kernel download automation** (0.3.1.4.1, 0.3.1.4.2) → 1.2.2
+4. **Error recovery retry logic** (0.5.3.3.1-3) → Throughout Phase 1
+
+---
+
+## Technical Approach
+
+### Container State Machine
+```
+created → starting → running → stopping → stopped → removing → removed
+                 ↑                    ↓
+                 └──── restarting ────┘
+```
+
+### Key Files to Modify
+- `Sources/FlyingDutchmanContainers/ContainerizationRuntime.swift` - Add streaming, state machine
+- `Sources/Shared/Models/Container.swift` - Add state enum
+- `Sources/FlyingDutchmanPersistence/ContainerStore.swift` - Add state tracking
+
+### New Files to Create
+- `Sources/FlyingDutchmanContainers/ContainerStateMachine.swift`
+- `Sources/FlyingDutchmanContainers/ComposeProjectManager.swift`
+- `Sources/FlyingDutchmanContainers/ImageManager.swift`
+- `Sources/FlyingDutchmanContainers/VolumeManager.swift`
+- `Sources/FlyingDutchmanContainers/KernelManager.swift`

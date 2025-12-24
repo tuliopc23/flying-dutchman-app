@@ -1,8 +1,8 @@
 # Flying Dutchman Roadmap
 
-> **Current Phase**: 1 (Container Core) - Phase 0 substantially complete
+> **Current Phase**: 1.1 (Container Engine)
 > **Last Updated**: 2025-12-27
-> **Status**: 🟢 Phase 0 Complete (90%)
+> **Status**: 🟡 In Progress
 
 ---
 
@@ -10,17 +10,18 @@
 
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
-| 0 | Foundation | 🟢 Complete | 90% |
-| 1 | Container Core | ⚪ Not Started | 0% |
+| 0 | Foundation | ✅ Complete | 100% |
+| 1 | Container Core | 🟡 In Progress | 0% |
 | 2 | Networking | ⚪ Not Started | 0% |
 | 3 | Platform | ⚪ Not Started | 0% |
 | 4 | UX Polish | ⚪ Not Started | 0% |
 
 ---
 
-## Phase 0: Foundation
+## Phase 0: Foundation ✅
 
 **Goal**: Core infrastructure that all other phases depend on.
+**Status**: Complete (2025-12-27)
 
 ### 0.1 Project Structure ✅
 - [x] Multi-target Package.swift setup
@@ -28,58 +29,53 @@
 - [x] Shared utilities module
 - [x] OpenSpec system initialized
 
-### 0.2 Persistence Layer 🟡
+### 0.2 Persistence Layer ✅
 - [x] GRDB integration
 - [x] Database schema foundation
-- [ ] Migration system
+- [x] Migration system (basic)
 - [ ] SwiftData evaluation (deferred to Phase 4)
 
 ### 0.3 Container Runtime Abstraction ✅
 - [x] `ContainerRuntime` protocol defined
 - [x] `ContainerCLIRuntime` implementation (Docker CLI wrapper)
-- [x] Apple `Containerization` framework integration (complete)
+- [x] Apple `Containerization` framework integration
 - [x] Runtime factory with environment detection
 - [x] Container state models (Sendable)
 - [x] Lifecycle management (start/stop/restart/delete)
-
-**Key Implementation**: `ContainerizationRuntime.swift` rewrote to use `ContainerManager` and `LinuxContainer` with two-phase startup. `RuntimeFactory` supports FD_RUNTIME env var (auto/native/cli/stub).
 
 ### 0.4 Logging & Observability ✅
 - [x] Structured logging (swift-log)
 - [x] Log persistence and rotation
 - [x] Performance metrics collection
 
-**Key Implementation**: `LoggingConfiguration`, `FileLogHandler` (10MB rotation, 7-day retention), `LogCategory` enum, `Loggers.timed()` helper.
-
 ### 0.5 Error Handling ✅
 - [x] Domain error types per module
 - [x] Error recovery strategies
 - [x] User-facing error messages
 
-**Key Implementation**: `FlyingDutchmanError` protocol with `ContainerError`, `NetworkingError`, `PersistenceError`, `EngineError`.
-
 ---
 
-## Phase 1: Container Core
+## Phase 1: Container Core 🟡
 
 **Goal**: Docker-compatible container engine with full lifecycle support.
 **Capabilities**: `container-engine`, `container-storage`, `image-management`
 **Primary Module**: `FlyingDutchmanContainers`
 
-### 1.1 Container Engine
-- [ ] Container CRUD operations
+### 1.1 Container Engine 🟡
 - [ ] Container state machine
-- [ ] Compose project support
+- [ ] Container event streaming
 - [ ] Container logs streaming
+- [ ] VSOCK communication
+- [ ] Compose project support
 
-### 1.2 Image Management
-- [ ] Image pull/push/delete
+### 1.2 Image Management ⚪
+- [ ] Kernel download automation
+- [ ] Image layer caching
 - [ ] BuildKit integration
 - [ ] Multi-platform builds
-- [ ] Image layer caching
 - [ ] Image filesystem exposure (`~/FlyingDutchman/images/`)
 
-### 1.3 Storage
+### 1.3 Storage ⚪
 - [ ] Bind mount support
 - [ ] Named volumes
 - [ ] Volume lifecycle management
