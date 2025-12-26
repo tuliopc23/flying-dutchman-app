@@ -78,9 +78,9 @@
 ## 4. Testing
 
 ### 4.1 Unit Tests
-- [ ] 4.1.1 Test ContainerStateMachine transitions
-- [ ] 4.1.2 Test event streaming
-- [ ] 4.1.3 Test image layer caching
+- [x] 4.1.1 Test ContainerStateMachine transitions
+- [ ] 4.1.2 Test event streaming (requires more integration setup)
+- [x] 4.1.3 Test image layer caching
 
 ### 4.2 Integration Tests
 - [ ] 4.2.1 Test full container lifecycle with state machine
@@ -201,3 +201,13 @@
 - Sources/FlyingDutchmanContainers/ContainerizationRuntime.swift (integrated state machine, events, logs)
 - Sources/FlyingDutchmanPersistence/Database.swift (added migrations)
 - Sources/FlyingDutchmanPersistence/Repositories/ContainerLogStore.swift (enhanced)
+
+### Test Files Created
+- Tests/FlyingDutchmanContainersTests/ContainerStateMachineTests.swift
+  - 16 tests covering valid transitions, invalid transitions, callbacks, lifecycle
+- Tests/FlyingDutchmanContainersTests/VolumeManagerTests.swift
+  - 23 tests covering CRUD, mount validation, setup, prune
+- Tests/FlyingDutchmanContainersTests/ImageCacheManagerTests.swift
+  - 20 tests covering store, retrieve, deduplication, eviction, statistics
+- Tests/FlyingDutchmanPersistenceTests/ContainerEventStoreTests.swift
+  - 17 tests covering event types, persistence, retrieval, deletion
