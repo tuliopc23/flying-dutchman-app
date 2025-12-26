@@ -112,6 +112,29 @@ public final class DatabaseContainer: @unchecked Sendable {
                 }
             }
         }
+        migrator.registerMigration("v6_container_events") { db in
+            if try !db.tableExists("containerEvents") {
+                try db.create(table: "containerEvents") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("eventId", .text).notNull().unique()
+                    t.column("containerId", .text).notNull().indexed()
+                    t.column("eventType", .text).notNull()
+                    t.column("eventData", .blob).notNull()
+                    t.column("timestamp", .datetime).notNull().indexed()
+                }
+            }
+        }
+        migrator.registerMigration("v7_blob_metadata") { db in
+            if try !db.tableExists("blobMetadata") {
+                try db.create(table: "blobMetadata") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("digest", .text).notNull().unique()
+                    t.column("size", .integer).notNull()
+                    t.column("lastAccessed", .datetime).notNull()
+                    t.index("lastAccessed")
+                }
+            }
+        }
         return migrator
     }()
 }

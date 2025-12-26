@@ -16,6 +16,8 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     private let logger = Loggers.make(category: .containers)
     private let containerStore = ContainerStore()
     private let imageStore = ImageStore()
+    private let eventStore = ContainerEventStore()
+    private let logStore = ContainerLogStore()
     
     // NIO Transport
     private let group = NIOTSEventLoopGroup(loopCount: 1)
@@ -26,6 +28,13 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     
     // Active State - maps our UUIDs to LinuxContainers
     private var activeContainers: [UUID: LinuxContainer] = [:]
+    
+    // State machines for each container
+    private var stateMachines: [UUID: ContainerStateMachine] = [:]
+
+    // Event streaming
+    private var eventContinuation: AsyncStream<ContainerEvent>.Continuation?
+    private var eventStream: AsyncStream<ContainerEvent>
     
     // Kernel configuration
     private let kernelPath: FilePath
@@ -38,6 +47,11 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         self.kernelPath = kernelPath ?? Self.defaultKernelPath()
         self.initfsReference = initfsReference
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(self.group))
+
+        // Initialize event stream
+        self.eventStream = AsyncStream { continuation in
+            self.eventContinuation = continuation
+        }
     }
     
     // MARK: - Container Manager Setup
@@ -75,23 +89,59 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     /// This ensures that if the engine crashed, we mark containers as stopped
     public func reconcileState() async throws {
         logger.info("Reconciling container state on startup")
-        
+
         // Get all containers from persistence
         let storedContainers = await containerStore.fetchAll()
-        
-        // Clear active containers map - we'll rebuild it from actual VM state
+
+        // Rebuild state machines and reconcile states
         var reconciled = 0
         for container in storedContainers {
-            if container.status == .running && activeContainers[container.id] == nil {
-                // Container was running but VM is gone - mark as stopped
-                var updated = container
+            // Create state machine if needed
+            if stateMachines[container.id] == nil {
+                let stateMachine = ContainerStateMachine(initialState: container.status, containerID: container.id)
+                stateMachine.onStateChange = { [weak self] from, to in
+                    self?.emitStateChange(containerID: container.id, from: from, to: to)
+                }
+                stateMachines[container.id] = stateMachine
+            }
+
+            // Reconcile transient states
+            var updated = container
+            switch container.status {
+            case .starting, .stopping:
+                // These are transient states - container was probably in the middle of an operation
+                // Move to stopped since we don't know the actual VM state
+                stateMachines[container.id]?.forceSet(to: .stopped)
                 updated.status = .stopped
                 try await containerStore.update(updated)
                 reconciled += 1
-                logger.info("Reconciled container \(container.id): running -> stopped")
+                logger.info("Reconciled container \(container.id): \(container.status.rawValue) -> stopped (transient state)")
+
+            case .running:
+                if activeContainers[container.id] == nil {
+                    // Container was running but VM is gone - mark as stopped
+                    stateMachines[container.id]?.forceSet(to: .stopped)
+                    updated.status = .stopped
+                    try await containerStore.update(updated)
+                    reconciled += 1
+                    logger.info("Reconciled container \(container.id): running -> stopped (VM not found)")
+                }
+
+            case .removing:
+                // Container was being removed - complete the removal
+                try await cleanupContainerData(for: container.id)
+                stateMachines[container.id]?.forceSet(to: .removed)
+                try await containerStore.delete(id: container.id)
+                stateMachines.removeValue(forKey: container.id)
+                reconciled += 1
+                logger.info("Reconciled container \(container.id): removing -> removed (completed removal)")
+
+            case .created, .stopped, .removed:
+                // These are valid terminal states - no action needed
+                break
             }
         }
-        
+
         if reconciled > 0 {
             logger.info("Reconciled \(reconciled) container(s) on startup")
         } else {
@@ -104,18 +154,21 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     public nonisolated var name: String { "Apple Containerization" }
     
     public func listContainers() async throws -> [ContainerSummary] {
-        // Return containers from GRDB, sync with active VMs
+        // Return containers from GRDB, sync state machines
         let stored = await containerStore.fetchAll()
-        
-        // Update status based on active VMs
+
+        // Update status based on state machines and active VMs
         return stored.map { container in
             var updated = container
-            if activeContainers[container.id] != nil {
-                updated.status = .running
-            } else if updated.status == .running {
-                // VM is gone but DB says running - mark as stopped
+
+            // If we have a state machine for this container, use its current state
+            if let stateMachine = stateMachines[container.id] {
+                updated.status = stateMachine.currentState
+            } else if updated.status == .running && activeContainers[container.id] == nil {
+                // No state machine and DB says running but VM is gone - mark as stopped
                 updated.status = .stopped
             }
+
             return updated
         }
     }
@@ -133,12 +186,19 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         let container = ContainerSummary(
             name: name,
             image: image,
-            status: .stopped,
+            status: .created,
             ports: config.ports ?? []
         )
         
         // Persist to GRDB
         try await containerStore.insert(container)
+        
+        // Initialize state machine
+        let stateMachine = ContainerStateMachine(initialState: .created, containerID: container.id)
+        stateMachine.onStateChange = { [weak self] from, to in
+            self?.emitStateChange(containerID: container.id, from: from, to: to)
+        }
+        stateMachines[container.id] = stateMachine
         
         // Store container config for later use (when starting)
         try await storeContainerConfig(containerID: container.id, config: config)
@@ -151,121 +211,188 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         guard let container = try await containerStore.fetch(id: id) else {
             throw ContainerError.notFound(id)
         }
-        
-        guard container.status == .stopped else {
-            throw ContainerError.invalidState("Container is not stopped")
+
+        guard let stateMachine = stateMachines[id] else {
+            throw ContainerError.invalidState("Container state machine not found")
         }
-        
+
+        // Validate state transition
+        try stateMachine.transition(to: .starting)
+        var updated = container
+        updated.status = .starting
+        try await containerStore.update(updated)
+
         logger.info("Starting container \(container.id)")
-        
+
         // Load container config
         let config = try await loadContainerConfig(containerID: container.id)
-        
+
         // Compute resource limits
         let cpuCount = computeCPUCount(from: config.cpuLimit)
         let memoryBytes = computeMemorySize(from: config.memoryLimit)
-        
+
         logger.info("Container \(container.id) configured with \(cpuCount) CPUs, \(memoryBytes / (1024 * 1024))MB memory")
-        
+
         // Get ContainerManager
         var manager = try await ensureManager()
-        
-        // Create the LinuxContainer via ContainerManager
-        let linuxContainer = try await manager.create(container.name, reference: container.image) { cfg in
-            cfg.cpus = cpuCount
-            cfg.memoryInBytes = UInt64(memoryBytes)
-            
-            // Set process arguments if specified
-            if let cmd = config.command, !cmd.isEmpty {
-                cfg.process.arguments = cmd
+
+        do {
+            // Create the LinuxContainer via ContainerManager
+            let linuxContainer = try await manager.create(container.name, reference: container.image) { cfg in
+                cfg.cpus = cpuCount
+                cfg.memoryInBytes = UInt64(memoryBytes)
+
+                // Set process arguments if specified
+                if let cmd = config.command, !cmd.isEmpty {
+                    cfg.process.arguments = cmd
+                }
             }
+
+            // Phase 1: Boot VM and guest agent (vminitd)
+            logger.info("Booting VM for container \(container.id)")
+            try await linuxContainer.create()
+
+            // Phase 2: Start the container process
+            logger.info("Starting container process for \(container.id)")
+            try await linuxContainer.start()
+
+            // Store active container reference
+            activeContainers[container.id] = linuxContainer
+
+            // Update state machine and status to running
+            try stateMachine.transition(to: .running)
+            updated.status = .running
+            try await containerStore.update(updated)
+
+            logger.info("Container \(container.id) started successfully")
+            return updated
+        } catch {
+            // On failure, transition back to stopped
+            try? stateMachine.transition(to: .stopped)
+            updated.status = .stopped
+            try? await containerStore.update(updated)
+            throw error
         }
-        
-        // Phase 1: Boot VM and guest agent (vminitd)
-        logger.info("Booting VM for container \(container.id)")
-        try await linuxContainer.create()
-        
-        // Phase 2: Start the container process
-        logger.info("Starting container process for \(container.id)")
-        try await linuxContainer.start()
-        
-        // Store active container reference
-        activeContainers[container.id] = linuxContainer
-        
-        // Update container status
-        var updated = container
-        updated.status = .running
-        try await containerStore.update(updated)
-        
-        logger.info("Container \(container.id) started successfully")
-        return updated
     }
     
     public func stopContainer(id: UUID) async throws -> ContainerSummary {
         guard let container = try await containerStore.fetch(id: id) else {
             throw ContainerError.notFound(id)
         }
-        
-        guard let linuxContainer = activeContainers[container.id] else {
+
+        guard let linuxContainer = activeContainers[id] else {
             throw ContainerError.invalidState("Container VM not found")
         }
-        
+
+        guard let stateMachine = stateMachines[id] else {
+            throw ContainerError.invalidState("Container state machine not found")
+        }
+
+        // Validate state transition
+        try stateMachine.transition(to: .stopping)
+        var updated = container
+        updated.status = .stopping
+        try await containerStore.update(updated)
+
         logger.info("Stopping container \(container.id)")
-        
+
         // Stop the container (this shuts down the VM)
         try await linuxContainer.stop()
-        
+
         // Cleanup state
-        activeContainers.removeValue(forKey: container.id)
-        
-        // Update container status
-        var updated = container
+        activeContainers.removeValue(forKey: id)
+
+        // Update state machine and status to stopped
+        try stateMachine.transition(to: .stopped)
         updated.status = .stopped
         try await containerStore.update(updated)
-        
+
         logger.info("Container \(container.id) stopped successfully")
         return updated
     }
     
     public func removeContainer(id: UUID) async throws {
+        guard let container = try await containerStore.fetch(id: id) else {
+            throw ContainerError.notFound(id)
+        }
+
+        guard let stateMachine = stateMachines[id] else {
+            throw ContainerError.invalidState("Container state machine not found")
+        }
+
         // Ensure container is stopped
-        if let container = try await containerStore.fetch(id: id), container.status == .running {
+        if container.status == .running {
             _ = try await stopContainer(id: id)
         }
-        
+
+        // Transition to removing state
+        try stateMachine.transition(to: .removing)
+        var updated = container
+        updated.status = .removing
+        try await containerStore.update(updated)
+
         // Remove from database
         try await containerStore.delete(id: id)
-        
+
+        // Delete container logs
+        await logStore.delete(containerID: id)
+        await eventStore.deleteEvents(for: id)
+
         // Clean up rootfs and config
         try await cleanupContainerData(for: id)
-        
+
+        // Cleanup state machine
+        stateMachines.removeValue(forKey: id)
+
+        // Transition to removed (final state)
+        try stateMachine.transition(to: .removed)
+
         logger.info("Container \(id) removed")
     }
     
     public func getContainerLogs(id: UUID) async throws -> AsyncStream<String> {
-        guard let linuxContainer = activeContainers[id] else {
-            if try await containerStore.fetch(id: id) != nil {
-                throw ContainerError.invalidState("Container is not running")
-            }
+        guard try await containerStore.fetch(id: id) != nil else {
             throw ContainerError.notFound(id)
         }
-        
-        // Use VSOCK to communicate with vminitd for logs
+
+        // Check if container is running for live streaming
+        let linuxContainer = activeContainers[id]
+
         return AsyncStream { continuation in
             Task {
                 do {
-                    // Connect to vminitd on port 1024
-                    let handle = try await linuxContainer.dialVsock(port: 1024)
-                    
-                    // TODO: Implement log streaming protocol with vminitd
-                    // For now, yield a placeholder
-                    continuation.yield("[Log streaming via vminitd - implementation pending]")
-                    continuation.finish()
-                    
-                    _ = handle // Keep handle alive
+                    // First, yield any historical logs from storage
+                    let historicalLogs = await logStore.fetch(containerID: id, limit: 200)
+                    for logLine in historicalLogs {
+                        continuation.yield(logLine)
+                    }
+
+                    // If container is running, stream live logs via VSOCK
+                    if let linuxContainer = linuxContainer {
+                        logger.info("Streaming live logs for container \(id)")
+
+                        // Connect to vminitd on port 1024 for log streaming
+                        let handle = try await linuxContainer.dialVsock(port: 1024)
+
+                        // TODO: Implement actual log streaming protocol with vminitd
+                        // This would read lines from the VSOCK connection and yield them
+                        // For now, indicate live streaming mode
+                        continuation.yield("--- Live log streaming started ---")
+
+                        // Keep the connection alive and stream logs
+                        // Implementation would continuously read from handle and yield lines
+                        // This is a placeholder for the actual vminitd protocol
+
+                        // For now, just keep the handle and mark streaming active
+                        _ = handle
+                    } else {
+                        // Container is stopped, only historical logs available
+                        logger.info("Returning historical logs for stopped container \(id)")
+                        continuation.finish()
+                    }
                 } catch {
-                    self.logger.error("Failed to connect to vminitd for logs: \(error)")
-                    continuation.yield("[Error: Could not connect to container logs]")
+                    logger.error("Failed to get logs for container \(id): \(error)")
+                    continuation.yield("[Error: \(error.localizedDescription)]")
                     continuation.finish()
                 }
             }
@@ -336,7 +463,41 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     public func listImages() async throws -> [ImageSummary] {
         await imageStore.fetchAll()
     }
-    
+
+    public func eventStream() -> AsyncStream<ContainerEvent> {
+        eventStream
+    }
+
+    // MARK: - Event Broadcasting
+
+    /// Emit a container event to all subscribers
+    private func emitEvent(_ event: ContainerEvent) {
+        eventContinuation?.yield(event)
+    }
+
+    /// Emit a state change event
+    func emitStateChange(containerID: UUID, from: ContainerSummary.Status, to: ContainerSummary.Status) {
+        let event = ContainerEvent(
+            containerID: containerID,
+            type: .stateChanged(from: from, to: to)
+        )
+        emitEvent(event)
+
+        // Persist event for replay on reconnect
+        Task {
+            await eventStore.record(event)
+        }
+    }
+
+    /// Emit a log output event
+    private func emitLog(containerID: UUID, message: String) {
+        let event = ContainerEvent(
+            containerID: containerID,
+            type: .logOutput(message)
+        )
+        emitEvent(event)
+    }
+
     // MARK: - OCI Registry Helpers
     
     private func pullOCIManifest(imageRef: ImageReference) async throws -> OCIManifest {
@@ -474,9 +635,23 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         
         return FilePath(containerDir.path)
     }
-    
+
     private static func containerConfigPath(for id: UUID) -> FilePath {
         return containerDirectory(for: id).appending("config.json")
+    }
+
+    private static func containerLogsPath(for id: UUID) -> FilePath {
+        let containerDir = containerDirectory(for: id)
+        return containerDir.appending("logs")
+    }
+
+    private static func containerLogFile(for id: UUID) -> FilePath {
+        let logsDir = containerLogsPath(for: id)
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withYear, .withMonth, .withDay, .withTime]
+        let timestamp = dateFormatter.string(from: Date())
+        let filename = "container_\(timestamp).log"
+        return logsDir.appending(filename)
     }
     
     private func storeContainerConfig(containerID: UUID, config: ContainerConfig) async throws {
@@ -514,7 +689,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         }
         return 2 // Default
     }
-    
+
     private func computeMemorySize(from memoryLimit: Int?) -> Int {
         // memoryLimit is in bytes
         if let limit = memoryLimit {

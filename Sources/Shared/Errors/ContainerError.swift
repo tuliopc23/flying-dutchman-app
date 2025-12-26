@@ -23,6 +23,9 @@ public enum ContainerError: FlyingDutchmanError {
     /// A container lifecycle operation failed
     case lifecycleFailed(operation: String, reason: String)
 
+    /// VSOCK connection failed
+    case vsockConnectionFailed(String)
+
     // MARK: - FlyingDutchmanError
 
     public var userMessage: String {
@@ -47,6 +50,9 @@ public enum ContainerError: FlyingDutchmanError {
 
         case let .lifecycleFailed(operation, _):
             return "Failed to \(operation) container"
+
+        case .vsockConnectionFailed:
+            return "Failed to communicate with container"
         }
     }
 
@@ -72,6 +78,9 @@ public enum ContainerError: FlyingDutchmanError {
 
         case let .lifecycleFailed(operation, reason):
             return "Container lifecycle operation '\(operation)' failed: \(reason)"
+
+        case let .vsockConnectionFailed(reason):
+            return "VSOCK connection failed: \(reason)"
         }
     }
 
@@ -91,6 +100,8 @@ public enum ContainerError: FlyingDutchmanError {
             return true // User can fix configuration
         case .lifecycleFailed:
             return true // Can retry the operation
+        case .vsockConnectionFailed:
+            return true // Container may recover
         }
     }
 
@@ -110,6 +121,8 @@ public enum ContainerError: FlyingDutchmanError {
             return "Review the container configuration and correct any errors"
         case .lifecycleFailed:
             return "Check container logs and try the operation again"
+        case .vsockConnectionFailed:
+            return "Container may not be ready, try again in a moment"
         }
     }
 }

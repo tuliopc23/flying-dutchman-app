@@ -39,28 +39,31 @@ public struct ContainerConfig: Codable, Sendable {
 public protocol ContainerRuntimeProtocol: Actor {
     /// Human-readable name of the runtime
     var name: String { get }
-    
+
     /// List all containers
     func listContainers() async throws -> [ContainerSummary]
-    
+
     /// Create a new container
     func createContainer(name: String, image: String, config: ContainerConfig) async throws -> ContainerSummary
-    
+
     /// Start an existing container
     func startContainer(id: UUID) async throws -> ContainerSummary
-    
+
     /// Stop a running container
     func stopContainer(id: UUID) async throws -> ContainerSummary
-    
+
     /// Remove a container
     func removeContainer(id: UUID) async throws
-    
+
     /// Get logs for a container
     func getContainerLogs(id: UUID) async throws -> AsyncStream<String>
-    
+
     /// Pull an image from a registry
     func pullImage(reference: String) async throws -> ImageSummary
-    
+
     /// List all images
     func listImages() async throws -> [ImageSummary]
+
+    /// Get a stream of container events (state changes, logs, resource updates)
+    func eventStream() -> AsyncStream<ContainerEvent>
 }
