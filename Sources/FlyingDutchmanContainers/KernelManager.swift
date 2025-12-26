@@ -1,167 +1,253 @@
 import Foundation
-import SystemPackage
-import Shared
+import Logging
 import AsyncHTTPClient
-import NIOCore
-import NIOPosix
 
-/// Manages Linux kernel downloads and storage for containerization
+/// Manager for downloading and managing Linux kernels for container VMs
 public actor KernelManager {
-    private let logger = Loggers.make(category: "flyingdutchman.kernel")
+    private let logger = Loggers.make(category: .containers)
     private let httpClient: HTTPClient
-    
-    public static let shared = KernelManager()
-    
-    // Kernel download URLs
-    private struct KernelSource {
-        let name: String
-        let url: String
-        let sha256: String?
-        
-        static let kata = KernelSource(
-            name: "kata-containers",
-            url: "https://github.com/kata-containers/kata-containers/releases/download/3.2.0/kata-static-3.2.0-x86_64.tar.xz",
-            sha256: nil  // TODO: Add checksum
-        )
-        
-        static let custom = KernelSource(
-            name: "flyingdutchman-optimized",
-            url: "https://example.com/vmlinux",  // TODO: Host our own
-            sha256: nil
-        )
-    }
-    
-    private init() {
+
+    /// GitHub repository for kernel releases
+    private let githubRepo = "apple/containerization"
+
+    /// Default kernel version to use
+    private let defaultKernelVersion = "1.0.0"
+
+    /// Default initfs reference
+    private let defaultInitfsReference = "ghcr.io/apple/containerization/vminit:0.13.0"
+
+    /// Storage path for kernels
+    private let kernelsDir: FilePath
+
+    public init() {
         self.httpClient = HTTPClient(eventLoopGroupProvider: .singleton)
-    }
-    
-    /// Get the path to a usable kernel, downloading if necessary
-    public func ensureKernel() async throws -> FilePath {
-        let kernelPath = Self.kernelPath()
-        
-        if FileManager.default.fileExists(atPath: kernelPath.string) {
-            logger.info("Using existing kernel at \(kernelPath)")
-            return kernelPath
-        }
-        
-        logger.info("Kernel not found, downloading...")
-        try await downloadKernel(to: kernelPath)
-        return kernelPath
-    }
-    
-    /// Download the kernel from a known source
-    private func downloadKernel(to path: FilePath) async throws {
-        let source = KernelSource.kata  // Use Kata for now
-        
-        logger.info("Downloading kernel from \(source.url)")
-        
-        // Create kernel directory
-        let kernelDir = path.removingLastComponent()
-        try FileManager.default.createDirectory(
-            atPath: kernelDir.string,
+        self.kernelsDir = KernelManager.kernelsDirectory()
+
+        // Create kernels directory if it doesn't exist
+        try? FileManager.default.createDirectory(
+            atPath: kernelsDir.string,
             withIntermediateDirectories: true
         )
-        
-        // Download to temporary file
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString)
-        
-        let request = try HTTPClient.Request(url: source.url)
-        let response = try await httpClient.execute(request: request).get()
-        
-        guard response.status == .ok else {
-            throw KernelError.downloadFailed("HTTP \(response.status)")
-        }
-        
-        // Stream to file
-        var buffer = ByteBufferAllocator().buffer(capacity: 0)
-        if let body = response.body {
-             var chunk = body
-             buffer.writeBuffer(&chunk)
-        }
-        
-        let data = Data(buffer: buffer)
-        try data.write(to: tempURL)
-        
-        // Extract if archive
-        if source.url.hasSuffix(".tar.xz") {
-            try await extractKernelFromArchive(tempURL, to: path)
-        } else {
-            // Direct kernel file
-            try FileManager.default.moveItem(
-                at: tempURL,
-                to: URL(fileURLWithPath: path.string)
-            )
-        }
-        
-        logger.info("Kernel downloaded successfully to \(path)")
     }
-    
-    private func extractKernelFromArchive(_ archiveURL: URL, to kernelPath: FilePath) async throws {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-        task.arguments = [
-            "-xf", archiveURL.path,
-            "--strip-components=3",  // Kata structure: kata-static/vmlinux
-            "-C", kernelPath.removingLastComponent().string,
-            "*/vmlinux*"
-        ]
-        
-        try task.run()
-        task.waitUntilExit()
-        
-        guard task.terminationStatus == 0 else {
-            throw KernelError.extractionFailed
+
+    /// Download kernel for the specified version
+    /// - Parameter version: Kernel version to download (defaults to latest if nil)
+    /// - Returns: Path to downloaded kernel
+    /// - Throws: KernelError if download fails
+    public func downloadKernel(version: String? = nil) async throws -> FilePath {
+        let kernelVersion = version ?? defaultKernelVersion
+        logger.info("Downloading kernel version \(kernelVersion)")
+
+        let kernelPath = kernelPath(for: kernelVersion)
+
+        // Check if kernel already exists
+        if FileManager.default.fileExists(atPath: kernelPath.string) {
+            logger.info("Kernel \(kernelVersion) already exists at \(kernelPath.string)")
+            return kernelPath
         }
-        
-        // Find extracted vmlinux
-        let kernelDir = kernelPath.removingLastComponent()
-        let contents = try FileManager.default.contentsOfDirectory(atPath: kernelDir.string)
-        
-        if let vmlinux = contents.first(where: { $0.hasPrefix("vmlinux") }) {
-            let extractedPath = kernelDir.appending(vmlinux)
-            if extractedPath != kernelPath {
-                try FileManager.default.moveItem(
-                    at: URL(fileURLWithPath: extractedPath.string),
-                    to: URL(fileURLWithPath: kernelPath.string)
-                )
+
+        // Fetch release info from GitHub
+        let releaseInfo = try await fetchReleaseInfo(version: kernelVersion)
+
+        // Download kernel asset
+        guard let assetURL = releaseInfo.assetURL else {
+            throw KernelError.downloadFailed("No kernel asset found for version \(kernelVersion)")
+        }
+
+        logger.info("Downloading kernel from \(assetURL)")
+
+        let request = try HTTPClient.Request(url: assetURL)
+        let response = try await httpClient.execute(request: request).get()
+
+        guard response.status == .ok else {
+            throw KernelError.downloadFailed("HTTP \(response.status.code) when downloading kernel")
+        }
+
+        guard let body = response.body else {
+            throw KernelError.downloadFailed("Empty response when downloading kernel")
+        }
+
+        let kernelData = body.getData(at: 0, length: body.readableBytes) ?? Data()
+        try kernelData.write(to: URL(fileURLWithPath: kernelPath.string))
+
+        // Set executable permissions
+        try? FileManager.default.setAttributes(
+            [FileAttributeKey.posixPermissions: 0o755],
+            ofItemAtPath: kernelPath.string
+        )
+
+        logger.info("Kernel \(kernelVersion) downloaded successfully to \(kernelPath.string)")
+        return kernelPath
+    }
+
+    /// Get the default kernel path
+    /// - Returns: Path to the default kernel
+    /// - Throws: KernelError if kernel not found
+    public func getDefaultKernel() throws -> FilePath {
+        let kernelPath = kernelPath(for: defaultKernelVersion)
+
+        guard FileManager.default.fileExists(atPath: kernelPath.string) else {
+            throw KernelError.notFound("Default kernel not found. Please run: dutchman kernel download")
+        }
+
+        return kernelPath
+    }
+
+    /// Get the initfs reference for image pulling
+    /// - Returns: The initfs Docker image reference
+    public func getInitfsReference() -> String {
+        return defaultInitfsReference
+    }
+
+    /// List available kernel versions
+    /// - Returns: Array of kernel version strings
+    public func listKernels() -> [String] {
+        guard let contents = try? FileManager.default.contentsOfDirectory(atPath: kernelsDir.string) else {
+            return []
+        }
+
+        return contents.filter { $0.hasSuffix("vmlinux") || $0.hasSuffix("vmlinuz") }
+            .map { $0.replacingOccurrences(of: "vmlinux-", with: "")
+                     .replacingOccurrences(of: "vmlinuz-", with: "")
+                     .replacingOccurrences(of: ".vmlinux", with: "")
+                     .replacingOccurrences(of: ".vmlinuz", with: "") }
+            .sorted()
+    }
+
+    /// Validate kernel file integrity
+    /// - Parameter version: Kernel version to validate
+    /// - Returns: true if valid, false otherwise
+    public func validateKernel(version: String) -> Bool {
+        let kernelPath = kernelPath(for: version)
+
+        guard FileManager.default.fileExists(atPath: kernelPath.string) else {
+            return false
+        }
+
+        let attributes = try? FileManager.default.attributesOfItem(atPath: kernelPath.string)
+        guard let fileSize = attributes?[.size] as? UInt64 else {
+            return false
+        }
+
+        // Minimum kernel size check (at least 1MB)
+        if fileSize < 1_048_576 {
+            logger.error("Kernel file too small: \(fileSize) bytes")
+            return false
+        }
+
+        logger.debug("Kernel \(version) validated successfully (size: \(fileSize) bytes)")
+        return true
+    }
+
+    /// Delete a kernel version
+    /// - Parameter version: Kernel version to delete
+    /// - Throws: KernelError if deletion fails
+    public func deleteKernel(version: String) throws {
+        let kernelPath = kernelPath(for: version)
+
+        guard FileManager.default.fileExists(atPath: kernelPath.string) else {
+            throw KernelError.notFound("Kernel version \(version) not found")
+        }
+
+        try FileManager.default.removeItem(atPath: kernelPath.string)
+        logger.info("Kernel version \(version) deleted")
+    }
+
+    // MARK: - Private Helpers
+
+    private func kernelPath(for version: String) -> FilePath {
+        let filename = "vmlinux-\(version)"
+        return kernelsDir.appending(filename)
+    }
+
+    private func fetchReleaseInfo(version: String) async throws -> KernelReleaseInfo {
+        let url: String
+        if version.lowercased() == "latest" {
+            url = "https://api.github.com/repos/\(githubRepo)/releases/latest"
+        } else {
+            url = "https://api.github.com/repos/\(githubRepo)/releases/tags/v\(version)"
+        }
+
+        logger.debug("Fetching release info from \(url)")
+
+        var request = try HTTPClient.Request(url: url)
+        request.headers.add(name: "Accept", value: "application/vnd.github.v3+json")
+
+        let response = try await httpClient.execute(request: request).get()
+
+        guard response.status == .ok else {
+            throw KernelError.downloadFailed("HTTP \(response.status.code) when fetching release info")
+        }
+
+        guard let body = response.body else {
+            throw KernelError.downloadFailed("Empty response when fetching release info")
+        }
+
+        let data = body.getData(at: 0, length: body.readableBytes) ?? Data()
+
+        struct GitHubRelease: Codable {
+            let tagName: String
+            let assets: [Asset]
+
+            struct Asset: Codable {
+                let name: String
+                let browserDownloadUrl: String
             }
         }
-    }
-    
-    /// Clean up downloaded kernels
-    public func cleanKernelCache() throws {
-        let kernelDir = Self.kernelPath().removingLastComponent()
-        if FileManager.default.fileExists(atPath: kernelDir.string) {
-            try FileManager.default.removeItem(atPath: kernelDir.string)
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        let release = try decoder.decode(GitHubRelease.self, from: data)
+
+        // Find the kernel asset
+        let kernelAsset = release.assets.first { asset in
+            asset.name.hasPrefix("vmlinux") || asset.name.hasPrefix("vmlinuz")
         }
+
+        return KernelReleaseInfo(
+            version: release.tagName.replacingOccurrences(of: "v", with: ""),
+            assetURL: kernelAsset?.browserDownloadUrl
+        )
     }
-    
-    private static func kernelPath() -> FilePath {
+
+    /// Get the kernels directory path
+    private static func kernelsDirectory() -> FilePath {
         let supportDir = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         ).first!
-        
-        let kernelURL = supportDir
+
+        let kernelsURL = supportDir
             .appendingPathComponent("flyingdutchman")
-            .appendingPathComponent("kernel")
-            .appendingPathComponent("vmlinux")
-        
-        return FilePath(kernelURL.path)
+            .appendingPathComponent("kernels")
+
+        return FilePath(kernelsURL.path)
     }
 }
 
-enum KernelError: LocalizedError {
+// MARK: - Supporting Types
+
+private struct KernelReleaseInfo {
+    let version: String
+    let assetURL: String?
+}
+
+// MARK: - Errors
+
+public enum KernelError: LocalizedError {
+    case notFound(String)
     case downloadFailed(String)
-    case extractionFailed
-    
-    var errorDescription: String? {
+    case invalidKernel(String)
+
+    public var errorDescription: String? {
         switch self {
-        case .downloadFailed(let reason):
+        case let .notFound(message):
+            return "Kernel not found: \(message)"
+        case let .downloadFailed(reason):
             return "Failed to download kernel: \(reason)"
-        case .extractionFailed:
-            return "Failed to extract kernel from archive"
+        case let .invalidKernel(reason):
+            return "Invalid kernel: \(reason)"
         }
     }
 }

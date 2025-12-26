@@ -9,12 +9,28 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     public var createdAt: Date
 
     public enum Status: String, Codable, Sendable {
+        case created
+        case starting
         case running
+        case stopping
         case stopped
-        case paused
+        case removing
+        case removed
 
         public var displayName: String {
             rawValue.capitalized
+        }
+
+        public var isRunning: Bool {
+            self == .running
+        }
+
+        public var isStopped: Bool {
+            self == .stopped || self == .created || self == .removed
+        }
+
+        public var isTransient: Bool {
+            self == .starting || self == .stopping || self == .removing
         }
     }
 

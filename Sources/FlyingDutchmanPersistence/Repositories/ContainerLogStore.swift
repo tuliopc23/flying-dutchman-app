@@ -5,6 +5,9 @@ import Shared
 public struct ContainerLogStore: ContainerLogStoring {
     private let dbQueue: DatabaseQueue
 
+    /// Maximum number of log lines to retain per container
+    private let maxRetained = 500
+
     public init(dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
@@ -28,7 +31,25 @@ public struct ContainerLogStore: ContainerLogStoring {
         }) ?? []
     }
 
-    private func pruneIfNeeded(db: Database, containerID: UUID, maxRetained: Int = 500) throws {
+    /// Delete all logs for a container
+    public func delete(containerID: UUID) {
+        try? dbQueue.write { db in
+            try ContainerLogRecord
+                .filter(Column("containerId") == containerID.uuidString)
+                .deleteAll(db)
+        }
+    }
+
+    /// Get log count for a container
+    public func count(containerID: UUID) -> Int {
+        (try? dbQueue.read { db in
+            try ContainerLogRecord
+                .filter(Column("containerId") == containerID.uuidString)
+                .fetchCount(db)
+        }) ?? 0
+    }
+
+    private func pruneIfNeeded(db: Database, containerID: UUID) throws {
         let count = try ContainerLogRecord
             .filter(Column("containerId") == containerID.uuidString)
             .fetchCount(db)
