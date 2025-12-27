@@ -38,6 +38,7 @@
 - [x] 2.1.2 Implement kernel download from GitHub releases
 - [x] 2.1.3 Add kernel version validation
 - [x] 2.1.4 Add initfs (vminit) download
+- [x] 2.1.5 Ensure kernel path consistency with Client
 
 ### 2.2 Image Layer Caching
 - [x] 2.2.1 Implement content-addressable blob storage

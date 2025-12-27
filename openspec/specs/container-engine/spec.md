@@ -36,7 +36,9 @@ The system SHALL allow users to start, stop, restart, and delete containers usin
 - **THEN** the container and its rootfs are removed and no longer appear in the UI
 
 ### Requirement: Container state machine
-The system SHALL track container state transitions: created → running → paused → stopped → removed.
+The system SHALL track container state transitions: created → starting → running → stopping → stopped → removing → removed.
+
+> Note: A `paused` state is not currently implemented in `ContainerSummary.Status`. If we want Docker parity, we can add it later along with runtime support.
 
 #### Scenario: Container state consistency
 - **WHEN** a container state changes externally (via CLI or runtime)

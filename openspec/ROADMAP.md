@@ -1,7 +1,7 @@
 # Flying Dutchman Roadmap
 
 > **Current Phase**: 1.1 (Container Engine)
-> **Last Updated**: 2025-12-27
+> **Last Updated**: 2025-12-26
 > **Status**: 🟡 In Progress
 
 ---
@@ -11,7 +11,7 @@
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
 | 0 | Foundation | ✅ Complete | 100% |
-| 1 | Container Core | 🟡 In Progress | 0% |
+| 1 | Container Core | 🟡 In Progress | 55% |
 | 2 | Networking | ⚪ Not Started | 0% |
 | 3 | Platform | ⚪ Not Started | 0% |
 | 4 | UX Polish | ⚪ Not Started | 0% |
@@ -62,8 +62,8 @@
 **Primary Module**: `FlyingDutchmanContainers`
 
 ### 1.1 Container Engine 🟡
-- [ ] Container state machine
-- [ ] Container event streaming
+- [x] Container state machine
+- [x] Container event streaming
 - [ ] Container logs streaming
 - [ ] VSOCK communication
 - [ ] Compose project support

@@ -156,7 +156,7 @@ public struct DockerShimServer: @unchecked Sendable {
             return DockerInfoResponse(
                 containers: containers.count,
                 containersRunning: containers.filter { $0.status == .running }.count,
-                containersPaused: containers.filter { $0.status == .paused }.count,
+                containersPaused: 0,
                 containersStopped: containers.filter { $0.status == .stopped }.count,
                 images: images.count,
                 operatingSystem: "macOS",

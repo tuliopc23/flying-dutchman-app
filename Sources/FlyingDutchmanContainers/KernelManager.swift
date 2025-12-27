@@ -1,6 +1,8 @@
 import Foundation
 import Logging
 import AsyncHTTPClient
+import Shared
+import SystemPackage
 
 /// Manager for downloading and managing Linux kernels for container VMs
 public actor KernelManager {
@@ -18,14 +20,25 @@ public actor KernelManager {
 
     /// Storage path for kernels
     private let kernelsDir: FilePath
+    
+    /// Path where ContainerizationClient expects the default kernel
+    private let defaultKernelSymlinkPath: FilePath
 
     public init() {
         self.httpClient = HTTPClient(eventLoopGroupProvider: .singleton)
         self.kernelsDir = KernelManager.kernelsDirectory()
+        self.defaultKernelSymlinkPath = FilePath(ContainerizationClient.kernelPath.path)
 
         // Create kernels directory if it doesn't exist
         try? FileManager.default.createDirectory(
             atPath: kernelsDir.string,
+            withIntermediateDirectories: true
+        )
+        
+        // Ensure the kernel parent directory exists for the symlink
+        let kernelParentDir = ContainerizationClient.kernelPath.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(
+            at: kernelParentDir,
             withIntermediateDirectories: true
         )
     }
@@ -75,22 +88,56 @@ public actor KernelManager {
             [FileAttributeKey.posixPermissions: 0o755],
             ofItemAtPath: kernelPath.string
         )
+        
+        // Create/update symlink at default kernel location for ContainerizationClient
+        try updateDefaultKernelSymlink(to: kernelPath)
 
         logger.info("Kernel \(kernelVersion) downloaded successfully to \(kernelPath.string)")
         return kernelPath
     }
+    
+    /// Update the default kernel symlink to point to a specific kernel version
+    /// - Parameter kernelPath: Path to the kernel to make default
+    /// - Throws: Error if symlink creation fails
+    private func updateDefaultKernelSymlink(to kernelPath: FilePath) throws {
+        let symlinkPath = defaultKernelSymlinkPath.string
+        
+        // Remove existing symlink or file if it exists
+        if FileManager.default.fileExists(atPath: symlinkPath) {
+            try FileManager.default.removeItem(atPath: symlinkPath)
+        }
+        
+        // Create symlink
+        try FileManager.default.createSymbolicLink(
+            atPath: symlinkPath,
+            withDestinationPath: kernelPath.string
+        )
+        
+        logger.info("Updated default kernel symlink: \(symlinkPath) -> \(kernelPath.string)")
+        
+        // Refresh ContainerizationClient availability
+        ContainerizationClient.shared.refresh()
+    }
 
-    /// Get the default kernel path
+    /// Get the default kernel path (symlink location expected by ContainerizationClient)
     /// - Returns: Path to the default kernel
     /// - Throws: KernelError if kernel not found
     public func getDefaultKernel() throws -> FilePath {
+        // First check the symlink location (preferred)
+        if FileManager.default.fileExists(atPath: defaultKernelSymlinkPath.string) {
+            return defaultKernelSymlinkPath
+        }
+        
+        // Fall back to versioned kernel if symlink doesn't exist
         let kernelPath = kernelPath(for: defaultKernelVersion)
-
         guard FileManager.default.fileExists(atPath: kernelPath.string) else {
             throw KernelError.notFound("Default kernel not found. Please run: dutchman kernel download")
         }
+        
+        // Create symlink for next time
+        try? updateDefaultKernelSymlink(to: kernelPath)
 
-        return kernelPath
+        return defaultKernelSymlinkPath
     }
 
     /// Get the initfs reference for image pulling
@@ -212,7 +259,7 @@ public actor KernelManager {
     }
 
     /// Get the kernels directory path
-    private static func kernelsDirectory() -> FilePath {
+    static func kernelsDirectory() -> FilePath {
         let supportDir = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask

@@ -1,6 +1,7 @@
 import Foundation
 import Logging
 import Shared
+import Yams
 
 /// Manager for Docker Compose projects with multi-container orchestration
 public actor ComposeProjectManager {
@@ -29,6 +30,7 @@ public actor ComposeProjectManager {
         }
 
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
+        // Decode using Yams
         let yaml = try ComposeYAMLDecoder.decode(data)
 
         let project = try buildProject(from: yaml, path: path)
@@ -302,10 +304,9 @@ private struct ComposeVolumeConfig: Codable {
 
 private enum ComposeYAMLDecoder {
     static func decode(_ data: Data) throws -> ComposeYAML {
-        // Note: Swift doesn't have a built-in YAML decoder
-        // This is a placeholder implementation
-        // In production, you would use a YAML library like Yams
-        throw ComposeError.notImplemented("YAML parsing not yet implemented - please add a YAML dependency")
+        let string = String(decoding: data, as: UTF8.self)
+        let decoder = YAMLDecoder()
+        return try decoder.decode(ComposeYAML.self, from: string)
     }
 }
 

@@ -27,6 +27,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.60.0"),
         .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.21.0"),
         .package(url: "https://github.com/swiftkube/client.git", from: "0.20.0"),
+        .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
         .package(url: "https://github.com/apple/containerization.git", from: "0.1.0"),
         .package(url: "https://github.com/apple/swift-system.git", from: "1.3.0"),
         .package(url: "https://github.com/pointfreeco/swift-navigation.git", from: "2.0.0"),
@@ -65,7 +66,8 @@ let package = Package(
                 .product(name: "Containerization", package: "containerization"),
                 .product(name: "ContainerizationOCI", package: "containerization"),
                 .product(name: "SystemPackage", package: "swift-system"),
-                .product(name: "ProcessEnv", package: "ProcessEnv")
+                .product(name: "ProcessEnv", package: "ProcessEnv"),
+                .product(name: "Yams", package: "Yams")
             ],
             path: "Sources/FlyingDutchmanContainers"
         ),

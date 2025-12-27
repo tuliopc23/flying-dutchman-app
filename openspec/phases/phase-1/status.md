@@ -3,7 +3,7 @@
 phase: 1
 status: in-progress
 started: 2025-12-27
-updated: 2025-12-27
+updated: 2025-12-26
 blockers: []
 
 ---
@@ -21,13 +21,13 @@ Container Core phase delivers a Docker-compatible container engine with full lif
 
 ### 1.1 Container Engine 🟡
 - [ ] 1. Container CRUD operations (enhance existing)
-- [ ] 2. Container state machine
+- [x] 2. Container state machine
 - [ ] 3. Compose project support
 - [ ] 4. Container logs streaming
-- [ ] 5. Container event streaming (from Phase 0)
-- [ ] 6. VSOCK communication (from Phase 0)
+- [x] 5. Container event streaming (from Phase 0)
+- [x] 6. VSOCK communication (from Phase 0)
 
-**Current Task**: 1.1.1 - Container CRUD operations
+**Current Task**: 1.1.3 - Compose YAML parsing + wire compose up/down
 
 **Notes**: Build on Phase 0 foundation. `ContainerizationRuntime` already has create/start/stop/remove. Need to add state machine, streaming, and Compose support.
 
