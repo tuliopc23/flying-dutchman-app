@@ -3,7 +3,7 @@ import Shared
 import Logging
 
 /// State machine that enforces valid container state transitions
-public actor ContainerStateMachine {
+public final class ContainerStateMachine: @unchecked Sendable {
     private let logger = Loggers.make(category: .containers)
     private let containerID: UUID
 
@@ -19,10 +19,10 @@ public actor ContainerStateMachine {
     ]
 
     /// Current state of the container
-    private(set) public var currentState: ContainerSummary.Status
+    public private(set) var currentState: ContainerSummary.Status
 
     /// Optional callback for state changes (ContainerizationRuntime uses this to emit events)
-    var onStateChange: ((ContainerSummary.Status, ContainerSummary.Status) -> Void)?
+    public var onStateChange: ((ContainerSummary.Status, ContainerSummary.Status) -> Void)?
 
     public init(initialState: ContainerSummary.Status = .created, containerID: UUID = UUID()) {
         self.currentState = initialState

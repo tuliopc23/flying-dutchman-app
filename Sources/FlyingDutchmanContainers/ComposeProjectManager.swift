@@ -2,6 +2,7 @@ import Foundation
 import Logging
 import Shared
 import Yams
+import Yams
 
 /// Manager for Docker Compose projects with multi-container orchestration
 public actor ComposeProjectManager {
@@ -60,13 +61,13 @@ public actor ComposeProjectManager {
             let containerID: UUID
             if recreate {
                 // Remove existing container if it exists
-                if let existingID = findContainerID(for: service.name, in: project) {
+                if let existingID = await findContainerID(for: service.name, in: project) {
                     try await runtime.removeContainer(id: existingID)
                 }
                 containerID = try await createContainer(from: service, project: project)
             } else {
                 // Try to find existing container
-                if let existingID = findContainerID(for: service.name, in: project),
+                if let existingID = await findContainerID(for: service.name, in: project),
                    try await isContainerRunning(id: existingID) {
                     containerID = existingID
                     logger.info("Using existing container for service '\(service.name)'")
@@ -105,7 +106,7 @@ public actor ComposeProjectManager {
         logger.info("Stopping compose project '\(project.name)'")
 
         // Get all containers for this project
-        let containers = await runtime.listContainers()
+        let containers = try await runtime.listContainers()
         let projectContainers = containers.filter { container in
             containerMapping[container.id] != nil
         }
@@ -174,7 +175,7 @@ public actor ComposeProjectManager {
                 ports: serviceYAML.ports ?? [],
                 volumes: serviceYAML.volumes ?? [],
                 dependsOn: serviceYAML.depends_on ?? [],
-                restartPolicy: RestartPolicy(rawValue: serviceYAML.restart ?? "no") ?? .no,
+                restartPolicy: ComposeService.RestartPolicy(rawValue: serviceYAML.restart ?? "no") ?? .no,
                 networks: serviceYAML.networks ?? []
             )
         }
@@ -257,10 +258,9 @@ public actor ComposeProjectManager {
         return container.id
     }
 
-    private func findContainerID(for serviceName: String, in project: ComposeProject) -> UUID? {
+    private func findContainerID(for serviceName: String, in project: ComposeProject) async -> UUID? {
         // Find container by name pattern: project_service_N
-        let containers = Task { await runtime.listContainers() }
-        let result = (try? await container.value) ?? []
+        let result = (try? await runtime.listContainers()) ?? []
 
         let namePattern = "\(project.name)_\(serviceName)"
         return result.first { $0.name.hasPrefix(namePattern) }?.id

@@ -2,6 +2,8 @@ import Foundation
 import GRDB
 import Logging
 import Shared
+import SystemPackage
+import FlyingDutchmanPersistence
 
 /// Manages OCI image layer caching with deduplication and eviction policies
 public actor ImageCacheManager {
@@ -25,18 +27,19 @@ public actor ImageCacheManager {
     ) {
         self.maxCacheSizeBytes = maxCacheSizeBytes
         self.dbQueue = dbQueue
-        self.blobsDir = blobsPath()
-        self.cacheMetadataPath = cacheMetadataPath()
-        self.stats = CacheStats()
+        let blobsPath = Self.blobsPath()
+        let metadataPath = Self.cacheMetadataPath()
+        self.blobsDir = blobsPath
+        self.cacheMetadataPath = metadataPath
+        
+        // Load stats from disk (must be done before other inits because we need cacheMetadataPath)
+        self.stats = Self.loadStatsFromPath(metadataPath)
 
         // Create cache directory
         try? FileManager.default.createDirectory(
-            atPath: blobsDir.string,
+            atPath: blobsPath.string,
             withIntermediateDirectories: true
         )
-
-        // Load stats from disk
-        loadStats()
     }
 
     /// Store a blob in the cache
@@ -52,7 +55,7 @@ public actor ImageCacheManager {
         // Check if already exists (deduplication)
         if FileManager.default.fileExists(atPath: blobPath.string) {
             logger.debug("Blob \(digest) already exists (deduplication)")
-            try await updateBlobAccessTime(digest: digest)
+            try updateBlobAccessTime(digest: digest)
             return
         }
 
@@ -60,7 +63,7 @@ public actor ImageCacheManager {
         try data.write(to: URL(fileURLWithPath: blobPath.string))
 
         // Update metadata
-        try await storeBlobMetadata(
+        try storeBlobMetadata(
             digest: digest,
             size: Int64(data.count),
             accessTime: Date()
@@ -72,7 +75,7 @@ public actor ImageCacheManager {
         stats.writeOperations += 1
 
         // Check if eviction is needed
-        try await evictIfNeeded()
+        try evictIfNeeded()
 
         saveStats()
 
@@ -95,7 +98,7 @@ public actor ImageCacheManager {
         let data = try Data(contentsOf: URL(fileURLWithPath: blobPath.string))
 
         // Update access time
-        try await updateBlobAccessTime(digest: digest)
+        try updateBlobAccessTime(digest: digest)
 
         stats.cacheHits += 1
         stats.readOperations += 1
@@ -178,7 +181,7 @@ public actor ImageCacheManager {
 
     /// Get total cache size in bytes
     /// - Returns: Total size of all cached blobs
-    public func getCacheSize() async throws -> Int64 {
+    public func getCacheSize() throws -> Int64 {
         let size = try dbQueue.read { db in
             try Int64.fetchAll(db, sql: "SELECT COALESCE(SUM(size), 0) FROM blobMetadata")
         }
@@ -188,24 +191,24 @@ public actor ImageCacheManager {
     // MARK: - Eviction Policies
 
     /// Evict blobs if cache exceeds size limit or age limit
-    private func evictIfNeeded() async throws {
-        let currentSize = try await getCacheSize()
+    private func evictIfNeeded() throws {
+        let currentSize = try getCacheSize()
 
         // Check size limit
         if currentSize > maxCacheSizeBytes {
             logger.info("Cache size \(currentSize) exceeds limit \(maxCacheSizeBytes), evicting...")
-            try await evictByLRU(targetSize: maxCacheSizeBytes * 80 / 100)  // Evict to 80% of limit
+            try evictByLRU(targetSize: maxCacheSizeBytes * 80 / 100)  // Evict to 80% of limit
         }
 
         // Check age limit
-        try await evictByAge()
+        try evictByAge()
     }
 
     /// Evict least recently used blobs
     /// - Parameter targetSize: Target cache size in bytes
     /// - Throws: CacheError if eviction fails
-    private func evictByLRU(targetSize: Int64) async throws {
-        while try await getCacheSize() > targetSize {
+    private func evictByLRU(targetSize: Int64) throws {
+        while try getCacheSize() > targetSize {
             let oldest = try dbQueue.read { db in
                 try BlobMetadataRecord
                     .order(Column("lastAccessed").asc)
@@ -225,7 +228,7 @@ public actor ImageCacheManager {
 
     /// Evict blobs older than max age
     /// - Throws: CacheError if eviction fails
-    private func evictByAge() async throws {
+    private func evictByAge() throws {
         let cutoffDate = Date().addingTimeInterval(-maxLayerAge)
 
         let oldBlobs = try dbQueue.read { db in
@@ -243,8 +246,8 @@ public actor ImageCacheManager {
 
     // MARK: - Private Helpers
 
-    private func storeBlobMetadata(digest: String, size: Int64, accessTime: Date) async throws {
-        try dbQueue.write { db in
+    private func storeBlobMetadata(digest: String, size: Int64, accessTime: Date) throws {
+        _ = try dbQueue.write { db in
             let record = BlobMetadataRecord(
                 digest: digest,
                 size: size,
@@ -254,21 +257,20 @@ public actor ImageCacheManager {
         }
     }
 
-    private func updateBlobAccessTime(digest: String) async throws {
-        try dbQueue.write { db in
+    private func updateBlobAccessTime(digest: String) throws {
+        _ = try dbQueue.write { db in
             try BlobMetadataRecord
                 .filter(Column("digest") == digest)
                 .updateAll(db, Column("lastAccessed").set(to: Date()))
         }
     }
 
-    private func loadStats() {
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: cacheMetadataPath.string)),
+    private static func loadStatsFromPath(_ path: FilePath) -> CacheStats {
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path.string)),
               let loadedStats = try? JSONDecoder().decode(CacheStats.self, from: data) else {
-            return
+            return CacheStats()
         }
-
-        stats = loadedStats
+        return loadedStats
     }
 
     private func saveStats() {
@@ -378,15 +380,14 @@ private struct BlobMetadataRecord: Codable, FetchableRecord, PersistableRecord {
 // MARK: - Database Migration
 
 extension DatabaseMigrator {
-    static func registerBlobMetadataMigration(_ migrator: DatabaseMigrator) {
-        migrator.registerMigration("v7_blob_metadata") { db in
+    static func registerBlobMetadataMigration(_ migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v8_blob_metadata") { db in
             if try !db.tableExists("blobMetadata") {
                 try db.create(table: "blobMetadata") { t in
                     t.autoIncrementedPrimaryKey("id")
                     t.column("digest", .text).notNull().unique()
                     t.column("size", .integer).notNull()
-                    t.column("lastAccessed", .datetime).notNull()
-                    t.index("lastAccessed")
+                    t.column("lastAccessed", .datetime).notNull().indexed()
                 }
             }
         }

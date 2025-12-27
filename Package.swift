@@ -67,7 +67,8 @@ let package = Package(
                 .product(name: "ContainerizationOCI", package: "containerization"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "ProcessEnv", package: "ProcessEnv"),
-                .product(name: "Yams", package: "Yams")
+                .product(name: "Yams", package: "Yams"),
+                .product(name: "GRDB", package: "GRDB.swift")
             ],
             path: "Sources/FlyingDutchmanContainers"
         ),

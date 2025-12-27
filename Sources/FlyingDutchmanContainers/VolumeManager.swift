@@ -1,6 +1,8 @@
 import Foundation
 import Logging
 import Shared
+import SystemPackage
+import FlyingDutchmanPersistence
 
 /// Manages named volumes for container storage
 public actor VolumeManager {
@@ -27,11 +29,11 @@ public actor VolumeManager {
     ///   - driver: Volume driver (defaults to "local")
     /// - Returns: Created volume summary
     /// - Throws: VolumeError if creation fails
-    public func createVolume(name: String, driver: String = "local") throws -> VolumeSummary {
+    public func createVolume(name: String, driver: String = "local") async throws -> VolumeSummary {
         logger.info("Creating volume '\(name)' with driver '\(driver)'")
 
         // Check if volume already exists
-        if let existing = try? volumeStore.fetch(name: name) {
+        if let existing = try? await volumeStore.fetch(name: name) {
             logger.warning("Volume '\(name)' already exists")
             return existing
         }
@@ -50,7 +52,7 @@ public actor VolumeManager {
         let volume = VolumeSummary(
             name: name,
             mountPath: volumePath.string,
-            sizeBytes: 0  // Will be calculated on use
+        try await volumeStore.insert(volume)
         )
 
         try volumeStore.insert(volume)
@@ -62,12 +64,12 @@ public actor VolumeManager {
     /// Get or create a volume (idempotent)
     /// - Parameters:
     ///   - name: Name of the volume
-    ///   - driver: Volume driver (defaults to "local")
-    /// - Returns: Volume summary
+    public func getOrCreateVolume(name: String, driver: String = "local") async throws -> VolumeSummary {
+        if let existing = volumeStore.fetchAll().first(where: { $0.name == name }) {
     /// - Throws: VolumeError if operation fails
     public func getOrCreateVolume(name: String, driver: String = "local") throws -> VolumeSummary {
-        if let existing = try? volumeStore.fetch(name: name) {
-            return existing
+        if let existing = try? volumeStore.fetchAll().first(where: { $0.name == name }) {
+        return try await createVolume(name: name, driver: driver)
         }
 
         return try createVolume(name: name, driver: driver)
@@ -76,10 +78,10 @@ public actor VolumeManager {
     /// Remove a named volume
     /// - Parameter name: Name of the volume to remove
     /// - Throws: VolumeError if removal fails
-    public func removeVolume(name: String) throws {
+    public func removeVolume(name: String) async throws {
         logger.info("Removing volume '\(name)'")
 
-        guard let volume = try volumeStore.fetch(name: name) else {
+        guard let volume = volumeStore.fetchAll().first(where: { $0.name == name }) else {
             throw VolumeError.notFound(name)
         }
 
@@ -94,7 +96,7 @@ public actor VolumeManager {
         }
 
         // Remove from database
-        try volumeStore.delete(id: volume.id)
+        try await volumeStore.delete(id: volume.id)
 
         logger.info("Volume '\(name)' removed")
     }
@@ -102,7 +104,7 @@ public actor VolumeManager {
     /// Prune unused volumes
     /// - Returns: Number of volumes removed
     /// - Throws: VolumeError if pruning fails
-    public func pruneVolumes() throws -> Int {
+    public func pruneVolumes() async throws -> Int {
         logger.info("Pruning unused volumes")
 
         let volumes = volumeStore.fetchAll()
@@ -112,7 +114,7 @@ public actor VolumeManager {
         // For now, we'll remove all but the "default" volume
         for volume in volumes {
             if volume.name != "default" {
-                try removeVolume(name: volume.name)
+                try await removeVolume(name: volume.name)
                 removedCount += 1
             }
         }
@@ -126,7 +128,7 @@ public actor VolumeManager {
     /// - Returns: Detailed volume information
     /// - Throws: VolumeError if volume not found
     public func inspectVolume(name: String) throws -> VolumeInspection {
-        guard let volume = try volumeStore.fetch(name: name) else {
+        guard let volume = volumeStore.fetchAll().first(where: { $0.name == name }) else {
             throw VolumeError.notFound(name)
         }
 
@@ -134,7 +136,8 @@ public actor VolumeManager {
 
         // Calculate volume size
         var totalSize: Int64 = 0
-        if let enumerator = FileManager.default.enumerator(atPath: volumePath.string, includingPropertiesForKeys: [.fileSizeKey]) {
+        let volumeURL = URL(fileURLWithPath: volumePath.string)
+        if let enumerator = FileManager.default.enumerator(at: volumeURL, includingPropertiesForKeys: [.fileSizeKey]) {
             for case let fileURL as URL in enumerator {
                 if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
                    let fileSize = resourceValues.fileSize {

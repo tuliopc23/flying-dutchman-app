@@ -34,7 +34,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
 
     // Event streaming
     private var eventContinuation: AsyncStream<ContainerEvent>.Continuation?
-    private var eventStream: AsyncStream<ContainerEvent>
+    private var _eventStream: AsyncStream<ContainerEvent>?
     
     // Kernel configuration
     private let kernelPath: FilePath
@@ -47,11 +47,6 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         self.kernelPath = kernelPath ?? Self.defaultKernelPath()
         self.initfsReference = initfsReference
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(self.group))
-
-        // Initialize event stream
-        self.eventStream = AsyncStream { continuation in
-            self.eventContinuation = continuation
-        }
     }
     
     // MARK: - Container Manager Setup
@@ -374,17 +369,8 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
                         // Connect to vminitd on port 1024 for log streaming
                         let handle = try await linuxContainer.dialVsock(port: 1024)
 
-                        // TODO: Implement actual log streaming protocol with vminitd
-                        // This would read lines from the VSOCK connection and yield them
-                        // For now, indicate live streaming mode
-                        continuation.yield("--- Live log streaming started ---")
-
-                        // Keep the connection alive and stream logs
-                        // Implementation would continuously read from handle and yield lines
-                        // This is a placeholder for the actual vminitd protocol
-
-                        // For now, just keep the handle and mark streaming active
-                        _ = handle
+                        // Stream logs from vminitd using length-prefixed JSON protocol
+                        try await self.streamLogsFromHandle(handle, continuation: continuation, containerID: id)
                     } else {
                         // Container is stopped, only historical logs available
                         logger.info("Returning historical logs for stopped container \(id)")
@@ -465,7 +451,14 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     }
 
     public func eventStream() -> AsyncStream<ContainerEvent> {
-        eventStream
+        if let stream = _eventStream {
+            return stream
+        }
+        let stream = AsyncStream<ContainerEvent> { continuation in
+            self.eventContinuation = continuation
+        }
+        _eventStream = stream
+        return stream
     }
 
     // MARK: - Event Broadcasting
@@ -572,6 +565,97 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         if FileManager.default.fileExists(atPath: containerDir.string) {
             try FileManager.default.removeItem(atPath: containerDir.string)
         }
+    }
+    
+    /// Stream logs from a VSOCK FileHandle using length-prefixed JSON protocol
+    /// The vminitd protocol uses 4-byte length prefix followed by JSON-encoded ControlPlaneEvent
+    private func streamLogsFromHandle(
+        _ handle: FileHandle,
+        continuation: AsyncStream<String>.Continuation,
+        containerID: UUID
+    ) async throws {
+        logger.info("Starting log stream for container \(containerID)")
+        
+        var buffer = Data()
+        let decoder = JSONDecoder()
+        
+        // Read loop - process incoming data from vminitd
+        while true {
+            // Read available data asynchronously
+            let chunk: Data?
+            do {
+                chunk = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Data?, Error>) in
+                    handle.readabilityHandler = { fileHandle in
+                        let data = fileHandle.availableData
+                        fileHandle.readabilityHandler = nil
+                        if data.isEmpty {
+                            cont.resume(returning: nil) // EOF
+                        } else {
+                            cont.resume(returning: data)
+                        }
+                    }
+                }
+            } catch {
+                logger.error("Read error for container \(containerID): \(error)")
+                continuation.yield("[Stream error: \(error.localizedDescription)]")
+                break
+            }
+            
+            // Check for EOF
+            guard let data = chunk, !data.isEmpty else {
+                logger.info("Log stream ended for container \(containerID) (EOF)")
+                break
+            }
+            
+            buffer.append(data)
+            
+            // Process complete frames from buffer
+            while buffer.count >= 4 {
+                // Read 4-byte length prefix (big-endian UInt32)
+                let lengthBytes = buffer.prefix(4)
+                let length = lengthBytes.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+                
+                // Check if we have the complete frame
+                guard buffer.count >= 4 + Int(length) else {
+                    break // Wait for more data
+                }
+                
+                // Extract JSON body
+                let jsonData = buffer.subdata(in: 4..<(4 + Int(length)))
+                buffer.removeFirst(4 + Int(length))
+                
+                // Decode and handle event
+                do {
+                    let event = try decoder.decode(ControlPlaneEvent.self, from: jsonData)
+                    
+                    switch event {
+                    case .logLine(let line):
+                        continuation.yield(line)
+                        // Also persist to log store for historical access
+                        await logStore.append(containerID: containerID, line: line)
+                        
+                    case .exit(let code):
+                        logger.info("Container \(containerID) process exited with code \(code)")
+                        continuation.yield("[Process exited with code \(code)]")
+                        continuation.finish()
+                        try? handle.close()
+                        return
+                        
+                    case .pong:
+                        // Keepalive response, ignore
+                        break
+                    }
+                } catch {
+                    logger.warning("Failed to decode control plane event: \(error)")
+                    // Try to recover by continuing to next frame
+                }
+            }
+        }
+        
+        // Clean up
+        try? handle.close()
+        continuation.finish()
+        logger.info("Log stream completed for container \(containerID)")
     }
     
     private func blobsPath() -> FilePath {

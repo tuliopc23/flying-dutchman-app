@@ -1,5 +1,7 @@
 import Foundation
 import Logging
+import SystemPackage
+import Shared
 
 /// Manages exposure of image layers as browsable directories
 public actor ImageFilesystemManager {

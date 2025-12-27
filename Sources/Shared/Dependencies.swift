@@ -36,6 +36,7 @@ public actor MockRuntime: ContainerRuntimeProtocol {
     public func getContainerLogs(id: UUID) async throws -> AsyncStream<String> { throw fatalError("Mock") }
     public func pullImage(reference: String) async throws -> ImageSummary { throw fatalError("Mock") }
     public func listImages() async throws -> [ImageSummary] { [] }
+    public func eventStream() -> AsyncStream<ContainerEvent> { AsyncStream { $0.finish() } }
 }
 
 public actor UnimplementedRuntime: ContainerRuntimeProtocol {
@@ -49,4 +50,5 @@ public actor UnimplementedRuntime: ContainerRuntimeProtocol {
     public func getContainerLogs(id: UUID) async throws -> AsyncStream<String> { fatalError() }
     public func pullImage(reference: String) async throws -> ImageSummary { fatalError() }
     public func listImages() async throws -> [ImageSummary] { fatalError() }
+    public func eventStream() -> AsyncStream<ContainerEvent> { fatalError() }
 }

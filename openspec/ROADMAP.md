@@ -11,7 +11,7 @@
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
 | 0 | Foundation | ✅ Complete | 100% |
-| 1 | Container Core | 🟡 In Progress | 55% |
+| 1 | Container Core | 🟡 In Progress | 65% |
 | 2 | Networking | ⚪ Not Started | 0% |
 | 3 | Platform | ⚪ Not Started | 0% |
 | 4 | UX Polish | ⚪ Not Started | 0% |
@@ -64,16 +64,16 @@
 ### 1.1 Container Engine 🟡
 - [x] Container state machine
 - [x] Container event streaming
-- [ ] Container logs streaming
-- [ ] VSOCK communication
-- [ ] Compose project support
+- [ ] Container logs streaming (Step 3 in progress)
+- [x] VSOCK communication (dial implemented, protocol TODO)
+- [x] Compose project support (YAML parsing implemented)
 
 ### 1.2 Image Management ⚪
-- [ ] Kernel download automation
-- [ ] Image layer caching
+- [x] Kernel download automation (symlink to expected location implemented)
+- [x] Image layer caching (ImageCacheManager exists, not wired to runtime)
 - [ ] BuildKit integration
 - [ ] Multi-platform builds
-- [ ] Image filesystem exposure (`~/FlyingDutchman/images/`)
+- [x] Image filesystem exposure (`~/FlyingDutchman/images/`)
 
 ### 1.3 Storage ⚪
 - [ ] Bind mount support

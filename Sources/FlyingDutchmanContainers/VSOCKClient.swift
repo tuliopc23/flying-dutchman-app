@@ -1,6 +1,7 @@
 import Foundation
 import Containerization
 import Logging
+import Shared
 
 /// VSOCK client for host-to-guest container communication
 /// Provides health checks and reliable connection management
@@ -10,9 +11,9 @@ public actor VSOCKClient {
 
     /// Default VSOCK ports
     public enum Port {
-        public static let logs = 1024      // vminitd log streaming
-        public static let health = 1025     // Health check endpoint
-        public static let metrics = 1026    // Container metrics
+        public static let logs: UInt32 = 1024      // vminitd log streaming
+        public static let health: UInt32 = 1025     // Health check endpoint
+        public static let metrics: UInt32 = 1026    // Container metrics
     }
 
     /// Connection timeout in seconds
@@ -42,17 +43,17 @@ public actor VSOCKClient {
     /// Connect to VSOCK port for log streaming
     /// - Returns: Handle to the VSOCK connection
     /// - Throws: ContainerError.vsockConnectionFailed if connection fails
-    public func connectToLogsPort() async throws -> any VsockHandleProtocol {
+    public func connectToLogsPort() async throws -> FileHandle {
         do {
             logger.info("Connecting to VSOCK logs port \(Port.logs)")
-            let handle = try await withThrowingTaskGroup(of: any VsockHandleProtocol.self) { group in
+            let handle = try await withThrowingTaskGroup(of: FileHandle.self) { group in
                 group.addTask {
                     try await self.container.dialVsock(port: Port.logs)
                 }
 
                 // Add timeout
                 group.addTask {
-                    try await Task.sleep(nanoseconds: UInt64(connectionTimeout * 1_000_000_000))
+                    try await Task.sleep(nanoseconds: UInt64(self.connectionTimeout * 1_000_000_000))
                     throw ContainerError.vsockConnectionFailed("Connection timeout after \(self.connectionTimeout)s")
                 }
 
@@ -73,17 +74,17 @@ public actor VSOCKClient {
     /// - Parameter port: The VSOCK port to connect to
     /// - Returns: Handle to the VSOCK connection
     /// - Throws: ContainerError.vsockConnectionFailed if connection fails
-    public func connect(to port: UInt32) async throws -> any VsockHandleProtocol {
+    public func connect(to port: UInt32) async throws -> FileHandle {
         do {
             logger.debug("Connecting to VSOCK port \(port)")
-            let handle = try await withThrowingTaskGroup(of: any VsockHandleProtocol.self) { group in
+            let handle = try await withThrowingTaskGroup(of: FileHandle.self) { group in
                 group.addTask {
                     try await self.container.dialVsock(port: port)
                 }
 
                 // Add timeout
                 group.addTask {
-                    try await Task.sleep(nanoseconds: UInt64(connectionTimeout * 1_000_000_000))
+                    try await Task.sleep(nanoseconds: UInt64(self.connectionTimeout * 1_000_000_000))
                     throw ContainerError.vsockConnectionFailed("Connection timeout after \(self.connectionTimeout)s")
                 }
 
@@ -106,17 +107,15 @@ public actor VSOCKClient {
     ///   - maxLength: Maximum bytes to read
     /// - Returns: Data read from the connection
     /// - Throws: Error if read fails or times out
-    public func read(from handle: any VsockHandleProtocol, maxLength: Int) async throws -> Data {
+    public func read(from handle: FileHandle, maxLength: Int) async throws -> Data {
         try await withThrowingTaskGroup(of: Data.self) { group in
             group.addTask {
-                // Placeholder: actual implementation depends on VsockHandleProtocol API
-                // This would read data from the handle
-                return Data()
+                handle.availableData
             }
 
             // Add timeout
             group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(connectionTimeout * 1_000_000_000))
+                try await Task.sleep(nanoseconds: UInt64(self.connectionTimeout * 1_000_000_000))
                 throw ContainerError.vsockConnectionFailed("Read timeout")
             }
 
@@ -131,9 +130,9 @@ public actor VSOCKClient {
     ///   - handle: The VSOCK handle to write to
     ///   - data: Data to write
     /// - Throws: Error if write fails
-    public func write(to handle: any VsockHandleProtocol, data: Data) async throws {
-        // Placeholder: actual implementation depends on VsockHandleProtocol API
+    public func write(to handle: FileHandle, data: Data) async throws {
         logger.debug("Writing \(data.count) bytes to VSOCK connection")
+        handle.write(data)
     }
 }
 
@@ -144,3 +143,6 @@ public protocol VsockHandleProtocol: Sendable {
     // Abstract interface for VSOCK operations
     // Actual implementation would come from Apple's Containerization framework
 }
+
+// FileHandle from dialVsock conforms to our protocol
+extension FileHandle: VsockHandleProtocol {}

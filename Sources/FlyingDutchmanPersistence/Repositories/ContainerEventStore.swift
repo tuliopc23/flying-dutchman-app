@@ -41,7 +41,7 @@ public actor ContainerEventStore {
                     .order(Column("timestamp").desc)
                     .limit(limit)
                     .fetchAll(db)
-                    .map { $0.toContainerEvent() }
+                    .compactMap { $0.toContainerEvent() }
             }
         } catch {
             logger.error("Failed to fetch events for container \(containerID): \(error)")
@@ -53,12 +53,11 @@ public actor ContainerEventStore {
     public func recent(limit: Int = 100) -> [ContainerEvent] {
         do {
             return try dbQueue.read { db in
-                try ContainerEventRecord
+                let records = try ContainerEventRecord
                     .order(Column("timestamp").desc)
                     .limit(limit)
                     .fetchAll(db)
-                    .map { $0.toContainerEvent() }
-                    .reversed() // Return in chronological order
+                return records.compactMap { $0.toContainerEvent() }.reversed()
             }
         } catch {
             logger.error("Failed to fetch recent events: \(error)")
@@ -147,24 +146,12 @@ private struct ContainerEventRecord: Codable, FetchableRecord, PersistableRecord
         }
 
         let decoder = JSONDecoder()
-        let eventType: ContainerEvent.EventType?
-
-        switch self.eventType {
-        case "stateChanged":
-            eventType = try? decoder.decode(ContainerEvent.EventType.StateChanged.self, from: eventData)
-        case "logOutput":
-            eventType = try? decoder.decode(ContainerEvent.EventType.LogOutput.self, from: eventData)
-        case "resourceUpdate":
-            eventType = try? decoder.decode(ContainerEvent.EventType.ResourceUpdate.self, from: eventData)
-        default:
+        
+        guard let eventType = try? decoder.decode(ContainerEvent.EventType.self, from: eventData) else {
             return nil
         }
 
-        guard let type = eventType else {
-            return nil
-        }
-
-        return ContainerEvent(id: eventID, containerID: containerID, type: type, timestamp: timestamp)
+        return ContainerEvent(id: eventID, containerID: containerID, type: eventType, timestamp: timestamp)
     }
 }
 
@@ -173,18 +160,6 @@ private struct ContainerEventRecord: Codable, FetchableRecord, PersistableRecord
 extension ContainerEvent.EventType: Codable {
     enum CodingKeys: String, CodingKey {
         case type, from, to, message, cpuPercent, memoryBytes, memoryPercent
-    }
-
-    enum StateChanged {
-        case stateChanged(from: ContainerSummary.Status, to: ContainerSummary.Status)
-    }
-
-    enum LogOutput {
-        case logOutput(String)
-    }
-
-    enum ResourceUpdate {
-        case resourceUpdate(ContainerEvent.ResourceInfo)
     }
 
     public init(from decoder: Decoder) throws {

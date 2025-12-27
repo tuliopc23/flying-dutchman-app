@@ -81,7 +81,7 @@ public enum SeedData {
         ContainerSummary(
             name: "nginx",
             image: "nginx:alpine",
-            status: .paused,
+            status: .stopped,
             ports: ["80:80", "443:443"],
             createdAt: Date().addingTimeInterval(-86400 * 7) // 7 days ago
         ),
@@ -225,7 +225,7 @@ public enum SeedData {
     public static func randomContainer() -> ContainerSummary {
         let names = ["web", "api", "worker", "db", "cache", "queue", "proxy", "auth"]
         let images = ["nginx", "redis", "postgres", "mongo", "rabbitmq", "mysql"]
-        let statuses: [ContainerSummary.Status] = [.running, .stopped, .paused]
+        let statuses: [ContainerSummary.Status] = [.running, .stopped, .created]
 
         return ContainerSummary(
             name: names.randomElement()! + "-" + UUID().uuidString.prefix(8),

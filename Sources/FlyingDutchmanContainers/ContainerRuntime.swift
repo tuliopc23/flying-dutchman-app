@@ -113,6 +113,10 @@ public actor StubContainerRuntime: ContainerRuntimeProtocol {
             ?? ImageSummary(name: "stub", tag: "latest", sizeBytes: 100)
     }
 
+    public func eventStream() -> AsyncStream<ContainerEvent> {
+        AsyncStream { $0.finish() }
+    }
+
     // MARK: - Helpers
 
     private func update(containerID: UUID, status: ContainerSummary.Status) -> ContainerSummary? {

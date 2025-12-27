@@ -130,8 +130,7 @@ public final class DatabaseContainer: @unchecked Sendable {
                     t.autoIncrementedPrimaryKey("id")
                     t.column("digest", .text).notNull().unique()
                     t.column("size", .integer).notNull()
-                    t.column("lastAccessed", .datetime).notNull()
-                    t.index("lastAccessed")
+                    t.column("lastAccessed", .datetime).notNull().indexed()
                 }
             }
         }

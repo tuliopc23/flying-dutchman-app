@@ -79,6 +79,10 @@ public actor ContainerCLIRuntime: ContainerRuntimeProtocol {
         return try await fallback.pullImage(reference: reference)
     }
 
+    public func eventStream() -> AsyncStream<ContainerEvent> {
+        AsyncStream { $0.finish() }
+    }
+
     // MARK: - Helpers
 
     private func fetch(containerID: UUID) async throws -> ContainerSummary? {
