@@ -51,12 +51,10 @@ public actor VolumeManager {
         // Create volume record
         let volume = VolumeSummary(
             name: name,
-            mountPath: volumePath.string,
-        try await volumeStore.insert(volume)
+            mountPath: volumePath.string
         )
 
-        try volumeStore.insert(volume)
-
+        try await volumeStore.insert(volume)
         logger.info("Volume '\(name)' created at \(volumePath.string)")
         return volume
     }
@@ -64,15 +62,15 @@ public actor VolumeManager {
     /// Get or create a volume (idempotent)
     /// - Parameters:
     ///   - name: Name of the volume
+    /// - Throws: VolumeError if operation fails
+    ///   - driver: Volume driver (defaults to "local")
+    /// - Returns: Volume summary
+    /// - Throws: VolumeError if operation fails
     public func getOrCreateVolume(name: String, driver: String = "local") async throws -> VolumeSummary {
         if let existing = volumeStore.fetchAll().first(where: { $0.name == name }) {
-    /// - Throws: VolumeError if operation fails
-    public func getOrCreateVolume(name: String, driver: String = "local") throws -> VolumeSummary {
-        if let existing = try? volumeStore.fetchAll().first(where: { $0.name == name }) {
-        return try await createVolume(name: name, driver: driver)
+            return existing
         }
-
-        return try createVolume(name: name, driver: driver)
+        return try await createVolume(name: name, driver: driver)
     }
 
     /// Remove a named volume
@@ -206,11 +204,11 @@ public actor VolumeManager {
     /// - Parameter mount: Mount specification
     /// - Returns: Actual host path to use
     /// - Throws: VolumeError if setup fails
-    public func setupVolume(mount: Mount) throws -> String {
+    public func setupVolume(mount: Mount) async throws -> String {
         switch mount.type {
         case .volume:
             // Named volume - ensure it exists
-            let volume = try getOrCreateVolume(name: mount.source)
+            let volume = try await getOrCreateVolume(name: mount.source)
             return volume.mountPath
 
         case .bind:

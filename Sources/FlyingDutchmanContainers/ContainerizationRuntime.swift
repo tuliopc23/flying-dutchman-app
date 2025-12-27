@@ -95,7 +95,9 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             if stateMachines[container.id] == nil {
                 let stateMachine = ContainerStateMachine(initialState: container.status, containerID: container.id)
                 stateMachine.onStateChange = { [weak self] from, to in
-                    self?.emitStateChange(containerID: container.id, from: from, to: to)
+                    Task { [weak self] in
+                        await self?.emitStateChange(containerID: container.id, from: from, to: to)
+                    }
                 }
                 stateMachines[container.id] = stateMachine
             }
@@ -191,7 +193,9 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         // Initialize state machine
         let stateMachine = ContainerStateMachine(initialState: .created, containerID: container.id)
         stateMachine.onStateChange = { [weak self] from, to in
-            self?.emitStateChange(containerID: container.id, from: from, to: to)
+            Task { [weak self] in
+                await self?.emitStateChange(containerID: container.id, from: from, to: to)
+            }
         }
         stateMachines[container.id] = stateMachine
         
