@@ -87,8 +87,9 @@ This document tracks the implementation order for Phase 1, designed for sequenti
 
 ---
 
-### Step 4: Expose Runtime Events via HTTP
-**Estimated**: 30 min
+### Step 4: Expose Runtime Events via HTTP ✅
+**Estimated**: 30 min  
+**Completed**: 2025-12-29
 **Files to modify**:
 - `Sources/FlyingDutchmanNetworking/Server.swift`
 - `Sources/FlyingDutchmanNetworking/Routes/EventsRoutes.swift` (create if needed)
@@ -97,8 +98,9 @@ This document tracks the implementation order for Phase 1, designed for sequenti
 
 ---
 
-### Step 5: Wire UI to Runtime Events (optional, Phase 1 scope creep)
-**Estimated**: 1 hour
+### Step 5: Wire UI to Runtime Events ✅
+**Estimated**: 1 hour  
+**Completed**: 2025-12-29
 **Files to modify**:
 - `Sources/FlyingDutchmanApp/Content/EventsView.swift`
 - `Sources/FlyingDutchmanNetworking/Client.swift`
@@ -124,4 +126,3 @@ When you hit a blocker:
 ## New Blockers (agent-discovered)
 
 *(Add here as you encounter them)*
-

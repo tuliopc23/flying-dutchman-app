@@ -3,7 +3,7 @@
 phase: 1
 status: in-progress
 started: 2025-12-27
-updated: 2025-12-26
+updated: 2025-12-29
 blockers: []
 
 ---
@@ -19,27 +19,27 @@ Container Core phase delivers a Docker-compatible container engine with full lif
 
 ## Sub-phases
 
-### 1.1 Container Engine 🟡
-- [ ] 1. Container CRUD operations (enhance existing)
+### 1.1 Container Engine ✅
+- [x] 1. Container CRUD operations (enhance existing)
 - [x] 2. Container state machine
-- [ ] 3. Compose project support
-- [ ] 4. Container logs streaming
+- [x] 3. Compose project support
+- [x] 4. Container logs streaming
 - [x] 5. Container event streaming (from Phase 0)
 - [x] 6. VSOCK communication (from Phase 0)
 
-**Current Task**: 1.1.3 - Compose YAML parsing + wire compose up/down
+**Current Task**: 1.2.1 - Image pull/push/delete (enhance existing)
 
-**Notes**: Build on Phase 0 foundation. `ContainerizationRuntime` already has create/start/stop/remove. Need to add state machine, streaming, and Compose support.
+**Notes**: UI now consumes `/runtime-events` SSE for runtime events.
 
 ### 1.2 Image Management ⚪
 - [ ] 1. Image pull/push/delete (basic pull exists)
 - [ ] 2. Kernel download automation (from Phase 0)
 - [ ] 3. BuildKit integration
 - [ ] 4. Multi-platform builds
-- [ ] 5. Image layer caching
+- [x] 5. Image layer caching
 - [ ] 6. Image filesystem exposure (`~/FlyingDutchman/images/`)
 
-**Notes**: OCI registry pull exists in `ContainerizationRuntime`. Need to enhance with proper caching, BuildKit, and expose images to filesystem.
+**Notes**: OCI registry pull exists in `ContainerizationRuntime`. Cache is now wired to pull. Image exposure is placeholder (no layer extraction/overlay).
 
 ### 1.3 Storage ⚪
 - [ ] 1. Bind mount support

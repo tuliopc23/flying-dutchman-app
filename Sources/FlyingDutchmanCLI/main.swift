@@ -448,7 +448,7 @@ struct Networks: AsyncParsableCommand {
 }
 
 struct Events: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(abstract: "Show recent engine/shim events (stub)")
+    static let configuration = CommandConfiguration(abstract: "Show recent runtime events")
 
     @Flag(help: "Output as JSON")
     var json: Bool = false
@@ -459,20 +459,78 @@ struct Events: AsyncParsableCommand {
 
     func run() async throws {
         do {
-            let events = try await EngineClient.fetchEvents(stream: stream, limit: limit)
-            if json {
-                CLIOutput.json(events)
+            if stream {
+                try await streamEvents()
             } else {
-                CLIOutput.section("Events")
-                for event in events {
-                    CLIOutput.line(event.id, "\(event.action) · \(event.status) · \(event.time)")
+                let events = try await collectEvents(limit: max(0, limit))
+                if json {
+                    CLIOutput.json(events)
+                } else {
+                    CLIOutput.section("Runtime Events")
+                    for event in events {
+                        CLIOutput.line(event.id, formatSummary(event))
+                    }
                 }
             }
         } catch {
             CLIOutput.warn("Events", "Failed to fetch events: \(error.localizedDescription)")
-            CLIOutput.hint("Requires engine/shim reachable on /events")
+            CLIOutput.hint("Requires engine reachable on /runtime-events")
         }
     }
+
+    private func collectEvents(limit: Int) async throws -> [RuntimeEvent] {
+        guard limit > 0 else { return [] }
+        var collected: [RuntimeEvent] = []
+        for try await event in EngineClient.streamRuntimeEvents() {
+            collected.append(event)
+            if collected.count >= limit {
+                break
+            }
+        }
+        return collected
+    }
+
+    private func streamEvents() async throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        CLIOutput.section("Runtime Events (Streaming)")
+        for try await event in EngineClient.streamRuntimeEvents() {
+            if json {
+                if let data = try? encoder.encode(event), let line = String(data: data, encoding: .utf8) {
+                    print(line)
+                }
+            } else {
+                CLIOutput.line(event.id, formatSummary(event))
+            }
+        }
+    }
+
+    private func formatSummary(_ event: RuntimeEvent) -> String {
+        let timestamp = Self.timestampFormatter.string(from: event.timestamp)
+        let detail: String
+        switch event.type {
+        case .stateChanged(let from, let to):
+            detail = "state \(from.displayName) -> \(to.displayName)"
+        case .logOutput(let message):
+            detail = "log \(truncate(message, limit: 160))"
+        case .resourceUpdate(let info):
+            let memoryMB = Double(info.memoryBytes) / 1024 / 1024
+            detail = String(format: "cpu %.1f%% mem %.0fMB (%.1f%%)", info.cpuPercent, memoryMB, info.memoryPercent)
+        }
+        return "\(timestamp) · \(event.containerId) · \(detail)"
+    }
+
+    private func truncate(_ value: String, limit: Int) -> String {
+        guard value.count > limit else { return value }
+        let index = value.index(value.startIndex, offsetBy: limit)
+        return String(value[..<index]) + "..."
+    }
+
+    private static let timestampFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
 }
 
 private enum CLIOutput {

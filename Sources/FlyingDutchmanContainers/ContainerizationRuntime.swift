@@ -18,6 +18,8 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     private let imageStore = ImageStore()
     private let eventStore = ContainerEventStore()
     private let logStore = ContainerLogStore()
+    private let imageCache = ImageCacheManager()
+    private let imageFilesystem = ImageFilesystemManager()
     
     // NIO Transport
     private let group = NIOTSEventLoopGroup(loopCount: 1)
@@ -410,24 +412,18 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         for layer in manifest.layers {
             let digest = layer.digest
             layerDigests.append(digest)
-            
-            let blobPath = blobsDir.appending(digest)
-            
-            // Skip if already downloaded
-            if FileManager.default.fileExists(atPath: blobPath.string) {
-                logger.info("Layer \(digest) already exists, skipping download")
-                if let size = try? FileManager.default.attributesOfItem(atPath: blobPath.string)[.size] as? Int {
-                    totalSize += size
-                }
+
+            // Skip if already cached
+            if await imageCache.hasBlob(digest: digest) {
+                logger.info("Layer \(digest) already cached, skipping download")
+                totalSize += layer.size
                 continue
             }
-            
+
             logger.info("Downloading layer \(digest) (\(layer.mediaType))")
-            try await downloadOCILayer(imageRef: imageRef, digest: digest, to: blobPath)
-            
-            if let size = try? FileManager.default.attributesOfItem(atPath: blobPath.string)[.size] as? Int {
-                totalSize += size
-            }
+            let blobData = try await downloadOCILayerData(imageRef: imageRef, digest: digest)
+            try await imageCache.storeBlob(digest: digest, data: blobData)
+            totalSize += blobData.count
         }
         
         // Save manifest metadata for later reconstruction
@@ -446,6 +442,16 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         
         try await imageStore.insert(image)
         
+        do {
+            _ = try await imageFilesystem.exposeImage(
+                imageName: imageRef.name,
+                tag: imageRef.tag,
+                layerDigests: layerDigests
+            )
+        } catch {
+            logger.warning("Failed to expose image \(imageRef.name):\(imageRef.tag): \(error)")
+        }
+
         logger.info("Image \(reference) pulled successfully (\(layerDigests.count) layers, \(totalSize) bytes)")
         return image
     }
@@ -520,7 +526,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         return try JSONDecoder().decode(OCIManifest.self, from: manifestData)
     }
     
-    private func downloadOCILayer(imageRef: ImageReference, digest: String, to destination: FilePath) async throws {
+    private func downloadOCILayerData(imageRef: ImageReference, digest: String) async throws -> Data {
         let registryBase = imageRef.registry == "docker.io" ? "https://registry-1.docker.io" : "https://\(imageRef.registry)"
         let blobURL = "\(registryBase)/v2/\(imageRef.name)/blobs/\(digest)"
         
@@ -538,9 +544,8 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         }
         
         let blobData = body.getData(at: 0, length: body.readableBytes) ?? Data()
-        try blobData.write(to: URL(fileURLWithPath: destination.string))
-        
         logger.info("Downloaded blob \(digest) (\(blobData.count) bytes)")
+        return blobData
     }
     
     // MARK: - Private Helpers

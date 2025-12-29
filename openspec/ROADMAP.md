@@ -1,7 +1,7 @@
 # Flying Dutchman Roadmap
 
-> **Current Phase**: 1.1 (Container Engine)
-> **Last Updated**: 2025-12-27
+> **Current Phase**: 1.2 (Image Management)
+> **Last Updated**: 2025-12-29
 > **Status**: 🟡 In Progress
 
 ---
@@ -11,7 +11,7 @@
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
 | 0 | Foundation | ✅ Complete | 100% |
-| 1 | Container Core | 🟡 In Progress | 80% |
+| 1 | Container Core | 🟡 In Progress | 95% |
 | 2 | Networking | ⚪ Not Started | 0% |
 | 3 | Platform | ⚪ Not Started | 0% |
 | 4 | UX Polish | ⚪ Not Started | 0% |

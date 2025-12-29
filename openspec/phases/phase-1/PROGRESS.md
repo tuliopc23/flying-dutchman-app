@@ -1,11 +1,11 @@
 # Phase 1 Progress Summary
 
-**Date**: 2025-12-27  
-**Status**: Phase 1.1 - 80% complete
+**Date**: 2025-12-29  
+**Status**: Phase 1.1 complete; Phase 1.2 in progress
 
 ---
 
-## ✅ Completed (Steps 1-3)
+## ✅ Completed (Steps 1-5)
 
 ### Step 1: Kernel Path Consistency ✅
 **Files**: `KernelManager.swift`
@@ -28,17 +28,31 @@
 - Persists logs to `ContainerLogStore` for historical access
 - Handles connection lifecycle and cleanup
 
+### Step 4: Expose Runtime Events via HTTP ✅
+**Files**: `Server.swift`
+- Added `/runtime-events` SSE endpoint
+- Streams `runtime.eventStream()` events to HTTP clients
+- Handles client disconnects gracefully
+
+### Step 5: Wire UI to Runtime Events ✅
+**Files**: `EventsView.swift`, `Client.swift`
+- UI now streams from `/runtime-events` instead of `/events`
+- SSE parsing uses `URLSession.bytes(for:)` and `AsyncBytes.lines`
+
 ---
 
 ## ⏭️ Remaining Steps
 
-### Step 4: Expose Runtime Events via HTTP (30 min) 🔄
-- Add `/runtime-events` SSE endpoint in `Server.swift`
-- Forward `runtime.eventStream()` to HTTP clients
+No remaining steps for Phase 1.1.
 
-### Step 5: Wire UI to Runtime Events (optional) ⏭️
-- Update `EventsViewModel` to consume `/runtime-events`
-- Remove dependency on `ShimEventStore`
+---
+
+## 🧩 Phase 1.2 Progress (Today)
+
+### Image Layer Caching ✅
+**Files**: `ContainerizationRuntime.swift`
+- `pullImage` now uses `ImageCacheManager` for layer storage
+- Image exposure is triggered post-pull (placeholder, no layer extraction)
 
 ---
 
@@ -48,28 +62,19 @@
 |---------|--------|-------|
 | Container CRUD | ✅ | Native runtime wired |
 | State machine | ✅ | Integrated with transitions |
-| Event streaming | ✅ | Runtime has `eventStream()` |
+| Event streaming | ✅ | Runtime `eventStream()` exposed via `/runtime-events` and UI |
 | Compose | ✅ | YAML parsing fixed (Step 2) |
 | Historical logs | ✅ | From `ContainerLogStore` |
 | **Live logs** | **✅** | **VSOCK streaming implemented (Step 3)** |
 | Kernel paths | ✅ | Symlink fixed (Step 1) |
 
-**Overall Progress**: 80% (Steps 1-3 complete, Steps 4-5 remaining)
+**Overall Progress**: 100% for Phase 1.1; Phase 1 overall still in progress
 
 ---
 
-## 🚦 Next Agent: Resume at Step 4
+## 🚦 Next Agent: Resume at Phase 1.2
 
-**File to edit**: `Sources/FlyingDutchmanNetworking/Server.swift`
-
-**Endpoint to add**: `/runtime-events` (Server-Sent Events)
-
-**Current state**: Runtime has `eventStream()` returning `AsyncStream<ContainerEvent>`, needs HTTP exposure
-
-**Required changes**:
-1. Add SSE endpoint in Hummingbird server
-2. Forward `runtime.eventStream()` to HTTP clients
-3. Handle client disconnection gracefully
+**Focus**: Image management (cache wiring, auth, BuildKit evaluation)
 
 ---
 
@@ -90,4 +95,3 @@ After researching apple/container, OrbStack, Colima, Docker, and Podman:
 - ✅ `FlyingDutchmanEngine` - builds clean
 - ✅ `FlyingDutchmanCLI` - builds clean
 - ⚠️ `FlyingDutchmanApp` - pre-existing SwiftUI errors (unrelated to Phase 1)
-

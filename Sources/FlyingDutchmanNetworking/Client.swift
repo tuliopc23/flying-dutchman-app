@@ -190,4 +190,41 @@ public enum EngineClient {
                 return try? decoder.decode(DockerEvent.self, from: Data(line.utf8))
             }
     }
+
+    public static func streamRuntimeEvents() -> AsyncThrowingStream<RuntimeEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    var request = URLRequest(url: URL(string: "\(baseURL)/runtime-events")!)
+                    request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+
+                    let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                        throw URLError(.badServerResponse)
+                    }
+
+                    let decoder = JSONDecoder()
+                    for try await line in bytes.lines {
+                        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard trimmed.hasPrefix("data:") else { continue }
+                        let payload = trimmed.dropFirst("data:".count).trimmingCharacters(in: .whitespaces)
+                        guard !payload.isEmpty else { continue }
+                        do {
+                            let event = try decoder.decode(RuntimeEvent.self, from: Data(payload.utf8))
+                            continuation.yield(event)
+                        } catch {
+                            continue
+                        }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
+        }
+    }
 }

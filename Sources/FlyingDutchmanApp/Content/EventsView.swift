@@ -1,5 +1,3 @@
-import Shared
-import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import SwiftUI
 
@@ -10,64 +8,50 @@ import AppKit
 @MainActor
 @Observable
 final class EventsViewModel {
-    var events: [DockerEvent] = []
+    var events: [RuntimeEvent] = []
     var error: String?
-    var isLoading: Bool = false
-    var limit: Int = 50
     var isStreaming: Bool = false
-    var pollInterval: TimeInterval = 5
-    private var lastLoaded: Date = .distantPast
     private var streamTask: Task<Void, Never>?
-    private var keepAliveTask: Task<Void, Never>?
 
-    func load(stream: Bool = false) async {
-        if stream == false {
-            streamTask?.cancel()
-        }
-        isLoading = true
-        error = nil
-        isStreaming = stream
-        do {
-            events = try await EngineClient.fetchEvents(stream: stream, limit: limit)
-        } catch {
-            self.error = "Events unavailable: \(error.localizedDescription)"
-        }
-        isLoading = false
-        lastLoaded = Date()
-    }
-
-    func scheduleStreaming() {
-        guard isStreaming else { return }
+    func startStreaming(reset: Bool = false) {
         streamTask?.cancel()
-        streamTask = Task { @MainActor [pollInterval] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(pollInterval))
-                await load(stream: true)
+        if reset {
+            events.removeAll()
+        }
+        error = nil
+        isStreaming = true
+        streamTask = Task { @MainActor in
+            do {
+                for try await event in EngineClient.streamRuntimeEvents() {
+                    events.append(event)
+                }
+                isStreaming = false
+            } catch is CancellationError {
+                isStreaming = false
+            } catch {
+                self.error = "Events unavailable: \(error.localizedDescription)"
+                isStreaming = false
             }
         }
-        scheduleKeepAlive()
     }
 
-    func cancelStreaming() {
+    func stopStreaming() {
         streamTask?.cancel()
         streamTask = nil
-        keepAliveTask?.cancel()
-        keepAliveTask = nil
-    }
-
-    private func scheduleKeepAlive() {
-        keepAliveTask?.cancel()
-        keepAliveTask = Task { @MainActor in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(max(10, pollInterval * 2)))
-            }
-        }
+        isStreaming = false
     }
 }
 
 struct EventsView: View {
     @Bindable var viewModel: EventsViewModel
     @Environment(\.colorScheme) private var colorScheme
+    
+    private static let timestampFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .medium
+        return formatter
+    }()
 
     var body: some View {
         GlassCard {
@@ -77,12 +61,12 @@ struct EventsView: View {
                         ProgressView().controlSize(.small)
                     }
                     Button {
-                        Task { @MainActor in await viewModel.load(stream: true) }
+                        viewModel.startStreaming()
                     } label: {
                         Label("Stream", systemImage: "dot.radiowaves.left.and.right")
                     }
                     Button {
-                        Task { @MainActor in await viewModel.load() }
+                        viewModel.startStreaming(reset: true)
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
@@ -101,20 +85,20 @@ struct EventsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(viewModel.events, id: \.id) { event in
                             HStack {
-                                Image(systemName: "sparkles")
+                                Image(systemName: icon(for: event))
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("\(event.action) · \(event.status)")
-                                    Text(event.from ?? "—")
+                                    Text(title(for: event))
+                                    Text(detail(for: event))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                Text("\(event.time)")
+                                Text(Self.timestampFormatter.string(from: event.timestamp))
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 Button {
                                     #if canImport(AppKit)
-                                    let line = "\(event.action) · \(event.status) · \(event.from ?? "") · \(event.time)"
+                                    let line = "\(title(for: event)) · \(detail(for: event)) · \(event.containerId)"
                                     NSPasteboard.general.clearContents()
                                     NSPasteboard.general.setString(line, forType: .string)
                                     #endif
@@ -131,14 +115,43 @@ struct EventsView: View {
                     }
                 }
             }
-            .onChange(of: viewModel.isStreaming) { _, newValue in
-                if newValue {
-                    viewModel.scheduleStreaming()
-                }
-            }
             .onDisappear {
-                viewModel.cancelStreaming()
+                viewModel.stopStreaming()
             }
+        }
+    }
+    
+    private func icon(for event: RuntimeEvent) -> String {
+        switch event.type {
+        case .stateChanged:
+            return "arrow.triangle.2.circlepath"
+        case .logOutput:
+            return "text.alignleft"
+        case .resourceUpdate:
+            return "speedometer"
+        }
+    }
+    
+    private func title(for event: RuntimeEvent) -> String {
+        switch event.type {
+        case .stateChanged(let from, let to):
+            return "State: \(from.displayName) → \(to.displayName)"
+        case .logOutput:
+            return "Log output"
+        case .resourceUpdate:
+            return "Resource update"
+        }
+    }
+    
+    private func detail(for event: RuntimeEvent) -> String {
+        switch event.type {
+        case .stateChanged:
+            return "Container \(event.containerId)"
+        case .logOutput(let message):
+            return message
+        case .resourceUpdate(let info):
+            let memoryMB = Double(info.memoryBytes) / 1024 / 1024
+            return String(format: "CPU %.1f%% · Mem %.0f MB (%.1f%%)", info.cpuPercent, memoryMB, info.memoryPercent)
         }
     }
 }

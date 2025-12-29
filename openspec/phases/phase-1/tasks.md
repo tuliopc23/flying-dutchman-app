@@ -1,6 +1,6 @@
 # Phase 1 Tasks (Container Core)
 
-updated: 2025-12-26
+updated: 2025-12-29
 owner: flying-dutchman
 
 This file is the *source of truth* for Phase 1 execution. It is derived from actual code inspection.
@@ -24,11 +24,12 @@ Legend:
 * ✅ `ContainerStateMachine` implemented and integrated into `ContainerizationRuntime`
 * ✅ `ContainerEvent` exists and `ContainerEventStore` persists/replays
 * ✅ `eventStream() -> AsyncStream<ContainerEvent>` implemented in runtime
-* 🟡 App UI: Events screen loads *engine* events via `/events` (ShimEventStore SSE/JSON), not the runtime’s `ContainerEventStore`
+* ✅ `/runtime-events` SSE endpoint exposes runtime events via HTTP
+* ✅ App UI consumes runtime events via `/runtime-events` SSE
 
 ### Logs
-* 🟡 `getContainerLogs(id:)` returns historical logs from `ContainerLogStore`
-* 🟡 Live logs: VSOCK dial exists, but streaming protocol is TODO/placeholder
+* ✅ `getContainerLogs(id:)` returns historical logs from `ContainerLogStore`
+* ✅ Live logs: VSOCK streaming protocol implemented for running containers
 * 🟡 App UI: Logs are pulled via HTTP polling (`/containers/:id/logs`) rather than true follow streaming
 
 ### Compose
@@ -46,8 +47,8 @@ Legend:
 * ✅ Basic OCI pull implemented in `ContainerizationRuntime` (manifest + layer blobs)
 * 🟡 No registry auth flow (will fail on private images / Docker Hub throttling)
 * ✅ `ImageCacheManager` implemented (blob metadata + LRU/age eviction)
-* 🟡 Cache is not wired into `ContainerizationRuntime.pullImage` (runtime writes directly to blobs dir)
-* 🟡 `ImageFilesystemManager` implemented but currently creates placeholders (no actual layer extraction / overlay)
+* ✅ Cache is wired into `ContainerizationRuntime.pullImage` (uses `ImageCacheManager`)
+* 🟡 `ImageFilesystemManager` implemented (placeholder exposure) and wired on pull
 * ✅ `KernelManager` writes to symlink at `ContainerizationClient.kernelPath`
 
 ---
@@ -69,8 +70,7 @@ Legend:
 
 ## Blockers (must fix to claim Phase 1.1 “engine complete”)
 
-* ⛔ Live log streaming protocol (VSOCK + framing + backpressure)
-* ⛔ Unify event sources (runtime ContainerEventStore vs ShimEventStore used by HTTP /events)
+None.
 
 ---
 
@@ -80,9 +80,6 @@ Legend:
     * Engine starts
     * App connects
     * Create container → start → logs → stop → remove
-2. **Make logs real**
-    * Pick one streaming path: SSE from engine or AsyncStream bridged through XPC/HTTP
-3. **Make Compose real**
-    * Add YAML parsing dependency (likely) and wire `fd compose up/down` via engine routes
-4. **Then: mounts + filesystem exposure**
-
+2. **Unify event sources**
+    * Update UI to use `/runtime-events` instead of `/events`
+3. **Then: mounts + filesystem exposure**
