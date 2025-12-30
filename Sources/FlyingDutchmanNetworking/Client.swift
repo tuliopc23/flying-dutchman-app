@@ -192,7 +192,8 @@ public enum EngineClient {
     }
 
     public static func streamRuntimeEvents() -> AsyncThrowingStream<RuntimeEvent, Error> {
-        AsyncThrowingStream { continuation in
+     AsyncThrowingStream { [configuredHost = AppConfig.Engine.host, configuredPort = AppConfig.Engine.port] continuation in
+         let baseURL = "http://\(configuredHost):\(configuredPort)"
             let task = Task {
                 do {
                     var request = URLRequest(url: URL(string: "\(baseURL)/runtime-events")!)

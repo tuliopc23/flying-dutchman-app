@@ -137,10 +137,10 @@ struct RootContainerView: View {
         async let images: Void = imagesViewModel.load()
         async let volumes: Void = volumesViewModel.load()
         async let networks: Void = networksViewModel.load()
-        async let events: Void = eventsViewModel.load()
         async let stacksSection: Void = stacksViewModel.load()
 
-        _ = await (status, stacks, containers, images, volumes, networks, events, stacksSection)
+        _ = await (status, stacks, containers, images, volumes, networks, stacksSection)
+        eventsViewModel.startStreaming()
         await logsViewModel.load(containers: containersViewModel.containers)
     }
 
@@ -183,8 +183,6 @@ struct RootContainerView: View {
         EngineClient.configure(host: uiState.engineHost, port: uiState.enginePort)
         logsViewModel.follow = uiState.defaultFollowLogs
         logsViewModel.pollInterval = uiState.logsPollIntervalSeconds
-        eventsViewModel.limit = uiState.eventsLimit
-        eventsViewModel.pollInterval = uiState.eventsPollIntervalSeconds
     }
 
     private func seedCommands() {
@@ -208,7 +206,7 @@ struct RootContainerView: View {
                 await networksViewModel.load()
             },
             CommandAction(title: "Refresh Events", subtitle: "Reload recent engine events", icon: "waveform.path") {
-                await eventsViewModel.load()
+                eventsViewModel.startStreaming(reset: true)
             },
             CommandAction(title: "Refresh Stacks", subtitle: "Reload projects", icon: "square.stack.3d.up") {
                 await sidebarModel.load()

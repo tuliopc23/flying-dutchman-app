@@ -526,7 +526,7 @@ struct Events: AsyncParsableCommand {
         return String(value[..<index]) + "..."
     }
 
-    private static let timestampFormatter: ISO8601DateFormatter = {
+    nonisolated(unsafe) private static let timestampFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
         return formatter

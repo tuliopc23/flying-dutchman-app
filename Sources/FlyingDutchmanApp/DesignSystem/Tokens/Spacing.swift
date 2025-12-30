@@ -98,45 +98,29 @@ extension DesignSystem {
     /// Inset tokens for padding variants
     public enum Inset {
         /// Extra small inset - 4pt
-        public static let xs = EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
+        public static let xs = EdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
         
         /// Small inset - 8pt
-        public static let sm = EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        public static let sm = EdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         
         /// Medium inset - 12pt
-        public static let md = EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+        public static let md = EdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
         
         /// Large inset - 16pt
-        public static let lg = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        public static let lg = EdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
         
         /// Extra large inset - 24pt
-        public static let xl = EdgeInsets(top: 24, leading: 24, bottom: 24, trailing: 24)
+        public static let xl = EdgeInsets(top: 24, left: 24, bottom: 24, right: 24)
         
         /// Card inset (asymmetric - more vertical space)
-        public static let card = EdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16)
+        public static let card = EdgeInsets(top: 20, left: 16, bottom: 20, right: 16)
         
         /// List item inset (horizontal emphasis)
-        public static let listItem = EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+        public static let listItem = EdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
     }
 }
 
-// MARK: - SwiftUI View Extensions
 
-import SwiftUI
-
-extension View {
-    /// Apply design system spacing as padding
-    /// - Parameter spacing: Spacing token from DesignSystem.Spacing
-    public func padding(_ spacing: CGFloat) -> some View {
-        self.padding(spacing)
-    }
-    
-    /// Apply design system insets as padding
-    /// - Parameter inset: EdgeInsets token from DesignSystem.Inset
-    public func padding(_ inset: EdgeInsets) -> some View {
-        self.padding(inset)
-    }
-}
 
 // MARK: - Usage Examples
 

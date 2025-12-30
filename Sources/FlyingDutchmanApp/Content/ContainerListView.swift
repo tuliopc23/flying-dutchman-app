@@ -187,7 +187,7 @@ struct ContainerListView: View {
                 }
                 .buttonStyle(.glass)
                 
-            case .stopped, .paused:
+            case .stopped, .created, .removed:
                 Button {
                     Task { @MainActor in await viewModel.start(container) }
                 } label: {
@@ -195,6 +195,10 @@ struct ContainerListView: View {
                 }
                 .buttonStyle(.glassProminent)
                 .tint(DesignSystem.Colors.success)
+            
+            case .starting, .stopping, .removing:
+                ProgressView()
+                    .controlSize(.small)
             }
         }
     }
@@ -204,16 +208,16 @@ struct ContainerListView: View {
     private func containerStatusSymbol(for status: ContainerSummary.Status) -> String {
         switch status {
         case .running: return "play.circle.fill"
-        case .stopped: return "stop.circle.fill"
-        case .paused: return "pause.circle.fill"
+        case .stopped, .created, .removed: return "stop.circle.fill"
+        case .starting, .stopping, .removing: return "arrow.triangle.2.circlepath.circle.fill"
         }
     }
     
     private func containerStatusColor(for status: ContainerSummary.Status) -> Color {
         switch status {
         case .running: return DesignSystem.Colors.success
-        case .stopped: return DesignSystem.Colors.textTertiary
-        case .paused: return DesignSystem.Colors.warning
+        case .stopped, .created, .removed: return DesignSystem.Colors.textTertiary
+        case .starting, .stopping, .removing: return DesignSystem.Colors.warning
         }
     }
 }

@@ -39,3 +39,12 @@ struct SectionHeader<Content: View>: View {
         }
     }
 }
+
+extension SectionHeader where Content == EmptyView {
+    init(title: String, subtitle: String? = nil, icon: String) {
+        self.title = title
+        self.subtitle = subtitle
+        self.icon = icon
+        self.actions = EmptyView()
+    }
+}

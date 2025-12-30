@@ -47,11 +47,11 @@ struct SidebarView: View {
                     style: .continuous
                 )
                 .strokeBorder(
-                    DesignSystem.Colors.primary.opacity(0.55),
+                    Color(DesignSystem.Colors.primary).opacity(0.55),
                     lineWidth: 2
                 )
                 .shadow(
-                    color: DesignSystem.Colors.primary.opacity(0.3),
+                    color: Color(DesignSystem.Colors.primary).opacity(0.3),
                     radius: 12
                 )
                 .padding(DesignSystem.Spacing.xs)

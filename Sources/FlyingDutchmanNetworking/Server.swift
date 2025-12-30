@@ -160,7 +160,7 @@ public struct EngineServer {
                 return Response(
                     status: .notAcceptable,
                     headers: headers,
-                    body: .init(string: "Accept: text/event-stream required")
+                     body: ResponseBody(byteBuffer: ByteBuffer(string: "Accept: text/event-stream required"))
                 )
             }
             
