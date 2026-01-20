@@ -18,6 +18,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 let image: String
                 let ports: [String]?
                 let env: [String: String]?
+                let volumes: [String]?
             }
 
             guard let payload = try? await request.decode(as: CreateRequest.self, context: context) else {
@@ -33,7 +34,11 @@ struct ContainersRoutes: @unchecked Sendable {
             }
 
             // Create container via runtime
-            let config = ContainerConfig(ports: payload.ports, env: payload.env)
+            let config = ContainerConfig(
+                ports: payload.ports,
+                env: payload.env,
+                volumes: payload.volumes
+            )
             let container = try await runtime.createContainer(
                 name: payload.name,
                 image: payload.image,

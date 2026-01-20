@@ -134,6 +134,13 @@ public final class DatabaseContainer: @unchecked Sendable {
                 }
             }
         }
+        migrator.registerMigration("v8_container_mounts") { db in
+            if try !db.columns(in: "containers").contains(where: { $0.name == "mounts" }) {
+                try db.alter(table: "containers") { t in
+                    t.add(column: "mounts", .text).notNull().defaults(to: "[]")
+                }
+            }
+        }
         return migrator
     }()
 }

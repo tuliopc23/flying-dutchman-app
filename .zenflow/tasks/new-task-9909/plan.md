@@ -84,6 +84,7 @@ Total: **21 concrete implementation tasks**
 ---
 
 ### [ ] Phase 2: Complete Phase 1.3 Storage (Priority 2 - 3 days)
+<!-- chat-id: c6488dae-8a9b-4adf-80ef-1de935009e93 -->
 
 #### [ ] Task 2.1: Add Mount Models
 - Add `MountSpec` struct to `Sources/Shared/Models/Container.swift`
@@ -158,6 +159,7 @@ ls -la ~/FlyingDutchman/images/
 ---
 
 ### [ ] Phase 3: Integration Tests (Priority 3 - 2 days)
+<!-- chat-id: eaf8b997-8807-4101-853e-21c7f65d4e1b -->
 
 #### [ ] Task 3.1: Engine Lifecycle Tests
 - Create `Tests/IntegrationTests/EngineLifecycleTests.swift`

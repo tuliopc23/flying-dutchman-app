@@ -181,12 +181,16 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         // Check if image exists locally, pull if needed
         _ = try await ensureImage(imageRef)
         
+        // Validate and prepare mounts
+        let mounts = try await prepareMounts(from: config)
+        
         // Create container record (but don't start VM yet)
         let container = ContainerSummary(
             name: name,
             image: image,
             status: .created,
-            ports: config.ports ?? []
+            ports: config.ports ?? [],
+            mounts: mounts
         )
         
         // Persist to GRDB
@@ -204,8 +208,59 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         // Store container config for later use (when starting)
         try await storeContainerConfig(containerID: container.id, config: config)
         
-        logger.info("Container \(container.id) created successfully")
+        logger.info("Container \(container.id) created successfully with \(mounts.count) mount(s)")
         return container
+    }
+    
+    private func prepareMounts(from config: ContainerConfig) async throws -> [MountSpec] {
+        guard let volumes = config.volumes else { return [] }
+        
+        var mounts: [MountSpec] = []
+        
+        for volumeSpec in volumes {
+            let parts = volumeSpec.split(separator: ":", maxSplits: 3).map { String($0) }
+            
+            guard parts.count >= 2 else {
+                throw ContainerError.configurationInvalid("Invalid mount spec: \(volumeSpec). Expected format: 'source:destination[:mode]'")
+            }
+            
+            let source = parts[0]
+            let destination = parts[1]
+            let readOnly = parts.count >= 3 && parts[2].contains("ro")
+            
+            let isNamedVolume = !source.contains("/")
+            
+            if isNamedVolume {
+                mounts.append(MountSpec(
+                    source: source,
+                    destination: destination,
+                    type: .volume,
+                    readOnly: readOnly
+                ))
+            } else {
+                let expandedPath = NSString(string: source).expandingTildeInPath
+                
+                guard FileManager.default.fileExists(atPath: expandedPath) else {
+                    throw ContainerError.configurationInvalid("Bind mount path not found: \(source)")
+                }
+                
+                var isDirectory: ObjCBool = false
+                FileManager.default.fileExists(atPath: expandedPath, isDirectory: &isDirectory)
+                
+                guard isDirectory.boolValue || readOnly else {
+                    throw ContainerError.configurationInvalid("Bind mount must be a directory or read-only: \(source)")
+                }
+                
+                mounts.append(MountSpec(
+                    source: expandedPath,
+                    destination: destination,
+                    type: .bind,
+                    readOnly: readOnly
+                ))
+            }
+        }
+        
+        return mounts
     }
     
     public func startContainer(id: UUID) async throws -> ContainerSummary {

@@ -1,11 +1,37 @@
 import Foundation
 
+public enum MountType: String, Codable, Sendable {
+    case bind
+    case volume
+    case tmpfs
+}
+
+public struct MountSpec: Codable, Hashable, Sendable {
+    public let source: String
+    public let destination: String
+    public let type: MountType
+    public let readOnly: Bool
+    
+    public init(
+        source: String,
+        destination: String,
+        type: MountType,
+        readOnly: Bool = false
+    ) {
+        self.source = source
+        self.destination = destination
+        self.type = type
+        self.readOnly = readOnly
+    }
+}
+
 public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var image: String
     public var status: Status
     public var ports: [String]
+    public var mounts: [MountSpec]
     public var createdAt: Date
 
     public enum Status: String, Codable, Sendable {
@@ -40,6 +66,7 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
         image: String,
         status: Status,
         ports: [String],
+        mounts: [MountSpec] = [],
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -47,6 +74,7 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
         self.image = image
         self.status = status
         self.ports = ports
+        self.mounts = mounts
         self.createdAt = createdAt
     }
 }

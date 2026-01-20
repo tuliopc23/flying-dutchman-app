@@ -9,13 +9,22 @@ public actor ImageFilesystemManager {
 
     /// Base directory for images
     private let imagesBaseDir: FilePath
+    
+    /// Base directory for containers
+    private let containersBaseDir: FilePath
 
     public init() {
         self.imagesBaseDir = Self.imagesDirectory()
+        self.containersBaseDir = Self.containersDirectory()
 
-        // Create base directory if it doesn't exist
+        // Create base directories if they don't exist
         try? FileManager.default.createDirectory(
             atPath: imagesBaseDir.string,
+            withIntermediateDirectories: true
+        )
+        
+        try? FileManager.default.createDirectory(
+            atPath: containersBaseDir.string,
             withIntermediateDirectories: true
         )
     }
@@ -181,6 +190,67 @@ public actor ImageFilesystemManager {
 
         return FilePath(imagesDir.path)
     }
+    
+    private static func containersDirectory() -> FilePath {
+        let homeDir = FileManager.default.homeDirectoryForCurrentUser
+        let containersDir = homeDir
+            .appendingPathComponent("FlyingDutchman")
+            .appendingPathComponent("containers")
+
+        return FilePath(containersDir.path)
+    }
+    
+    public func exposeContainer(id: UUID, name: String) throws -> FilePath {
+        let containerDir = containersBaseDir.appending(name)
+        
+        logger.info("Exposing container \(name) (\(id)) at \(containerDir.string)")
+        
+        if FileManager.default.fileExists(atPath: containerDir.string) {
+            logger.debug("Container directory already exists: \(containerDir.string)")
+            return containerDir
+        }
+        
+        try FileManager.default.createDirectory(atPath: containerDir.string, withIntermediateDirectories: true)
+        
+        let metadataDir = containerDir.appending("metadata")
+        try FileManager.default.createDirectory(atPath: metadataDir.string, withIntermediateDirectories: true)
+        
+        let containerMetadata = ContainerFilesystemMetadata(
+            id: id,
+            name: name,
+            exposedAt: Date()
+        )
+        try writeContainerMetadata(containerMetadata, to: containerDir)
+        
+        logger.info("Container \(name) exposed successfully")
+        return containerDir
+    }
+    
+    public func removeExposedContainer(name: String) throws {
+        let containerDir = containersBaseDir.appending(name)
+        
+        guard FileManager.default.fileExists(atPath: containerDir.string) else {
+            throw FilesystemError.notFound("Container not exposed: \(name)")
+        }
+        
+        try FileManager.default.removeItem(atPath: containerDir.string)
+        logger.info("Removed exposed container: \(name)")
+    }
+    
+    private func writeContainerMetadata(_ metadata: ContainerFilesystemMetadata, to directory: FilePath) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(metadata)
+        
+        let metadataPath = directory.appending("metadata").appending("container.json")
+        try data.write(to: URL(fileURLWithPath: metadataPath.string))
+    }
+}
+
+private struct ContainerFilesystemMetadata: Codable {
+    let id: UUID
+    let name: String
+    let exposedAt: Date
 }
 
 // MARK: - Metadata Types

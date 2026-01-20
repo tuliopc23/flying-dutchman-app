@@ -115,6 +115,7 @@ private struct ContainerRecord: Codable, FetchableRecord, PersistableRecord {
     var image: String
     var status: String
     var ports: String
+    var mounts: String
     var createdAt: Date
     var updatedAt: Date
 
@@ -126,18 +127,21 @@ private struct ContainerRecord: Codable, FetchableRecord, PersistableRecord {
         image = summary.image
         status = summary.status.rawValue
         ports = (try? JSONEncoder().encode(summary.ports)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+        mounts = (try? JSONEncoder().encode(summary.mounts)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
         createdAt = summary.createdAt
         updatedAt = Date()
     }
 
     func toSummary() -> ContainerSummary {
         let portArray: [String] = (try? JSONDecoder().decode([String].self, from: Data(ports.utf8))) ?? []
+        let mountsArray: [MountSpec] = (try? JSONDecoder().decode([MountSpec].self, from: Data(mounts.utf8))) ?? []
         return ContainerSummary(
             id: UUID(uuidString: id) ?? UUID(),
             name: name,
             image: image,
             status: ContainerSummary.Status(rawValue: status) ?? .stopped,
             ports: portArray,
+            mounts: mountsArray,
             createdAt: createdAt
         )
     }
