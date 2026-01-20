@@ -29,29 +29,29 @@ final class ContainerDetailViewModel {
     }
     
     func start() async {
-        await performAction { [self] in
-            self.container = try await EngineClient.startContainer(container.id)
+        await performAction {
+            try await EngineClient.startContainer(id: container.id)
         }
     }
     
     func stop() async {
-        await performAction { [self] in
-            self.container = try await EngineClient.stopContainer(container.id)
+        await performAction {
+            try await EngineClient.stopContainer(id: container.id)
         }
     }
     
     func restart() async {
-        await performAction { [self] in
-            self.container = try await EngineClient.restartContainer(container.id)
+        await performAction {
+            try await EngineClient.restartContainer(id: container.id)
         }
     }
     
-    private func performAction(_ action: @Sendable () async throws -> Void) async {
+    private func performAction(_ action: @MainActor () async throws -> ContainerSummary) async {
         isPerformingAction = true
         error = nil
         defer { isPerformingAction = false }
         do {
-            try await action()
+            container = try await action()
         } catch {
             self.error = "Action failed: \(error.localizedDescription)"
         }
@@ -153,7 +153,7 @@ struct ContainerDetailView: View {
                 }
                 .buttonStyle(.bordered)
                 
-            case .stopped, .paused:
+            case .stopped, .created:
                 Button {
                     Task { await viewModel.start() }
                 } label: {
@@ -161,19 +161,15 @@ struct ContainerDetailView: View {
                         .frame(minWidth: 100)
                 }
                 .buttonStyle(.borderedProminent)
+                
+            case .starting, .stopping, .removing, .removed:
+                EmptyView()
             }
         }
     }
     
     private var statusText: String {
-        switch viewModel.container.status {
-        case .running:
-            return "Running"
-        case .stopped:
-            return "Stopped"
-        case .paused:
-            return "Paused"
-        }
+        viewModel.container.status.displayName
     }
     
     // MARK: - Metadata Card

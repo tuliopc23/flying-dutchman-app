@@ -181,7 +181,7 @@ struct MainWindow: View {
         case .logs:
             await logsViewModel.load(containers: containersViewModel.containers)
         case .events:
-            await eventsViewModel.load()
+            eventsViewModel.startStreaming()
         case .stacks:
             await stacksViewModel.load()
         }

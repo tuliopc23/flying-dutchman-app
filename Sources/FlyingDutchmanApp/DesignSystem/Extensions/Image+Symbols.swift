@@ -19,7 +19,7 @@ extension Image {
         size: CGFloat = DesignSystem.Size.iconRegular,
         weight: Font.Weight = .medium,
         renderingMode: SymbolRenderingMode = .monochrome
-    ) -> Image {
+    ) -> some View {
         Image(systemName: systemName)
             .symbolRenderingMode(renderingMode)
             .font(.system(size: size, weight: weight))
@@ -28,22 +28,22 @@ extension Image {
     // MARK: - Size Presets
     
     /// Small icon (12pt) - inline with text
-    public static func systemIconSmall(_ name: String, weight: Font.Weight = .medium) -> Image {
+    public static func systemIconSmall(_ name: String, weight: Font.Weight = .medium) -> some View {
         systemIcon(name, size: DesignSystem.Size.iconSmall, weight: weight)
     }
     
     /// Regular icon (16pt) - standard UI
-    public static func systemIconRegular(_ name: String, weight: Font.Weight = .medium) -> Image {
+    public static func systemIconRegular(_ name: String, weight: Font.Weight = .medium) -> some View {
         systemIcon(name, size: DesignSystem.Size.iconRegular, weight: weight)
     }
     
     /// Large icon (20pt) - emphasis
-    public static func systemIconLarge(_ name: String, weight: Font.Weight = .medium) -> Image {
+    public static func systemIconLarge(_ name: String, weight: Font.Weight = .medium) -> some View {
         systemIcon(name, size: DesignSystem.Size.iconLarge, weight: weight)
     }
     
     /// Extra large icon (24pt) - headers
-    public static func systemIconXLarge(_ name: String, weight: Font.Weight = .semibold) -> Image {
+    public static func systemIconXLarge(_ name: String, weight: Font.Weight = .semibold) -> some View {
         systemIcon(name, size: DesignSystem.Size.iconXLarge, weight: weight)
     }
     
@@ -52,7 +52,7 @@ extension Image {
     /// Toolbar icon with Tahoe monochrome rendering
     /// - Parameter name: SF Symbol name
     /// - Returns: Icon configured for toolbar use (16pt, medium weight, monochrome)
-    public static func toolbarIcon(_ name: String) -> Image {
+    public static func toolbarIcon(_ name: String) -> some View {
         systemIcon(name, size: DesignSystem.Size.iconRegular, weight: .medium, renderingMode: .monochrome)
     }
     
@@ -63,7 +63,7 @@ extension Image {
     ///   - name: SF Symbol name
     ///   - size: Icon size (default: regular)
     /// - Returns: Icon with multicolor rendering
-    public static func statusIcon(_ name: String, size: CGFloat = DesignSystem.Size.iconRegular) -> Image {
+    public static func statusIcon(_ name: String, size: CGFloat = DesignSystem.Size.iconRegular) -> some View {
         systemIcon(name, size: size, weight: .medium, renderingMode: .multicolor)
     }
     
@@ -74,47 +74,13 @@ extension Image {
     ///   - name: SF Symbol name
     ///   - size: Icon size (default: regular)
     /// - Returns: Icon with hierarchical rendering
-    public static func hierarchicalIcon(_ name: String, size: CGFloat = DesignSystem.Size.iconRegular) -> Image {
+    public static func hierarchicalIcon(_ name: String, size: CGFloat = DesignSystem.Size.iconRegular) -> some View {
         systemIcon(name, size: size, weight: .medium, renderingMode: .hierarchical)
     }
 }
 
 // MARK: - Common SF Symbols Reference
-
-extension Image {
-    // MARK: - Navigation Icons
-    public static let iconChevronLeft = Image.toolbarIcon("chevron.left")
-    public static let iconChevronRight = Image.toolbarIcon("chevron.right")
-    public static let iconChevronUp = Image.toolbarIcon("chevron.up")
-    public static let iconChevronDown = Image.toolbarIcon("chevron.down")
-    
-    // MARK: - Action Icons
-    public static let iconPlus = Image.toolbarIcon("plus")
-    public static let iconMinus = Image.toolbarIcon("minus")
-    public static let iconPlay = Image.toolbarIcon("play.fill")
-    public static let iconPause = Image.toolbarIcon("pause.fill")
-    public static let iconStop = Image.toolbarIcon("stop.fill")
-    public static let iconTrash = Image.toolbarIcon("trash")
-    public static let iconRefresh = Image.toolbarIcon("arrow.clockwise")
-    public static let iconSearch = Image.toolbarIcon("magnifyingglass")
-    public static let iconSettings = Image.toolbarIcon("gearshape")
-    
-    // MARK: - Container Status Icons (Multicolor)
-    public static let iconRunning = Image.statusIcon("checkmark.circle.fill")
-    public static let iconStopped = Image.statusIcon("circle.fill")
-    public static let iconError = Image.statusIcon("exclamationmark.triangle.fill")
-    public static let iconWarning = Image.statusIcon("exclamationmark.circle.fill")
-    
-    // MARK: - Document Icons
-    public static let iconFolder = Image.toolbarIcon("folder")
-    public static let iconDoc = Image.toolbarIcon("doc")
-    public static let iconCode = Image.toolbarIcon("chevron.left.forwardslash.chevron.right")
-    
-    // MARK: - Window Icons
-    public static let iconSidebar = Image.toolbarIcon("sidebar.left")
-    public static let iconFullscreen = Image.toolbarIcon("arrow.up.left.and.arrow.down.right")
-    public static let iconClose = Image.toolbarIcon("xmark")
-}
+// Note: These are view-returning properties, use them in view contexts
 
 // MARK: - SF Symbols 7 Effects (Tahoe)
 

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum AppSection: String, CaseIterable, Identifiable {
     case containers
