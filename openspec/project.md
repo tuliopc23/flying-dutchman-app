@@ -8,7 +8,7 @@ Flying Dutchman is a macOS-native app for containerization, virtualization, and 
 - Xcode 26.2
 - macOS 26+ (Tahoe)
 - SwiftUI UI layer
-- SwiftData persistence target (goal; currently using GRDB in codebase)
+- GRDB + SQLiteData persistence (Point-Free, built on GRDB)
 - Tuist for project generation (source of truth)
 - Multi-target architecture (App + Engine + CLI + Framework modules)
 

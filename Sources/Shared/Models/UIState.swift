@@ -1,8 +1,9 @@
 import Foundation
-import SwiftData
+import SQLiteData
 
-@Model
-public final class UIState {
+@Table
+public struct UIState: Codable, Identifiable, Hashable, Sendable {
+    public let id: UUID
     public var selectedSection: String
     public var appearanceOverride: String?
     public var engineHost: String
@@ -14,6 +15,7 @@ public final class UIState {
     public var lastUpdated: Date
 
     public init(
+        id: UUID = UUID(),
         selectedSection: String = "containers",
         appearanceOverride: String? = nil,
         engineHost: String = AppConfig.Engine.host,
@@ -24,6 +26,7 @@ public final class UIState {
         eventsLimit: Int = 50,
         lastUpdated: Date = .init()
     ) {
+        self.id = id
         self.selectedSection = selectedSection
         self.appearanceOverride = appearanceOverride
         self.engineHost = engineHost

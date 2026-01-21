@@ -16,6 +16,8 @@ struct ContainersRoutes: @unchecked Sendable {
             struct CreateRequest: Decodable {
                 let name: String
                 let image: String
+                let config: ContainerConfig?
+                // Legacy fields for backward compatibility
                 let ports: [String]?
                 let env: [String: String]?
                 let volumes: [String]?

@@ -6,11 +6,12 @@ import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
 import SwiftUI
 import FlyingDutchmanPersistence
+import SQLiteData
 
 @MainActor
 @Observable
 final class ContainerListViewModel {
-    var containers: [ContainerSummary] = []
+    @FetchAll var containers: [ContainerSummary]
     var error: String?
     var isLoading: Bool = false
     var searchQuery: String = ""
@@ -31,15 +32,11 @@ final class ContainerListViewModel {
     }
 
     func load() async {
-        isLoading = true
-        error = nil
-        do {
-            containers = try await EngineClient.listContainers()
-        } catch {
-            containers = SeedData.sampleContainers
-            self.error = "Showing mock data. Engine unreachable: \(error.localizedDescription)"
-        }
-        isLoading = false
+        // No manual load needed - @FetchAll auto-updates!
+        // isLoading = true
+        // defer { isLoading = false }
+        // We might trigger a refresh from the engine if needed
+        // but local DB is source of truth for UI
     }
 
     func start(_ container: ContainerSummary) async {
@@ -61,10 +58,9 @@ final class ContainerListViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            let updated = try await action(container.id)
-            if let idx = containers.firstIndex(where: { $0.id == updated.id }) {
-                containers[idx] = updated
-            }
+            _ = try await action(container.id)
+            // No need to manually update local array
+            // Engine updates DB -> SQLiteData sees change -> @FetchAll updates -> UI refreshes
         } catch {
             self.error = "Action failed: \(error.localizedDescription)"
         }
@@ -72,92 +68,92 @@ final class ContainerListViewModel {
 }
 
 struct ContainerListView: View {
-    @Bindable var viewModel: ContainerListViewModel
+    var viewModel: ContainerListViewModel
     var stack: StackSummary?
     @State private var selectedContainer: ContainerSummary?
 
     var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                SectionHeader(
-                    title: "Containers", 
-                    subtitle: "Manage running and stopped containers", 
-                    icon: "shippingbox.circle"
-                ) {
-                    if viewModel.isLoading {
-                        ProgressView().controlSize(.small)
-                    }
-                    Button {
-                        Task { @MainActor in await viewModel.load() }
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
+        VStack(spacing: DesignSystem.Spacing.lg) {
+            // Header with Refresh Action
+            HStack {
+                Text("Containers")
+                    .font(DesignSystem.Typography.title2)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Spacer()
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
                 }
-
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    TextField("Search containers or images", text: $viewModel.searchQuery)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    Toggle("Running only", isOn: $viewModel.showRunningOnly)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .help("Show only running containers")
+                
+                Button {
+                    Task { @MainActor in await viewModel.load() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .buttonStyle(.glass)
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
 
-                if let error = viewModel.error {
-                    Text(error)
-                        .font(DesignSystem.Typography.footnote)
-                        .foregroundStyle(DesignSystem.Colors.warning)
+            // Search & Filter
+            HStack(spacing: DesignSystem.Spacing.md) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(DesignSystem.Colors.textTertiary)
+                    TextField("Search containers...", text: Bindable(viewModel).searchQuery)
+                        .textFieldStyle(.plain)
                 }
+                .padding(DesignSystem.Inset.sm)
+                .background(DesignTokens.glassFieldBackground(for: .light)) // Adaptive
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                
+                Toggle("Running only", isOn: Bindable(viewModel).showRunningOnly)
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
 
-                if viewModel.filtered.isEmpty {
-                    EmptyStateCard(
-                        title: "No containers",
-                        message: "Start the engine or create a container to see it here.",
-                        systemImage: "shippingbox"
-                    )
-                } else {
-                    VStack(spacing: DesignSystem.Spacing.sm) {
+            if let error = viewModel.error {
+                DiagnosticsBanner(
+                    title: "Error", 
+                    message: error, 
+                    icon: "exclamationmark.triangle", 
+                    tone: .warning
+                )
+                .padding(.horizontal, DesignSystem.Spacing.md)
+            }
+
+            if viewModel.filtered.isEmpty {
+                EmptyStateCard(
+                    title: "No containers found",
+                    message: viewModel.searchQuery.isEmpty 
+                        ? "Start the engine or create a container." 
+                        : "Try adjusting your search filters.",
+                    systemImage: "shippingbox"
+                )
+                .padding(DesignSystem.Spacing.md)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(filteredForStack) { container in
                             NavigationLink(value: container) {
-                                HStack(spacing: DesignSystem.Spacing.md) {
-                                    Image.systemIcon(
-                                        containerStatusSymbol(for: container.status),
-                                        size: DesignSystem.Size.iconRegular
-                                    )
-                                    .foregroundStyle(containerStatusColor(for: container.status))
-                                    .symbolEffect(.variableColor.iterative, isActive: container.status == .running)
-                                    
-                                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
-                                        Text(container.name)
-                                            .font(DesignSystem.Typography.body)
-                                            .foregroundStyle(DesignSystem.Colors.textPrimary)
-                                        
-                                        Text(container.image)
-                                            .font(DesignSystem.Typography.caption1)
-                                            .foregroundStyle(DesignSystem.Colors.textSecondary)
-                                        
-                                        Text(container.ports.isEmpty ? "No exposed ports" : container.ports.joined(separator: ", "))
-                                            .font(DesignSystem.Typography.caption2)
-                                            .foregroundStyle(DesignSystem.Colors.textTertiary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    actionButtons(for: container)
-                                }
-                                .padding(DesignSystem.Inset.sm)
-                                .background(DesignSystem.Colors.surfaceSecondary)
-                                .cornerRadius(DesignSystem.CornerRadius.regular)
+                                ContainerRow(container: container, viewModel: viewModel)
                             }
                             .buttonStyle(.plain)
                         }
                     }
-                    .navigationDestination(for: ContainerSummary.self) { container in
-                        ContainerDetailView(viewModel: ContainerDetailViewModel(container: container))
-                    }
+                    .padding(DesignSystem.Spacing.md)
                 }
             }
+        }
+        .onAppear {
+            if viewModel.containers.isEmpty {
+                Task { await viewModel.load() }
+            }
+        }
+        .navigationDestination(for: ContainerSummary.self) { container in
+            ContainerDetailView(viewModel: ContainerDetailViewModel(container: container))
         }
     }
 
@@ -167,7 +163,53 @@ struct ContainerListView: View {
         let allowed = Set(stack.containerNames)
         return base.filter { allowed.contains($0.name) }
     }
+}
 
+struct ContainerRow: View {
+    let container: ContainerSummary
+    var viewModel: ContainerListViewModel
+    
+    var body: some View {
+        GlassCard {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                // Status Icon
+                Image.systemIcon(
+                    containerStatusSymbol(for: container.status),
+                    size: DesignSystem.Size.iconLarge
+                )
+                .foregroundStyle(containerStatusColor(for: container.status))
+                .symbolEffect(.variableColor.iterative, isActive: container.status == .running)
+                
+                // Info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(container.name)
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                    
+                    Text(container.image)
+                        .font(DesignSystem.Typography.caption1)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                }
+                
+                Spacer()
+                
+                // Ports Badge
+                if !container.ports.isEmpty {
+                    Text(container.ports.first ?? "")
+                        .font(DesignSystem.Typography.codeSmall)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(DesignSystem.Colors.surfaceTertiary)
+                        .cornerRadius(4)
+                }
+                
+                // Actions (Hover-only in a real app, always visible for touch/accessibility)
+                actionButtons(for: container)
+            }
+            .padding(DesignSystem.Inset.sm)
+        }
+    }
+    
     @ViewBuilder
     private func actionButtons(for container: ContainerSummary) -> some View {
         HStack(spacing: DesignSystem.Spacing.xs) {
@@ -177,24 +219,30 @@ struct ContainerListView: View {
                     Task { @MainActor in await viewModel.stop(container) }
                 } label: {
                     Label("Stop", systemImage: "stop.fill")
+                        .labelStyle(.iconOnly)
                 }
                 .buttonStyle(.glass)
+                .help("Stop Container")
                 
                 Button {
                     Task { @MainActor in await viewModel.restart(container) }
                 } label: {
                     Label("Restart", systemImage: "arrow.triangle.2.circlepath")
+                        .labelStyle(.iconOnly)
                 }
                 .buttonStyle(.glass)
+                .help("Restart Container")
                 
             case .stopped, .created, .removed:
                 Button {
                     Task { @MainActor in await viewModel.start(container) }
                 } label: {
                     Label("Start", systemImage: "play.fill")
+                        .labelStyle(.iconOnly)
                 }
                 .buttonStyle(.glassProminent)
                 .tint(DesignSystem.Colors.success)
+                .help("Start Container")
             
             case .starting, .stopping, .removing:
                 ProgressView()
@@ -202,8 +250,6 @@ struct ContainerListView: View {
             }
         }
     }
-    
-    // MARK: - Status Helpers (migrated from legacy DesignTokens)
     
     private func containerStatusSymbol(for status: ContainerSummary.Status) -> String {
         switch status {

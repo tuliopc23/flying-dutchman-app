@@ -77,8 +77,8 @@ Flying Dutchman follows a **three-layer architecture** with strict separation of
 ### 1. UX Layer (`FlyingDutchmanApp`)
 - SwiftUI-based macOS application
 - Implements Liquid Glass design system (Netherlands Orange #FF6200, Royal Blue #21468B)
-- Communicates with Local Engine via XPC (low-latency) or HTTP/gRPC (external tools)
-- Uses SwiftData for UI state persistence
+- Communicates with Local Engine via XPC (low-latency) or HTTP (external tools)
+- Uses SwiftData for lightweight UI preferences and SQLiteData (GRDB-backed) for live engine data
 - Command palette (⌘K) as primary power-user interface
 - Sidebar navigation for projects, containers, images, volumes, networks
 
@@ -119,6 +119,7 @@ FlyingDutchmanEngine → FlyingDutchmanNetworking
 
 FlyingDutchmanCLI → FlyingDutchmanNetworking
                   → FlyingDutchmanContainers
+                  → FlyingDutchmanPersistence
 ```
 
 ## Key Patterns
@@ -132,13 +133,14 @@ Use environment variable `FD_RUNTIME` to select container runtime:
 ### Communication Protocols
 - **XPC**: Used for app ↔ engine communication (low-latency, privileged)
   - `EngineXPCProtocol`, `EngineXPCClient`, `EngineXPCService`, `EngineXPCListener`
-- **HTTP/gRPC**: Engine exposes Docker-compatible API via Hummingbird
-  - Routes: `ContainersRoutes`, `ImagesRoutes`, `VolumesRoutes`, `NetworksRoutes`, `StacksRoutes`
+- **HTTP**: Engine exposes Docker-compatible API via Hummingbird
+  - Routes: `ContainersRoutes`, `ImagesRoutes`, `VolumesRoutes`, `NetworksRoutes`, `StacksRoutes`, `AuthRoutes`
 
 ### Persistence
 - **GRDB (SQLite)**: Engine metadata, container state, logs
   - Repositories: `ContainerStore`, `ImageStore`, `VolumeStore`, `NetworkStore`, `StackStore`, `ShimEventStore`, `ContainerLogStore`
-- **SwiftData**: UI-specific state (selected section, appearance preferences)
+- **SQLiteData**: UI reactive data access (Point-Free, GRDB-backed)
+- **SwiftData**: UI-specific preferences (selected section, appearance preferences)
 
 ### Design System
 - Tokens defined in `Sources/FlyingDutchmanApp/DesignSystem/Tokens/`

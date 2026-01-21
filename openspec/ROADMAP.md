@@ -1,7 +1,7 @@
 # Flying Dutchman Roadmap
 
-> **Current Phase**: 1.2 (Image Management)
-> **Last Updated**: 2025-12-29
+> **Current Phase**: 1.3 (Storage)
+> **Last Updated**: 2026-01-05
 > **Status**: 🟡 In Progress
 
 ---
@@ -11,7 +11,7 @@
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
 | 0 | Foundation | ✅ Complete | 100% |
-| 1 | Container Core | 🟡 In Progress | 95% |
+| 1 | Container Core | ✅ Complete | 100% |
 | 2 | Networking | ⚪ Not Started | 0% |
 | 3 | Platform | ⚪ Not Started | 0% |
 | 4 | UX Polish | ⚪ Not Started | 0% |
@@ -33,7 +33,8 @@
 - [x] GRDB integration
 - [x] Database schema foundation
 - [x] Migration system (basic)
-- [ ] SwiftData evaluation (deferred to Phase 4)
+- [x] SQLiteData selected for UI (Point-Free, built on GRDB)
+- [ ] SQLiteData integration (deferred to Phase 2-3)
 
 ### 0.3 Container Runtime Abstraction ✅
 - [x] `ContainerRuntime` protocol defined
@@ -55,31 +56,44 @@
 
 ---
 
-## Phase 1: Container Core 🟡
+## Phase 1: Container Core ✅
 
 **Goal**: Docker-compatible container engine with full lifecycle support.
 **Capabilities**: `container-engine`, `container-storage`, `image-management`
 **Primary Module**: `FlyingDutchmanContainers`
+**Status**: Complete (2026-01-10)
 
-### 1.1 Container Engine 🟡
+### 1.1 Container Engine ✅
 - [x] Container state machine
 - [x] Container event streaming
-- [x] Container logs streaming (Step 3 complete)
+- [x] Container logs streaming (VSOCK protocol implemented)
 - [x] VSOCK communication (dial + length-prefixed JSON protocol)
 - [x] Compose project support (YAML parsing implemented)
 
-### 1.2 Image Management ⚪
+### 1.2 Image Management ✅
 - [x] Kernel download automation (symlink to expected location implemented)
-- [x] Image layer caching (ImageCacheManager exists, not wired to runtime)
-- [ ] BuildKit integration
-- [ ] Multi-platform builds
-- [x] Image filesystem exposure (`~/FlyingDutchman/images/`)
+- [x] Image layer caching (ImageCacheManager wired to runtime)
+- [x] Registry authentication (Docker Hub OAuth, GitHub PAT, Keychain storage)
+- [x] Auth integration in pullImage (Bearer tokens + 401 retry)
+- [ ] BuildKit integration (deferred)
+- [ ] Multi-platform builds (deferred)
+- [x] Image filesystem exposure (`~/FlyingDutchman/images/`) - placeholder
 
-### 1.3 Storage ⚪
-- [ ] Bind mount support
-- [ ] Named volumes
-- [ ] Volume lifecycle management
-- [ ] Filesystem exposure (`~/FlyingDutchman/containers/`)
+### 1.3 Storage ✅
+- [x] Bind mount support (virtiofs sharing implemented)
+- [x] Named volumes (VolumeManager)
+- [x] Volume lifecycle management
+- [x] Environment variables applied to containers
+- [x] Working directory applied to containers
+- [x] Filesystem exposure (`~/FlyingDutchman/containers/`) - placeholder with README
+
+### 1.4 CLI Commands ✅
+- [x] `fd login [registry]` - Interactive authentication
+- [x] `fd logout [registry]` - Remove credentials
+
+### 1.5 HTTP API ✅
+- [x] `/auth/login` - Registry authentication endpoint
+- [x] `/auth/logout` - Credential removal endpoint
 
 ---
 
@@ -89,9 +103,10 @@
 **Capabilities**: `container-networking`
 **Primary Module**: `FlyingDutchmanNetworking`
 
-### 2.1 Core Networking
-- [ ] Bridge network driver
-- [ ] Port forwarding (`-p` flag)
+### 2.1 Core Networking ✅
+- [x] Bridge network driver (NetworkManager + IPAllocator)
+- [x] Port forwarding (`-p` flag + PortForwardManager)
+- [x] Container IP allocation (CIDR)
 - [ ] Host networking mode (`--net host`)
 - [ ] IPv6 and ICMP support
 

@@ -33,14 +33,16 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-navigation.git", from: "2.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0"),
         .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
-        .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0")
+        .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/sqlite-data.git", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "Shared",
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "SQLiteData", package: "sqlite-data")
             ],
             path: "Sources/Shared"
         ),
@@ -130,7 +132,8 @@ let package = Package(
                 "FlyingDutchmanPersistence",
                 .product(name: "SwiftNavigation", package: "swift-navigation"),
                 .product(name: "SwiftUINavigation", package: "swift-navigation"),
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "SQLiteData", package: "sqlite-data")
             ],
             path: "Sources/FlyingDutchmanApp"
         ),

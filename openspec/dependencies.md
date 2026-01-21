@@ -31,11 +31,12 @@
 
 | Package | Version | Purpose | Module | Status |
 |---------|---------|---------|--------|--------|
-| [groue/GRDB.swift](https://github.com/groue/GRDB.swift) | 7.8.0+ | SQLite database | FlyingDutchmanPersistence | ✅ |
+| [groue/GRDB.swift](https://github.com/groue/GRDB.swift) | 7.8.0+ | SQLite database foundation | FlyingDutchmanPersistence | ✅ |
+| [pointfreeco/sqlite-data](https://github.com/pointfreeco/sqlite-data) | 1.0.0+ | Reactive SQLite queries for UI | FlyingDutchmanApp | ✅ Selected |
 
-**Rationale**: GRDB provides excellent Swift concurrency support, migration tools, and is battle-tested. SwiftData considered but deferred due to maturity concerns for server-like workloads.
+**Rationale**: GRDB provides excellent Swift concurrency support, migration tools, and is battle-tested. SQLiteData (built on GRDB) adds reactive property wrappers (@FetchAll, @FetchOne) for UI, with 6x faster decoding than GRDB's Codable and CloudKit sync support.
 
-**Future**: Evaluate SwiftData adoption in Phase 4 after iOS 26/macOS 26 stabilizes.
+**SwiftData**: ❌ **Explicitly rejected** - immature (iOS 17+), poor performance, reference-type requirements, limited query capabilities. Use SQLiteData instead.
 
 ### Networking
 

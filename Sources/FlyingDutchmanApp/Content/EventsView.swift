@@ -44,7 +44,83 @@ final class EventsViewModel {
 
 struct EventsView: View {
     @Bindable var viewModel: EventsViewModel
-    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Events")
+                    .font(DesignSystem.Typography.title2)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Spacer()
+                
+                if viewModel.isStreaming {
+                    ProgressView().controlSize(.small)
+                }
+                
+                Button {
+                    viewModel.startStreaming()
+                } label: {
+                    Label("Stream", systemImage: "dot.radiowaves.left.and.right")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.glass)
+                .disabled(viewModel.isStreaming)
+                
+                Button {
+                    viewModel.startStreaming(reset: true)
+                } label: {
+                    Label("Reset", systemImage: "arrow.clockwise")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.glass)
+            }
+            .padding(DesignSystem.Spacing.md)
+            .background(.thinMaterial)
+            
+            Divider()
+
+            // Content
+            ScrollView {
+                LazyVStack(spacing: 2) {
+                    if let error = viewModel.error {
+                        DiagnosticsBanner(
+                            title: "Stream Error",
+                            message: error,
+                            icon: "exclamationmark.triangle",
+                            tone: .warning
+                        )
+                        .padding()
+                    } else if viewModel.events.isEmpty {
+                        EmptyStateCard(
+                            title: "No events",
+                            message: "Start streaming to see live engine activity.",
+                            systemImage: "waveform.path"
+                        )
+                        .padding(DesignSystem.Spacing.xl)
+                    } else {
+                        ForEach(viewModel.events, id: \.id) { event in
+                            EventRow(event: event)
+                        }
+                    }
+                }
+                .padding(.vertical, DesignSystem.Spacing.sm)
+            }
+            .background(DesignTokens.glassFieldBackground(for: .light))
+        }
+        .background(.background)
+        .cornerRadius(12)
+        .padding(DesignSystem.Spacing.md)
+        .glassSurface(in: .rect(cornerRadius: 16))
+        .onDisappear {
+            viewModel.stopStreaming()
+        }
+    }
+}
+
+struct EventRow: View {
+    let event: RuntimeEvent
     
     private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -52,106 +128,80 @@ struct EventsView: View {
         formatter.timeStyle = .medium
         return formatter
     }()
-
+    
     var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: "Events", subtitle: "Recent engine activity", icon: "waveform.path") {
-                    if viewModel.isStreaming {
-                        ProgressView().controlSize(.small)
-                    }
-                    Button {
-                        viewModel.startStreaming()
-                    } label: {
-                        Label("Stream", systemImage: "dot.radiowaves.left.and.right")
-                    }
-                    Button {
-                        viewModel.startStreaming(reset: true)
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                }
-
-                if let error = viewModel.error {
-                    Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
-
-                if viewModel.events.isEmpty {
-                    Text("No events available.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(viewModel.events, id: \.id) { event in
-                            HStack {
-                                Image(systemName: icon(for: event))
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(title(for: event))
-                                    Text(detail(for: event))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(Self.timestampFormatter.string(from: event.timestamp))
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                Button {
-                                    #if canImport(AppKit)
-                                    let line = "\(title(for: event)) · \(detail(for: event)) · \(event.containerId)"
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(line, forType: .string)
-                                    #endif
-                                } label: {
-                                    Image(systemName: "doc.on.doc")
-                                }
-                                .buttonStyle(.borderless)
-                                .help("Copy event")
-                            }
-                            .padding(8)
-                            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                            .clipShape(DesignTokens.glassShape)
-                        }
-                    }
-                }
+        HStack(alignment: .firstTextBaseline, spacing: DesignSystem.Spacing.md) {
+            Image(systemName: icon(for: event))
+                .foregroundStyle(color(for: event))
+                .frame(width: 20)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title(for: event))
+                    .font(DesignSystem.Typography.subheadline)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Text(detail(for: event))
+                    .font(DesignSystem.Typography.caption2)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
             }
-            .onDisappear {
-                viewModel.stopStreaming()
+            
+            Spacer()
+            
+            Text(Self.timestampFormatter.string(from: event.timestamp))
+                .font(DesignSystem.Typography.caption2)
+                .foregroundStyle(DesignSystem.Colors.textTertiary)
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.clear)
+        .contextMenu {
+            Button("Copy Details") {
+                #if canImport(AppKit)
+                let line = "\(title(for: event)) · \(detail(for: event))"
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(line, forType: .string)
+                #endif
             }
         }
     }
     
     private func icon(for event: RuntimeEvent) -> String {
         switch event.type {
-        case .stateChanged:
-            return "arrow.triangle.2.circlepath"
-        case .logOutput:
-            return "text.alignleft"
-        case .resourceUpdate:
-            return "speedometer"
+        case .stateChanged: return "arrow.triangle.2.circlepath"
+        case .logOutput: return "text.alignleft"
+        case .resourceUpdate: return "speedometer"
+        }
+    }
+    
+    private func color(for event: RuntimeEvent) -> Color {
+        switch event.type {
+        case .stateChanged: return DesignSystem.Colors.accent
+        case .logOutput: return DesignSystem.Colors.textSecondary
+        case .resourceUpdate: return DesignSystem.Colors.success
         }
     }
     
     private func title(for event: RuntimeEvent) -> String {
         switch event.type {
         case .stateChanged(let from, let to):
-            return "State: \(from.displayName) → \(to.displayName)"
+            return "\(from.displayName) → \(to.displayName)"
         case .logOutput:
-            return "Log output"
+            return "Log Output"
         case .resourceUpdate:
-            return "Resource update"
+            return "Resource Update"
         }
     }
     
     private func detail(for event: RuntimeEvent) -> String {
         switch event.type {
         case .stateChanged:
-            return "Container \(event.containerId)"
+            return "Container \(event.containerId.uuidString.prefix(8))"
         case .logOutput(let message):
             return message
         case .resourceUpdate(let info):
             let memoryMB = Double(info.memoryBytes) / 1024 / 1024
-            return String(format: "CPU %.1f%% · Mem %.0f MB (%.1f%%)", info.cpuPercent, memoryMB, info.memoryPercent)
+            return String(format: "CPU %.1f%% · Mem %.0f MB", info.cpuPercent, memoryMB)
         }
     }
 }

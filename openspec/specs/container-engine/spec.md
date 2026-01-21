@@ -122,7 +122,7 @@ The system SHALL provide unified error handling with user-friendly messages and 
 **Phase**: 1.1
 
 **Key Types**:
-- `Container` - SwiftData model or Sendable struct
+- `Container` - @Table struct (SQLiteData) for UI, GRDB record for Engine
 - `ContainerState` - Enum (created, running, paused, stopped, removed)
 - `ContainerRuntime` - Protocol for runtime abstraction
 - `ContainerService` - Business logic layer
@@ -130,4 +130,5 @@ The system SHALL provide unified error handling with user-friendly messages and 
 **Dependencies**:
 - Apple Containerization framework
 - swift-nio for async streaming
-- GRDB for persistence (or SwiftData)
+- GRDB for Engine persistence
+- SQLiteData for UI (Point-Free, reactive queries)

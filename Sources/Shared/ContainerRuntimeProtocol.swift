@@ -3,7 +3,8 @@ import Shared
 
 /// Configuration for creating a container
 public struct ContainerConfig: Codable, Sendable {
-    public let ports: [String]?
+    public let ports: [String]? // Legacy: string format like "8080:80"
+    public let portMappings: [PortMapping]? // New: structured port mappings
     public let env: [String: String]?
     public let volumes: [String]?
     public let networkMode: String?
@@ -14,6 +15,7 @@ public struct ContainerConfig: Codable, Sendable {
     
     public init(
         ports: [String]? = nil,
+        portMappings: [PortMapping]? = nil,
         env: [String: String]? = nil,
         volumes: [String]? = nil,
         networkMode: String? = nil,
@@ -23,6 +25,7 @@ public struct ContainerConfig: Codable, Sendable {
         workingDir: String? = nil
     ) {
         self.ports = ports
+        self.portMappings = portMappings
         self.env = env
         self.volumes = volumes
         self.networkMode = networkMode
@@ -30,6 +33,26 @@ public struct ContainerConfig: Codable, Sendable {
         self.memoryLimit = memoryLimit
         self.command = command
         self.workingDir = workingDir
+    }
+    
+    /// Get all port mappings (parsed from legacy ports or direct portMappings)
+    public func getAllPortMappings() throws -> [PortMapping] {
+        var mappings: [PortMapping] = []
+        
+        // Add structured port mappings
+        if let portMappings = portMappings {
+            mappings.append(contentsOf: portMappings)
+        }
+        
+        // Parse legacy ports format
+        if let ports = ports {
+            for portSpec in ports {
+                let mapping = try PortMapping.parse(portSpec)
+                mappings.append(mapping)
+            }
+        }
+        
+        return mappings
     }
     
     public static let `default` = ContainerConfig()

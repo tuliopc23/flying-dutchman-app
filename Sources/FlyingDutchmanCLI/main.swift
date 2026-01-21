@@ -11,7 +11,18 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
         commandName: "flyingdutchman",
         abstract: "Flying Dutchman CLI (foundation stub)",
         version: AppConfig.version,
-        subcommands: [Version.self, Doctor.self, Containers.self, Images.self, Stacks.self, Volumes.self, Networks.self, Events.self]
+        subcommands: [
+            Version.self,
+            Doctor.self,
+            Containers.self,
+            Images.self,
+            Stacks.self,
+            Volumes.self,
+            Networks.self,
+            Events.self,
+            Login.self,
+            Logout.self
+        ]
     )
 }
 
@@ -76,7 +87,7 @@ struct Doctor: AsyncParsableCommand {
 struct Containers: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Container operations",
-        subcommands: [List.self, Start.self, Stop.self, Restart.self, Logs.self],
+        subcommands: [List.self, Run.self, Start.self, Stop.self, Restart.self, Logs.self],
         defaultSubcommand: List.self
     )
 }

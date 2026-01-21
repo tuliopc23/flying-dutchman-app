@@ -9,30 +9,29 @@ extension View {
     
     /// Apply Liquid Glass effect to this view
     /// Uses official `.glassEffect()` modifier from macOS Tahoe 26+
-    /// - Parameters:
-    ///   - shape: Shape to clip glass effect (default: rect with 12pt radius)
-    ///   - isEnabled: Enable/disable glass effect (useful for conditional glass)
-    /// - Returns: View with Liquid Glass material applied
     public func glassSurface(
         in shape: some Shape = RoundedRectangle(
-            cornerRadius: DesignSystem.CornerRadius.comfortable,
+            cornerRadius: 12,
             style: .continuous
         ),
         isEnabled: Bool = true
     ) -> some View {
         self
-            .background(.ultraThinMaterial)  // Fallback material
+            .background(.glass) // Native Tahoe semantic material
             .glassEffect(in: shape, isEnabled: isEnabled)
+            .visualEffect { content, _ in
+                content.shadow(.drop(color: .black.opacity(0.1), radius: 10, y: 5))
+            }
     }
     
     /// Apply Liquid Glass effect with card shape (12pt rounded rect)
     public func glassCard() -> some View {
-        self.glassSurface(in: DesignSystem.Shapes.card)
+        self.glassSurface(in: .rect(cornerRadius: 12))
     }
     
     /// Apply Liquid Glass effect with container shape (16pt rounded rect)
     public func glassContainer() -> some View {
-        self.glassSurface(in: DesignSystem.Shapes.container)
+        self.glassSurface(in: .rect(cornerRadius: 16))
     }
     
     // MARK: - Toolbar Glass Styling

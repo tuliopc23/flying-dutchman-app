@@ -1,12 +1,13 @@
 import Shared
-import SwiftData
+import SQLiteData
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var states: [UIState]
-
-    private var state: UIState? { states.first }
+    @FetchAll private var states: [UIState]
+    
+    private var state: UIState? {
+        states.first ?? UIState()
+    }
 
     var body: some View {
         Form {

@@ -6,25 +6,18 @@ import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
 import SwiftUI
 import FlyingDutchmanPersistence
+import SQLiteData
 
 @MainActor
 @Observable
 final class VolumeListViewModel {
-    var volumes: [VolumeSummary] = []
+    @FetchAll var volumes: [VolumeSummary]
     var error: String?
     var isLoading: Bool = false
     var searchQuery: String = ""
 
     func load() async {
-        isLoading = true
-        error = nil
-        do {
-            volumes = try await EngineClient.listVolumes()
-        } catch {
-            volumes = SeedData.sampleVolumes
-            self.error = "Showing mock volumes. Engine unreachable: \(error.localizedDescription)"
-        }
-        isLoading = false
+        // No manual load needed - @FetchAll auto-updates!
     }
 
     var filtered: [VolumeSummary] {
@@ -37,61 +30,109 @@ final class VolumeListViewModel {
 }
 
 struct VolumeListView: View {
-    @Bindable var viewModel: VolumeListViewModel
-    @Environment(\.colorScheme) private var colorScheme
+    var viewModel: VolumeListViewModel
 
     var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: "Volumes", subtitle: "Persistent storage", icon: "internaldrive") {
-                    if viewModel.isLoading {
-                        ProgressView().controlSize(.small)
-                    }
-                    Button {
-                        Task { @MainActor in await viewModel.load() }
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
+        VStack(spacing: DesignSystem.Spacing.lg) {
+            // Header
+            HStack {
+                Text("Volumes")
+                    .font(DesignSystem.Typography.title2)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Spacer()
+                
+                Button {
+                    Task { @MainActor in await viewModel.load() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .labelStyle(.iconOnly)
                 }
+                .buttonStyle(.glass)
+                .help("Refresh Volumes")
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
 
-                TextField("Search volumes", text: $viewModel.searchQuery)
-                    .textFieldStyle(.roundedBorder)
+            // Search
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(DesignSystem.Colors.textTertiary)
+                TextField("Search volumes...", text: Bindable(viewModel).searchQuery)
+                    .textFieldStyle(.plain)
+            }
+            .padding(DesignSystem.Inset.sm)
+            .background(DesignTokens.glassFieldBackground(for: .light))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, DesignSystem.Spacing.md)
 
-                if let error = viewModel.error {
-                    Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
+            if let error = viewModel.error {
+                DiagnosticsBanner(
+                    title: "Error", 
+                    message: error, 
+                    icon: "exclamationmark.triangle", 
+                    tone: .warning
+                )
+                .padding(.horizontal, DesignSystem.Spacing.md)
+            }
 
-                if viewModel.filtered.isEmpty {
-                    EmptyStateCard(
-                        title: "No volumes",
-                        message: "Create or attach a volume to see it here.",
-                        systemImage: "internaldrive"
-                    )
-                } else {
-                    VStack(spacing: 10) {
+            if viewModel.filtered.isEmpty {
+                EmptyStateCard(
+                    title: "No volumes found",
+                    message: viewModel.searchQuery.isEmpty 
+                        ? "Create a volume to persist data." 
+                        : "No volumes match your search.",
+                    systemImage: "internaldrive"
+                )
+                .padding(DesignSystem.Spacing.md)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.filtered) { volume in
-                            HStack(spacing: 10) {
-                                Image(systemName: "externaldrive")
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(volume.name)
-                                    Text(volume.mountPath)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(volume.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(10)
-                            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                            .clipShape(DesignTokens.glassShape)
+                            VolumeRow(volume: volume)
                         }
                     }
+                    .padding(DesignSystem.Spacing.md)
                 }
             }
+        }
+        .onAppear {
+            if viewModel.volumes.isEmpty {
+                Task { await viewModel.load() }
+            }
+        }
+    }
+}
+
+struct VolumeRow: View {
+    let volume: VolumeSummary
+    
+    var body: some View {
+        GlassCard {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image.systemIcon("internaldrive", size: DesignSystem.Size.iconLarge)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(volume.name)
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                    
+                    Text(volume.mountPath)
+                        .font(DesignSystem.Typography.caption2)
+                        .foregroundStyle(DesignSystem.Colors.textTertiary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                
+                Spacer()
+                
+                if let size = volume.sizeBytes {
+                    Text(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
+                        .font(DesignSystem.Typography.caption1)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                }
+            }
+            .padding(DesignSystem.Inset.sm)
         }
     }
 }

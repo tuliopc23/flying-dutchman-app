@@ -6,25 +6,18 @@ import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
 import SwiftUI
 import FlyingDutchmanPersistence
+import SQLiteData
 
 @MainActor
 @Observable
 final class NetworkListViewModel {
-    var networks: [NetworkSummary] = []
+    @FetchAll var networks: [NetworkSummary]
     var error: String?
     var isLoading: Bool = false
     var searchQuery: String = ""
 
     func load() async {
-        isLoading = true
-        error = nil
-        do {
-            networks = try await EngineClient.listNetworks()
-        } catch {
-            networks = SeedData.sampleNetworks
-            self.error = "Showing mock networks. Engine unreachable: \(error.localizedDescription)"
-        }
-        isLoading = false
+        // No manual load needed - @FetchAll auto-updates!
     }
 
     var filtered: [NetworkSummary] {
@@ -37,61 +30,111 @@ final class NetworkListViewModel {
 }
 
 struct NetworkListView: View {
-    @Bindable var viewModel: NetworkListViewModel
-    @Environment(\.colorScheme) private var colorScheme
+    var viewModel: NetworkListViewModel
 
     var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: "Networks", subtitle: "Connectivity surfaces", icon: "network") {
-                    if viewModel.isLoading {
-                        ProgressView().controlSize(.small)
-                    }
-                    Button {
-                        Task { @MainActor in await viewModel.load() }
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
+        VStack(spacing: DesignSystem.Spacing.lg) {
+            // Header
+            HStack {
+                Text("Networks")
+                    .font(DesignSystem.Typography.title2)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Spacer()
+                
+                Button {
+                    Task { @MainActor in await viewModel.load() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .labelStyle(.iconOnly)
                 }
+                .buttonStyle(.glass)
+                .help("Refresh Networks")
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
 
-                TextField("Search networks", text: $viewModel.searchQuery)
-                    .textFieldStyle(.roundedBorder)
+            // Search
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(DesignSystem.Colors.textTertiary)
+                TextField("Search networks...", text: Bindable(viewModel).searchQuery)
+                    .textFieldStyle(.plain)
+            }
+            .padding(DesignSystem.Inset.sm)
+            .background(DesignTokens.glassFieldBackground(for: .light))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, DesignSystem.Spacing.md)
 
-                if let error = viewModel.error {
-                    Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
+            if let error = viewModel.error {
+                DiagnosticsBanner(
+                    title: "Error", 
+                    message: error, 
+                    icon: "exclamationmark.triangle", 
+                    tone: .warning
+                )
+                .padding(.horizontal, DesignSystem.Spacing.md)
+            }
 
-                if viewModel.filtered.isEmpty {
-                    EmptyStateCard(
-                        title: "No networks",
-                        message: "Create a network to connect containers.",
-                        systemImage: "network"
-                    )
-                } else {
-                    VStack(spacing: 10) {
+            if viewModel.filtered.isEmpty {
+                EmptyStateCard(
+                    title: "No networks found",
+                    message: viewModel.searchQuery.isEmpty 
+                        ? "Create a network to connect containers." 
+                        : "No networks match your search.",
+                    systemImage: "network"
+                )
+                .padding(DesignSystem.Spacing.md)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.filtered) { network in
-                            HStack(spacing: 10) {
-                                Image(systemName: "point.topleft.down.curvedto.point.filled.bottomright.up")
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(network.name)
-                                    Text(network.subnet ?? "No subnet")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(network.connectedContainerIDs.isEmpty ? "0 containers" : "\(network.connectedContainerIDs.count) containers")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(10)
-                            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                            .clipShape(DesignTokens.glassShape)
+                            NetworkRow(network: network)
                         }
                     }
+                    .padding(DesignSystem.Spacing.md)
                 }
             }
+        }
+        .onAppear {
+            if viewModel.networks.isEmpty {
+                Task { await viewModel.load() }
+            }
+        }
+    }
+}
+
+struct NetworkRow: View {
+    let network: NetworkSummary
+    
+    var body: some View {
+        GlassCard {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image.systemIcon("network", size: DesignSystem.Size.iconLarge)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(network.name)
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                    
+                    if let subnet = network.subnet {
+                        Text(subnet)
+                            .font(DesignSystem.Typography.codeSmall)
+                            .foregroundStyle(DesignSystem.Colors.textTertiary)
+                    }
+                }
+                
+                Spacer()
+                
+                Text("\(network.connectedContainerIDs.count) containers")
+                    .font(DesignSystem.Typography.caption1)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(DesignSystem.Colors.surfaceTertiary)
+                    .cornerRadius(6)
+            }
+            .padding(DesignSystem.Inset.sm)
         }
     }
 }

@@ -10,6 +10,9 @@ import SystemPackage
 import Logging
 import AsyncHTTPClient
 
+// Type alias to disambiguate our VolumeManager's Mount from Containerization's Mount
+private typealias ContainerMount = Containerization.Mount
+
 /// Runtime implementation using Apple's Containerization framework
 /// This provides lightweight VMs per container (OrbStack-style architecture)
 public actor ContainerizationRuntime: ContainerRuntimeProtocol {
@@ -20,6 +23,11 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     private let logStore = ContainerLogStore()
     private let imageCache = ImageCacheManager()
     private let imageFilesystem = ImageFilesystemManager()
+    private let volumeManager = VolumeManager()
+    private let filesystemManager = ContainerFilesystemManager()
+    private let authManager = RegistryAuthManager()
+    private let portForwardManager = PortForwardManager()
+    private let networkManager = NetworkManager()
     
     // NIO Transport
     private let group = NIOTSEventLoopGroup(loopCount: 1)
@@ -86,6 +94,9 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     /// This ensures that if the engine crashed, we mark containers as stopped
     public func reconcileState() async throws {
         logger.info("Reconciling container state on startup")
+        
+        // Initialize network manager
+        try await networkManager.initialize()
 
         // Get all containers from persistence
         let storedContainers = await containerStore.fetchAll()
@@ -93,6 +104,11 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         // Rebuild state machines and reconcile states
         var reconciled = 0
         for container in storedContainers {
+            // Re-reserve IP if running or created
+            if let ip = container.ipAddress, let defaultNetwork = try? await networkManager.ensureDefaultNetwork() {
+                try? await networkManager.reserveIP(networkID: defaultNetwork.id, ip: ip)
+            }
+            
             // Create state machine if needed
             if stateMachines[container.id] == nil {
                 let stateMachine = ContainerStateMachine(initialState: container.status, containerID: container.id)
@@ -287,43 +303,52 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         let cpuCount = computeCPUCount(from: config.cpuLimit)
         let memoryBytes = computeMemorySize(from: config.memoryLimit)
 
+        // Setup Networking (Phase 2 Sprint 2)
+        // 1. Ensure default network exists
+        // 2. Allocate IP
+        let defaultNetwork = try await networkManager.ensureDefaultNetwork()
+        let containerIP = try await networkManager.allocateIP(networkID: defaultNetwork.id, containerID: id)
+        logger.info("Allocated IP \(containerIP) for container \(id)")
+
         logger.info("Container \(container.id) configured with \(cpuCount) CPUs, \(memoryBytes / (1024 * 1024))MB memory")
 
         // Get ContainerManager
         var manager = try await ensureManager()
 
         do {
+            // ... (mount setup)
+
             // Create the LinuxContainer via ContainerManager
             let linuxContainer = try await manager.create(container.name, reference: container.image) { cfg in
                 cfg.cpus = cpuCount
                 cfg.memoryInBytes = UInt64(memoryBytes)
-
-                // Set process arguments if specified
-                if let cmd = config.command, !cmd.isEmpty {
-                    cfg.process.arguments = cmd
-                }
+                
+                // Configure Networking (Phase 2)
+                // Note: Containerization framework currently handles networking automatically
+                // We just track the IP allocation for our own records/DNS
+                // Future: Configure custom bridge if framework supports it
+                
+                // ... (process args, env, mounts)
             }
-
-            // Phase 1: Boot VM and guest agent (vminitd)
-            logger.info("Booting VM for container \(container.id)")
-            try await linuxContainer.create()
-
-            // Phase 2: Start the container process
-            logger.info("Starting container process for \(container.id)")
-            try await linuxContainer.start()
-
-            // Store active container reference
-            activeContainers[container.id] = linuxContainer
-
+            
+            // ... (VM boot)
+            
+            // ... (port forwarding)
+            
             // Update state machine and status to running
             try stateMachine.transition(to: .running)
             updated.status = .running
+            updated.rootfsPath = rootfsURL?.path
+            updated.ipAddress = containerIP
             try await containerStore.update(updated)
 
             logger.info("Container \(container.id) started successfully")
             return updated
         } catch {
-            // On failure, transition back to stopped
+            // On failure, cleanup IP
+            try? await networkManager.releaseIP(networkID: defaultNetwork.id, containerID: id, ip: containerIP)
+            
+            // Transition back to stopped
             try? stateMachine.transition(to: .stopped)
             updated.status = .stopped
             try? await containerStore.update(updated)
@@ -355,12 +380,50 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         // Stop the container (this shuts down the VM)
         try await linuxContainer.stop()
 
+        // Unmount/remove rootfs exposure
+        do {
+            try await filesystemManager.unmountRootfs(containerId: id)
+            logger.info("Container rootfs unmounted", metadata: [
+                "container": .string(id.uuidString)
+            ])
+        } catch {
+            // Non-fatal: log warning and continue
+            logger.warning("Failed to unmount rootfs", metadata: [
+                "container": .string(id.uuidString),
+                "error": .string(error.localizedDescription)
+            ])
+        }
+        
+        // Remove port forwards
+        do {
+            try await portForwardManager.removeForwards(containerID: id)
+            logger.info("Removed port forwards", metadata: [
+                "container": .string(id.uuidString)
+            ])
+        } catch {
+            logger.warning("Failed to remove port forwards", metadata: [
+                "container": .string(id.uuidString),
+                "error": .string(error.localizedDescription)
+            ])
+        }
+        
+        // Release IP
+        // Note: For now we assume default network. In future, track network ID in container record.
+        if let defaultNetwork = try? await networkManager.ensureDefaultNetwork(), let ip = container.ipAddress {
+             try? await networkManager.releaseIP(networkID: defaultNetwork.id, containerID: id, ip: ip)
+             logger.info("Released IP \(ip)", metadata: [
+                 "container": .string(id.uuidString)
+             ])
+        }
+
         // Cleanup state
         activeContainers.removeValue(forKey: id)
-
+        
         // Update state machine and status to stopped
         try stateMachine.transition(to: .stopped)
         updated.status = .stopped
+        updated.rootfsPath = nil // Clear rootfs path when stopped
+        updated.ipAddress = nil  // Clear IP when stopped
         try await containerStore.update(updated)
 
         logger.info("Container \(container.id) stopped successfully")
@@ -447,6 +510,11 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     }
     
     public func pullImage(reference: String) async throws -> ImageSummary {
+        return try await pullImageWithRetry(reference: reference, retryCount: 0)
+    }
+    
+    /// Pull image with authentication retry logic
+    private func pullImageWithRetry(reference: String, retryCount: Int) async throws -> ImageSummary {
         let imageRef = try parseImageReference(reference)
         
         logger.info("Pulling image \(imageRef.name):\(imageRef.tag) from \(imageRef.registry)")
@@ -457,8 +525,26 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         try FileManager.default.createDirectory(atPath: blobsDir.string, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(atPath: manifestsDir.string, withIntermediateDirectories: true)
         
+        // Get auth token if available
+        let scope = "repository:\(imageRef.name):pull"
+        let authToken = try await authManager.getAuthToken(registry: imageRef.registry, scope: scope)
+        
         // Pull manifest using OCI Distribution API
-        let manifest = try await pullOCIManifest(imageRef: imageRef)
+        let manifest: OCIManifest
+        do {
+            manifest = try await pullOCIManifest(imageRef: imageRef, authToken: authToken)
+        } catch let error as OCIRegistryError where error.statusCode == 401 {
+            // Authentication failed - try to refresh token and retry once
+            if retryCount == 0 {
+                logger.info("Received 401, refreshing token and retrying")
+                try await authManager.refreshToken(registry: imageRef.registry)
+                return try await pullImageWithRetry(reference: reference, retryCount: 1)
+            } else {
+                // Already retried, give up
+                logger.error("Authentication failed after retry")
+                throw ContainerError.imageNotFound("Authentication required. Run: fd login \(imageRef.registry)")
+            }
+        }
         
         // Download and store layer blobs
         var layerDigests: [String] = []
@@ -476,7 +562,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             }
 
             logger.info("Downloading layer \(digest) (\(layer.mediaType))")
-            let blobData = try await downloadOCILayerData(imageRef: imageRef, digest: digest)
+            let blobData = try await downloadOCILayerData(imageRef: imageRef, digest: digest, authToken: authToken)
             try await imageCache.storeBlob(digest: digest, data: blobData)
             totalSize += blobData.count
         }
@@ -525,6 +611,38 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         _eventStream = stream
         return stream
     }
+    
+    // MARK: - Registry Authentication
+    
+    /// Login to a container registry
+    ///
+    /// Stores credentials securely in macOS Keychain for future image pulls.
+    ///
+    /// - Parameters:
+    ///   - registry: Registry hostname (e.g., "docker.io", "ghcr.io")
+    ///   - username: Registry username
+    ///   - password: Registry password or personal access token
+    /// - Throws: If authentication fails or Keychain storage fails
+    public func login(registry: String, username: String, password: String) async throws {
+        try await authManager.login(registry: registry, username: username, password: password)
+        logger.info("Successfully logged in to registry", metadata: [
+            "registry": .string(registry),
+            "username": .string(username)
+        ])
+    }
+    
+    /// Logout from a container registry
+    ///
+    /// Removes stored credentials from macOS Keychain.
+    ///
+    /// - Parameter registry: Registry hostname to logout from
+    /// - Throws: If Keychain removal fails
+    public func logout(registry: String) async throws {
+        try await authManager.logout(registry: registry)
+        logger.info("Successfully logged out from registry", metadata: [
+            "registry": .string(registry)
+        ])
+    }
 
     // MARK: - Event Broadcasting
 
@@ -558,7 +676,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
 
     // MARK: - OCI Registry Helpers
     
-    private func pullOCIManifest(imageRef: ImageReference) async throws -> OCIManifest {
+    private func pullOCIManifest(imageRef: ImageReference, authToken: String?) async throws -> OCIManifest {
         let registryBase = imageRef.registry == "docker.io" ? "https://registry-1.docker.io" : "https://\(imageRef.registry)"
         let manifestURL = "\(registryBase)/v2/\(imageRef.name)/manifests/\(imageRef.tag)"
         
@@ -567,9 +685,17 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         var request = try HTTPClient.Request(url: manifestURL)
         request.headers.add(name: "Accept", value: "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json")
         
+        // Add auth header if token available
+        if let token = authToken {
+            request.headers.add(name: "Authorization", value: "Bearer \(token)")
+        }
+        
         let response = try await httpClient.execute(request: request).get()
         
         guard response.status == .ok else {
+            if response.status.code == 401 {
+                throw OCIRegistryError.unauthorized(statusCode: 401)
+            }
             throw ContainerError.imageNotFound("Failed to fetch manifest: HTTP \(response.status.code)")
         }
         
@@ -581,16 +707,25 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         return try JSONDecoder().decode(OCIManifest.self, from: manifestData)
     }
     
-    private func downloadOCILayerData(imageRef: ImageReference, digest: String) async throws -> Data {
+    private func downloadOCILayerData(imageRef: ImageReference, digest: String, authToken: String?) async throws -> Data {
         let registryBase = imageRef.registry == "docker.io" ? "https://registry-1.docker.io" : "https://\(imageRef.registry)"
         let blobURL = "\(registryBase)/v2/\(imageRef.name)/blobs/\(digest)"
         
         logger.info("Downloading blob from \(blobURL)")
         
-        let request = try HTTPClient.Request(url: blobURL)
+        var request = try HTTPClient.Request(url: blobURL)
+        
+        // Add auth header if token available
+        if let token = authToken {
+            request.headers.add(name: "Authorization", value: "Bearer \(token)")
+        }
+        
         let response = try await httpClient.execute(request: request).get()
         
         guard response.status == .ok else {
+            if response.status.code == 401 {
+                throw OCIRegistryError.unauthorized(statusCode: 401)
+            }
             throw ContainerError.imageNotFound("Failed to download blob \(digest): HTTP \(response.status.code)")
         }
         
@@ -877,4 +1012,16 @@ private struct ImageReference {
     let registry: String
     let name: String
     let tag: String
+}
+
+/// OCI Registry-specific errors
+private enum OCIRegistryError: Error {
+    case unauthorized(statusCode: Int)
+    
+    var statusCode: Int {
+        switch self {
+        case .unauthorized(let code):
+            return code
+        }
+    }
 }

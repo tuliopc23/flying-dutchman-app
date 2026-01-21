@@ -33,6 +33,12 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     public var ports: [String]
     public var mounts: [MountSpec]
     public var createdAt: Date
+    
+    /// Path to exposed rootfs directory (nil if not running or not exposed)
+    public var rootfsPath: String?
+    
+    /// Allocated IP address (Phase 2)
+    public var ipAddress: String?
 
     public enum Status: String, Codable, Sendable {
         case created
@@ -76,6 +82,8 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
         self.ports = ports
         self.mounts = mounts
         self.createdAt = createdAt
+        self.rootfsPath = rootfsPath
+        self.ipAddress = ipAddress
     }
 }
 

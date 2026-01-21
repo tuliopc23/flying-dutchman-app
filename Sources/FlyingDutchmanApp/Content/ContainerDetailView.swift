@@ -29,20 +29,23 @@ final class ContainerDetailViewModel {
     }
     
     func start() async {
-        await performAction {
-            try await EngineClient.startContainer(id: container.id)
+        await performAction { [self] in
+            let updated = try await EngineClient.startContainer(container.id)
+            self.container = updated
         }
     }
     
     func stop() async {
-        await performAction {
-            try await EngineClient.stopContainer(id: container.id)
+        await performAction { [self] in
+            let updated = try await EngineClient.stopContainer(container.id)
+            self.container = updated
         }
     }
     
     func restart() async {
-        await performAction {
-            try await EngineClient.restartContainer(id: container.id)
+        await performAction { [self] in
+            let updated = try await EngineClient.restartContainer(container.id)
+            self.container = updated
         }
     }
     
@@ -98,23 +101,25 @@ struct ContainerDetailView: View {
         GlassCard {
             HStack(spacing: 16) {
                 // Status Icon with Animation
-                Image(systemName: DesignTokens.containerStatusSymbol(for: viewModel.container.status))
-                    .font(.system(size: 48))
-                    .foregroundStyle(DesignTokens.containerStatusColor(for: viewModel.container.status))
-                    .symbolEffect(.variableColor.iterative, isActive: viewModel.container.status == .running)
+                Image.systemIcon(
+                    DesignTokens.containerStatusSymbol(for: viewModel.container.status),
+                    size: DesignSystem.Size.iconHuge
+                )
+                .foregroundStyle(DesignTokens.containerStatusColor(for: viewModel.container.status))
+                .symbolEffect(.variableColor.iterative, isActive: viewModel.container.status == .running)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(viewModel.container.name)
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(DesignSystem.Typography.title2)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
                     
                     Text(statusText)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(DesignSystem.Typography.subheadline)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
                     
                     Text("ID: \(viewModel.container.id.uuidString.prefix(12))")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(DesignSystem.Typography.caption2)
+                        .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .monospaced()
                 }
                 
@@ -125,7 +130,7 @@ struct ContainerDetailView: View {
                     actionButtons
                 }
             }
-            .padding()
+            .padding(DesignSystem.Inset.md)
         }
     }
     

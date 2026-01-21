@@ -6,11 +6,12 @@ import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
 import SwiftUI
 import FlyingDutchmanPersistence
+import SQLiteData
 
 @MainActor
 @Observable
 final class ImageListViewModel {
-    var images: [ImageSummary] = []
+    @FetchAll var images: [ImageSummary]
     var error: String?
     var isLoading: Bool = false
     var searchQuery: String = ""
@@ -27,15 +28,7 @@ final class ImageListViewModel {
     }
 
     func load() async {
-        isLoading = true
-        error = nil
-        do {
-            images = try await EngineClient.listImages()
-        } catch {
-            images = SeedData.sampleImages
-            self.error = "Showing mock images. Engine unreachable: \(error.localizedDescription)"
-        }
-        isLoading = false
+        // No manual load needed - @FetchAll auto-updates!
     }
 
     func pull() async {
@@ -45,7 +38,7 @@ final class ImageListViewModel {
         error = nil
         do {
             pullMessage = try await EngineClient.pullImage(reference: pullReference)
-            await load()
+            // No need to reload - DB updates automatically
         } catch {
             self.error = "Pull failed: \(error.localizedDescription)"
         }
@@ -54,88 +47,140 @@ final class ImageListViewModel {
 }
 
 struct ImageListView: View {
-    @Bindable var viewModel: ImageListViewModel
+    var viewModel: ImageListViewModel
 
     var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                SectionHeader(title: "Images", subtitle: "Local and cached images", icon: "shippingbox.fill") {
-                    if viewModel.isLoading {
-                        ProgressView().controlSize(.small)
-                    }
-                    Button {
-                        Task { @MainActor in await viewModel.load() }
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                    .buttonStyle(.glass)
-                }
-
-                TextField("Search images", text: $viewModel.searchQuery)
-                    .textFieldStyle(.roundedBorder)
-
+        VStack(spacing: DesignSystem.Spacing.lg) {
+            // Header with Refresh & Pull
+            HStack {
+                Text("Images")
+                    .font(DesignSystem.Typography.title2)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Spacer()
+                
                 HStack(spacing: DesignSystem.Spacing.sm) {
-                    TextField("Pull image (e.g. postgres:16-alpine)", text: $viewModel.pullReference)
-                        .textFieldStyle(.roundedBorder)
+                    TextField("Pull image...", text: Bindable(viewModel).pullReference)
+                        .textFieldStyle(.plain)
+                        .frame(width: 200)
+                        .padding(6)
+                        .background(DesignTokens.glassFieldBackground(for: .light))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .onSubmit { Task { await viewModel.pull() } }
                     
                     Button {
                         Task { @MainActor in await viewModel.pull() }
                     } label: {
-                        Label(viewModel.isPulling ? "Pulling…" : "Pull", systemImage: "arrow.down.circle")
-                    }
-                    .disabled(viewModel.isPulling)
-                    .buttonStyle(.glassProminent)
-                    .tint(DesignSystem.Colors.accent)
-                }
-
-                if let pullMessage = viewModel.pullMessage {
-                    Text(pullMessage)
-                        .font(DesignSystem.Typography.footnote)
-                        .foregroundStyle(DesignSystem.Colors.textSecondary)
-                }
-
-                if let error = viewModel.error {
-                    Text(error)
-                        .font(DesignSystem.Typography.footnote)
-                        .foregroundStyle(DesignSystem.Colors.warning)
-                }
-
-                if viewModel.filtered.isEmpty {
-                    EmptyStateCard(
-                        title: "No images",
-                        message: "Pull or create an image to view it here.",
-                        systemImage: "shippingbox"
-                    )
-                } else {
-                    VStack(spacing: DesignSystem.Spacing.sm) {
-                        ForEach(viewModel.filtered, id: \.name) { image in
-                            HStack(spacing: DesignSystem.Spacing.md) {
-                                Image.systemIcon("shippingbox.circle", size: DesignSystem.Size.iconRegular)
-                                    .foregroundStyle(DesignSystem.Colors.accent)
-                                
-                                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
-                                    Text("\(image.name):\(image.tag)")
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
-                                    
-                                    Text(image.digest ?? "No digest")
-                                        .font(DesignSystem.Typography.caption2)
-                                        .foregroundStyle(DesignSystem.Colors.textTertiary)
-                                }
-                                
-                                Spacer()
-                                
-                                Text(image.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—")
-                                    .font(DesignSystem.Typography.caption1)
-                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
-                            }
-                            .padding(DesignSystem.Inset.sm)
-                            .background(DesignSystem.Colors.surfaceSecondary)
-                            .cornerRadius(DesignSystem.CornerRadius.regular)
+                        if viewModel.isPulling {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("Pull", systemImage: "arrow.down.circle")
+                                .labelStyle(.iconOnly)
                         }
                     }
+                    .buttonStyle(.glassProminent)
+                    .disabled(viewModel.isPulling || viewModel.pullReference.isEmpty)
+                    .help("Pull Image from Registry")
+                }
+                
+                Button {
+                    Task { @MainActor in await viewModel.load() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.glass)
+                .help("Refresh Images")
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
+
+            // Search
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(DesignSystem.Colors.textTertiary)
+                TextField("Search images...", text: Bindable(viewModel).searchQuery)
+                    .textFieldStyle(.plain)
+            }
+            .padding(DesignSystem.Inset.sm)
+            .background(DesignTokens.glassFieldBackground(for: .light))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, DesignSystem.Spacing.md)
+
+            if let error = viewModel.error {
+                DiagnosticsBanner(
+                    title: "Error", 
+                    message: error, 
+                    icon: "exclamationmark.triangle", 
+                    tone: .warning
+                )
+                .padding(.horizontal, DesignSystem.Spacing.md)
+            }
+
+            if viewModel.filtered.isEmpty {
+                EmptyStateCard(
+                    title: "No images found",
+                    message: viewModel.searchQuery.isEmpty 
+                        ? "Pull or build an image to get started." 
+                        : "No images match your search.",
+                    systemImage: "shippingbox.fill"
+                )
+                .padding(DesignSystem.Spacing.md)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: DesignSystem.Spacing.sm) {
+                        ForEach(viewModel.filtered, id: \.name) { image in
+                            ImageRow(image: image)
+                        }
+                    }
+                    .padding(DesignSystem.Spacing.md)
                 }
             }
+        }
+        .onAppear {
+            if viewModel.images.isEmpty {
+                Task { await viewModel.load() }
+            }
+        }
+    }
+}
+
+struct ImageRow: View {
+    let image: ImageSummary
+    
+    var body: some View {
+        GlassCard {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image.systemIcon("shippingbox.fill", size: DesignSystem.Size.iconLarge)
+                    .foregroundStyle(DesignSystem.Colors.accent)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(image.name)
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+                        Text(image.tag)
+                            .font(DesignSystem.Typography.codeSmall)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
+                            .background(DesignSystem.Colors.surfaceTertiary)
+                            .cornerRadius(4)
+                    }
+                    
+                    Text(image.digest ?? "No digest")
+                        .font(DesignSystem.Typography.caption2)
+                        .foregroundStyle(DesignSystem.Colors.textTertiary)
+                        .monospaced()
+                }
+                
+                Spacer()
+                
+                if let size = image.sizeBytes {
+                    Text(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
+                        .font(DesignSystem.Typography.caption1)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                }
+            }
+            .padding(DesignSystem.Inset.sm)
         }
     }
 }

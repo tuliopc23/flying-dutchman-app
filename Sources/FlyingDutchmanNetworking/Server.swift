@@ -112,6 +112,7 @@ public struct EngineServer {
         StacksRoutes(runtime: runtime, store: stackStore).register(on: router)
         VolumesRoutes(store: volumeStore).register(on: router)
         NetworksRoutes(store: networkStore).register(on: router)
+        AuthRoutes(runtime: runtime).register(on: router)
         
         // Docker API compatibility layer
         DockerShimServer(runtime: runtime).register(on: router)

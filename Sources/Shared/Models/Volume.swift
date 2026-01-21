@@ -1,5 +1,6 @@
-import Foundation
+import SQLiteData
 
+@Table
 public struct VolumeSummary: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String

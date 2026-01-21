@@ -2,63 +2,46 @@ import SwiftUI
 import Shared
 
 struct SidebarView: View {
-    @Bindable var viewModel: SidebarViewModel
+    @Binding var selection: AppSection
+    @Environment(AppState.self) private var state
 
     var body: some View {
-        ZStack {
-            List(selection: $viewModel.selectedStack) {
-                Section("Stacks") {
-                    if viewModel.isEmpty {
-                        EmptyStateView()
-                            .listRowSeparator(.hidden)
-                    } else {
-                        ForEach(viewModel.stacks) { stack in
-                            HStack(spacing: DesignSystem.Spacing.sm) {
-                                Circle()
-                                    .fill(stack.containerNames.isEmpty 
-                                        ? DesignSystem.Colors.textTertiary.opacity(0.4) 
-                                        : DesignSystem.Colors.success)
-                                    .frame(width: 10, height: 10)
-                                
-                                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
-                                    Text(stack.name)
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
-                                    
-                                    if let desc = stack.description {
-                                        Text(desc)
-                                            .font(DesignSystem.Typography.caption1)
-                                            .foregroundStyle(DesignSystem.Colors.textSecondary)
-                                    }
-                                }
-                            }
-                            .contentShape(Rectangle())
-                            .tag(stack)
-                        }
+        List(selection: $selection) {
+            Section("Management") {
+                SidebarRow(section: .containers)
+                SidebarRow(section: .stacks)
+                SidebarRow(section: .images)
+            }
+            
+            Section("Infrastructure") {
+                SidebarRow(section: .volumes)
+                SidebarRow(section: .networks)
+            }
+            
+            Section("Monitoring") {
+                SidebarRow(section: .logs)
+                SidebarRow(section: .events)
+            }
+            
+            if !state.sidebar.stacks.isEmpty {
+                Section("Project Stacks") {
+                    ForEach(state.sidebar.stacks) { stack in
+                        Label(stack.name, systemImage: "square.stack.3d.up")
+                            .tag(stack.id) // Selection can be extended to support stacks directly
                     }
                 }
             }
-            .listStyle(.sidebar)
-            .glassSidebar()
-
-            if viewModel.highlightSidebar {
-                RoundedRectangle(
-                    cornerRadius: DesignSystem.CornerRadius.comfortable,
-                    style: .continuous
-                )
-                .strokeBorder(
-                    Color(DesignSystem.Colors.primary).opacity(0.55),
-                    lineWidth: 2
-                )
-                .shadow(
-                    color: Color(DesignSystem.Colors.primary).opacity(0.3),
-                    radius: 12
-                )
-                .padding(DesignSystem.Spacing.xs)
-                .transition(.opacity)
-                .animate(DesignSystem.Animations.quick, value: viewModel.highlightSidebar)
-                .allowsHitTesting(false)
-            }
         }
+        .listStyle(.sidebar)
+        .glassSidebar()
+    }
+}
+
+struct SidebarRow: View {
+    let section: AppSection
+    
+    var body: some View {
+        Label(section.title, systemImage: section.systemImage)
+            .tag(section)
     }
 }
