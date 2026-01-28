@@ -148,7 +148,7 @@ private final class BridgeHandler: ChannelInboundHandler, @unchecked Sendable {
     }
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-        partnerChannel.writeAndFlush(data, promise: nil)
+        partnerChannel.writeAndFlush(data)
     }
 
     func channelInactive(context: ChannelHandlerContext) {

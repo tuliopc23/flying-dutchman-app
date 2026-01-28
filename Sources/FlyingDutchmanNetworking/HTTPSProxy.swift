@@ -30,7 +30,7 @@ public struct HTTPSProxy: Service {
         // Generate wildcard cert for *.fd.local
         let (cert, key) = try ca.generateLeafCert(hostname: "*.fd.local")
         
-        let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
+        let tlsConfiguration = TLSConfiguration.makeServerConfiguration(
             certificateChain: [.certificate(try cert.toNIOSSL())],
             privateKey: .privateKey(try key.toNIOSSL())
         )
@@ -47,7 +47,7 @@ public struct HTTPSProxy: Service {
         // Assuming .tls wrapper exists for any server builder
         let app = Application(
             router: router,
-            server: try .tls(.http1(), configuration: try TLSChannelConfiguration(tlsConfiguration: tlsConfiguration)),
+            server: try .tls(.http1(), configuration: TLSChannelConfiguration(tlsConfiguration: tlsConfiguration)),
             configuration: .init(address: .hostname(host, port: port)),
             onServerRunning: { _ in
                 self.logger.info("HTTPS Proxy started on \(self.host):\(self.port)")

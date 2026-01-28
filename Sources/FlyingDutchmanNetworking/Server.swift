@@ -216,6 +216,51 @@ public struct EngineServer {
         networkStore: NetworkStore? = nil,
         eventStore: ShimEventStore? = nil
     ) async throws {
+        // 1. Initialize Networking Infrastructure
+        let routingTable = DomainRoutingTable()
+        
+        let fm = FileManager.default
+        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
+        let appSupportDir = base.appendingPathComponent("flyingdutchman", isDirectory: true)
+        let certsDir = appSupportDir.appendingPathComponent("certs", isDirectory: true)
+        
+        let ca = CertificateAuthority(storagePath: certsDir)
+        
+        let dnsServer = DNSServer(routingTable: routingTable)
+        let httpsProxy = HTTPSProxy(routingTable: routingTable, ca: ca)
+        
+        // 2. Start DNS Server (Background)
+        try await dnsServer.start()
+        
+        // 3. Populate initial routing table
+        if let containers = try? await runtime.listContainers() {
+             for container in containers where container.status == .running {
+                 await routingTable.register(container: container, config: .default)
+             }
+        }
+        
+        // 4. Start Event Listener for Dynamic Updates
+        Task {
+            let stream = await runtime.eventStream()
+            for await event in stream {
+                if case .stateChanged(_, let to) = event.type {
+                    if to == .running {
+                        // Container started, register it
+                        if let containers = try? await runtime.listContainers(),
+                           let container = containers.first(where: { $0.id == event.containerID }) {
+                            // Note: We use default config here as we lack access to the full config in this context.
+                            // The routing table will fallback to legacy ports from ContainerSummary.
+                            await routingTable.register(container: container, config: .default)
+                        }
+                    } else if to.isStopped {
+                        // Container stopped, unregister
+                        await routingTable.unregister(containerID: event.containerID)
+                    }
+                }
+            }
+        }
+
+        // 5. Prepare Engine API Server
         var configuration = ApplicationConfiguration()
         configuration.address = .hostname(host, port: port)
 
@@ -245,7 +290,24 @@ public struct EngineServer {
             }
         )
 
-        try await app.runService()
+        // 6. Run Services Concurrently
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            // Engine API
+            group.addTask {
+                try await app.runService()
+            }
+            
+            // HTTPS Proxy
+            group.addTask {
+                try await httpsProxy.run()
+            }
+            
+            // Wait for any to fail
+            try await group.next()
+        }
+        
+        // Cleanup
+        await dnsServer.shutdown()
     }
 }
 

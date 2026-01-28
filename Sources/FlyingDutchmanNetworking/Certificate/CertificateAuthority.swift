@@ -37,6 +37,9 @@ public final class CertificateAuthority: @unchecked Sendable {
         
         let serialNumber = Certificate.SerialNumber()
         
+        let authorityKeyID = try caCert.publicKey.keyIdentifier
+        let subjectKeyID = try certKey.publicKey.keyIdentifier
+        
         let leaf = try Certificate(
             version: .v3,
             serialNumber: serialNumber,
@@ -53,12 +56,12 @@ public final class CertificateAuthority: @unchecked Sendable {
                 Critical(
                     KeyUsage(digitalSignature: true, keyEncipherment: true)
                 )
-                ExtendedKeyUsage([.serverAuth, .clientAuth])
+                try ExtendedKeyUsage([.serverAuth, .clientAuth])
                 SubjectAlternativeNames([.dnsName(hostname)])
                 // Authority Key Identifier: Hash of Issuer's Public Key
-                AuthorityKeyIdentifier(keyIdentifier: try caCert.publicKey.keyIdentifier)
+                AuthorityKeyIdentifier(keyIdentifier: authorityKeyID)
                 // Subject Key Identifier: Hash of Subject's Public Key
-                try certKey.publicKey.keyIdentifier
+                SubjectKeyIdentifier(keyIdentifier: subjectKeyID)
             },
             issuerPrivateKey: Certificate.PrivateKey(caKey)
         )
@@ -96,6 +99,8 @@ public final class CertificateAuthority: @unchecked Sendable {
         
         let serialNumber = Certificate.SerialNumber()
         
+        let subjectKeyID = try certKey.publicKey.keyIdentifier
+        
         let cert = try Certificate(
             version: .v3,
             serialNumber: serialNumber,
@@ -112,7 +117,7 @@ public final class CertificateAuthority: @unchecked Sendable {
                 Critical(
                     KeyUsage(digitalSignature: true, keyCertSign: true, cRLSign: true)
                 )
-                SubjectKeyIdentifier(hash: try certKey.publicKey.keyIdentifier)
+                SubjectKeyIdentifier(keyIdentifier: subjectKeyID)
             },
             issuerPrivateKey: certKey
         )
@@ -129,6 +134,16 @@ public final class CertificateAuthority: @unchecked Sendable {
         try keyPEM.write(to: storagePath.appendingPathComponent(caKeyFilename), atomically: true, encoding: .utf8)
         
         logger.info("Generated and saved new Root CA to \(storagePath.path)")
+    }
+}
+
+extension Certificate.PublicKey {
+    var keyIdentifier: ArraySlice<UInt8> {
+        get throws {
+            // SHA-1 hash of the SubjectPublicKeyInfo
+            let hash = Insecure.SHA1.hash(data: self.subjectPublicKeyInfoBytes)
+            return ArraySlice(hash)
+        }
     }
 }
 

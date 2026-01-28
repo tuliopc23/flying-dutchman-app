@@ -319,7 +319,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             // ... (mount setup)
 
             // Create the LinuxContainer via ContainerManager
-            let _ = try await manager.create(container.name, reference: container.image) { cfg in
+            let linuxContainer = try await manager.create(container.name, reference: container.image) { cfg in
                 cfg.cpus = cpuCount
                 cfg.memoryInBytes = UInt64(memoryBytes)
                 
@@ -331,9 +331,22 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
                 // ... (process args, env, mounts)
             }
             
-            // ... (VM boot)
+            // Store active container
+            activeContainers[container.id] = linuxContainer
             
-            // ... (port forwarding)
+            // Boot the VM
+            try await linuxContainer.start()
+            
+            // Port Forwarding
+            let mappings = try config.getAllPortMappings()
+            for mapping in mappings {
+                try await portForwardManager.createForward(
+                    hostPort: mapping.hostPort,
+                    containerID: container.id,
+                    containerPort: mapping.containerPort,
+                    container: linuxContainer
+                )
+            }
             
             // Rootfs URL (Added during stabilization)
             let rootfsURL: URL? = nil // Placeholder until exposed rootfs logic is confirmed
