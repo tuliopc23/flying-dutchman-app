@@ -1,5 +1,4 @@
 import SwiftUI
-import SQLiteData
 import Shared
 import FlyingDutchmanPersistence
 
@@ -7,13 +6,6 @@ import FlyingDutchmanPersistence
 struct FlyingDutchmanApp: App {
     // Single source of truth for the entire app state (macOS 26+ Observation)
     @State private var state = AppState()
-    
-    init() {
-        prepareDependencies {
-            // Use existing GRDB DatabaseQueue from persistence layer
-            $0.defaultDatabase = DatabaseContainer.shared.dbQueue
-        }
-    }
 
     var body: some Scene {
         WindowGroup {

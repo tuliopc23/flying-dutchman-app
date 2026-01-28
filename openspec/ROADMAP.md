@@ -1,7 +1,7 @@
 # Flying Dutchman Roadmap
 
-> **Current Phase**: 1.3 (Storage)
-> **Last Updated**: 2026-01-05
+> **Current Phase**: 2 (Networking)
+> **Last Updated**: 2026-01-27
 > **Status**: 🟡 In Progress
 
 ---
@@ -12,7 +12,7 @@
 |-------|------|--------|----------|
 | 0 | Foundation | ✅ Complete | 100% |
 | 1 | Container Core | ✅ Complete | 100% |
-| 2 | Networking | ⚪ Not Started | 0% |
+| 2 | Networking | 🟡 In Progress | 20% |
 | 3 | Platform | ⚪ Not Started | 0% |
 | 4 | UX Polish | ⚪ Not Started | 0% |
 
@@ -107,12 +107,14 @@
 - [x] Bridge network driver (NetworkManager + IPAllocator)
 - [x] Port forwarding (`-p` flag + PortForwardManager)
 - [x] Container IP allocation (CIDR)
+- [ ] Fix NetworkError & Module Ownership (Stabilization)
 - [ ] Host networking mode (`--net host`)
 - [ ] IPv6 and ICMP support
 
 ### 2.2 DNS & Domains
-- [ ] Local DNS resolver
-- [ ] Zero-config domains (`container.fd.local`)
+- [ ] Local DNS resolver (UDP 5353)
+- [ ] Resolver file (/etc/resolver/fd.local)
+- [ ] Zero-config domains (`*.fd.local`)
 - [ ] Compose service domains (`service.project.fd.local`)
 
 ### 2.3 HTTPS

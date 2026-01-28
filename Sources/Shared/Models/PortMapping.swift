@@ -25,7 +25,7 @@ public struct PortMapping: Codable, Sendable, Hashable {
     public let containerPort: Int
     
     /// Network protocol (TCP or UDP)
-    public let protocol: NetworkProtocol
+    public let `protocol`: NetworkProtocol
     
     /// Network protocol type
     public enum NetworkProtocol: String, Codable, Sendable {
@@ -39,10 +39,10 @@ public struct PortMapping: Codable, Sendable, Hashable {
     ///   - hostPort: Port to bind on host
     ///   - containerPort: Port inside container
     ///   - protocol: Network protocol (default: TCP)
-    public init(hostPort: Int, containerPort: Int, protocol: NetworkProtocol = .tcp) {
+    public init(hostPort: Int, containerPort: Int, `protocol`: NetworkProtocol = .tcp) {
         self.hostPort = hostPort
         self.containerPort = containerPort
-        self.protocol = protocol
+        self.`protocol` = `protocol`
     }
     
     /// Parse port mapping from Docker CLI format
@@ -85,7 +85,7 @@ public struct PortMapping: Codable, Sendable, Hashable {
         try validatePortRange(hostPort, field: "hostPort")
         try validatePortRange(containerPort, field: "containerPort")
         
-        return PortMapping(hostPort: hostPort, containerPort: containerPort, protocol: proto)
+        return PortMapping(hostPort: hostPort, containerPort: containerPort, `protocol`: proto)
     }
     
     /// Validate port is in valid range (1-65535)
@@ -99,10 +99,10 @@ public struct PortMapping: Codable, Sendable, Hashable {
     ///
     /// - Returns: String like "8080:80/tcp"
     public func toSpec() -> String {
-        if protocol == .tcp {
+        if `protocol` == .tcp {
             return "\(hostPort):\(containerPort)" // TCP is default, omit protocol
         } else {
-            return "\(hostPort):\(containerPort)/\(protocol.rawValue)"
+            return "\(hostPort):\(containerPort)/\(self.`protocol`.rawValue)"
         }
     }
 }

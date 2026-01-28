@@ -6,14 +6,17 @@ import AppKit
 #endif
 
 @MainActor
+
 @Observable
-final class EventsViewModel {
-    var events: [RuntimeEvent] = []
-    var error: String?
-    var isStreaming: Bool = false
+public final class EventsViewModel {
+    public var events: [RuntimeEvent] = []
+    public var error: String?
+    public var isStreaming: Bool = false
     private var streamTask: Task<Void, Never>?
 
-    func startStreaming(reset: Bool = false) {
+    public init() {}
+
+    public func startStreaming(reset: Bool = false) {
         streamTask?.cancel()
         if reset {
             events.removeAll()
@@ -196,7 +199,7 @@ struct EventRow: View {
     private func detail(for event: RuntimeEvent) -> String {
         switch event.type {
         case .stateChanged:
-            return "Container \(event.containerId.uuidString.prefix(8))"
+            return "Container \(event.containerId.prefix(8))"
         case .logOutput(let message):
             return message
         case .resourceUpdate(let info):

@@ -1,23 +1,27 @@
 import Shared
 import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
-import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
-import FlyingDutchmanPersistence
 import SwiftUI
-import FlyingDutchmanPersistence
-import SQLiteData
 
 @MainActor
 @Observable
-final class VolumeListViewModel {
-    @FetchAll var volumes: [VolumeSummary]
-    var error: String?
-    var isLoading: Bool = false
-    var searchQuery: String = ""
+public final class VolumeListViewModel {
+    public var volumes: [VolumeSummary] = []
+    public var error: String?
+    public var isLoading: Bool = false
+    public var searchQuery: String = ""
+    
+    private let store: VolumeStore
+    
+    public init(store: VolumeStore = VolumeStore()) {
+        self.store = store
+    }
 
-    func load() async {
-        // No manual load needed - @FetchAll auto-updates!
+    public func load() async {
+        isLoading = true
+        volumes = await store.fetchAll()
+        isLoading = false
     }
 
     var filtered: [VolumeSummary] {

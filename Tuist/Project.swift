@@ -5,7 +5,7 @@ let project = Project(
     options: .options(automaticSchemesOptions: .disabled),
     settings: .settings(
         base: [
-            "MACOSX_DEPLOYMENT_TARGET": "15.0"
+            "MACOSX_DEPLOYMENT_TARGET": "26.0"
         ]
     ),
     packages: [
@@ -16,7 +16,9 @@ let project = Project(
         .remote(url: "https://github.com/swift-server/swift-service-lifecycle.git", requirement: .upToNextMajor(from: "2.0.0")),
         .remote(url: "https://github.com/groue/GRDB.swift.git", requirement: .upToNextMajor(from: "7.8.0")),
         .remote(url: "https://github.com/apple/swift-nio.git", requirement: .upToNextMajor(from: "2.60.0")),
-        .remote(url: "https://github.com/swiftkube/client.git", requirement: .upToNextMajor(from: "0.20.0"))
+        .remote(url: "https://github.com/swiftkube/client.git", requirement: .upToNextMajor(from: "0.20.0")),
+        .remote(url: "https://github.com/orlandos-nl/DNSClient.git", requirement: .upToNextMajor(from: "2.0.0")),
+        .remote(url: "https://github.com/apple/swift-certificates.git", requirement: .upToNextMajor(from: "1.0.0"))
     ],
     targets: [
         Target(
@@ -83,7 +85,9 @@ let project = Project(
                 .target(name: "Shared"),
                 .target(name: "FlyingDutchmanContainers"),
                 .package(product: "Hummingbird"),
-                .package(product: "AsyncHTTPClient")
+                .package(product: "AsyncHTTPClient"),
+                .package(product: "DNSClient"),
+                .package(product: "X509")
             ]
         ),
         Target(

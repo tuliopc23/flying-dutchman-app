@@ -2,6 +2,7 @@ import XCTest
 @testable import FlyingDutchmanContainers
 @testable import FlyingDutchmanPersistence
 @testable import GRDB
+@testable import Shared
 
 final class ImageCacheManagerTests: XCTestCase {
     var cacheManager: ImageCacheManager!
@@ -99,11 +100,13 @@ final class ImageCacheManagerTests: XCTestCase {
 
         try await cacheManager.storeBlob(digest: digest, data: data)
 
-        XCTAssertTrue(cacheManager.hasBlob(digest: digest))
+        let exists = await cacheManager.hasBlob(digest: digest)
+        XCTAssertTrue(exists)
     }
 
-    func testHasBlobReturnsFalseForNonExisting() {
-        XCTAssertFalse(cacheManager.hasBlob(digest: "sha256:nonexistent"))
+    func testHasBlobReturnsFalseForNonExisting() async {
+        let exists = await cacheManager.hasBlob(digest: "sha256:nonexistent")
+        XCTAssertFalse(exists)
     }
 
     // MARK: - Delete Blob
@@ -113,14 +116,15 @@ final class ImageCacheManagerTests: XCTestCase {
         let data = Data("delete test".utf8)
 
         try await cacheManager.storeBlob(digest: digest, data: data)
-        try cacheManager.deleteBlob(digest: digest)
+        try await cacheManager.deleteBlob(digest: digest)
 
-        XCTAssertFalse(cacheManager.hasBlob(digest: digest))
+        let exists = await cacheManager.hasBlob(digest: digest)
+        XCTAssertFalse(exists)
     }
 
     func testDeleteNonExistentBlobThrows() async {
         do {
-            try cacheManager.deleteBlob(digest: "sha256:nonexistent")
+            try await cacheManager.deleteBlob(digest: "sha256:nonexistent")
             XCTFail("Expected error was not thrown")
         } catch {
             XCTAssertTrue(error is CacheError)
@@ -129,8 +133,8 @@ final class ImageCacheManagerTests: XCTestCase {
 
     // MARK: - Cache Statistics
 
-    func testCacheStatsInitiallyEmpty() {
-        let stats = cacheManager.getStats()
+    func testCacheStatsInitiallyEmpty() async {
+        let stats = await cacheManager.getStats()
 
         XCTAssertEqual(stats.totalBlobs, 0)
         XCTAssertEqual(stats.totalBytes, 0)
@@ -145,14 +149,14 @@ final class ImageCacheManagerTests: XCTestCase {
         // Store blob
         try await cacheManager.storeBlob(digest: digest, data: data)
 
-        var stats = cacheManager.getStats()
+        var stats = await cacheManager.getStats()
         XCTAssertEqual(stats.totalBlobs, 1)
         XCTAssertEqual(stats.totalBytes, Int64(data.count))
         XCTAssertEqual(stats.writeOperations, 1)
 
         // Retrieve blob (hit)
         _ = try await cacheManager.retrieveBlob(digest: digest)
-        stats = cacheManager.getStats()
+        stats = await cacheManager.getStats()
         XCTAssertEqual(stats.cacheHits, 1)
         XCTAssertEqual(stats.readOperations, 1)
 
@@ -163,7 +167,7 @@ final class ImageCacheManagerTests: XCTestCase {
             // Expected
         }
 
-        stats = cacheManager.getStats()
+        stats = await cacheManager.getStats()
         XCTAssertEqual(stats.cacheMisses, 1)
     }
 
@@ -185,7 +189,7 @@ final class ImageCacheManagerTests: XCTestCase {
             // Expected
         }
 
-        let stats = cacheManager.getStats()
+        let stats = await cacheManager.getStats()
         XCTAssertEqual(stats.cacheHits, 3)
         XCTAssertEqual(stats.cacheMisses, 1)
         XCTAssertEqual(stats.hitRate, 0.75, accuracy: 0.01)
@@ -201,14 +205,14 @@ final class ImageCacheManagerTests: XCTestCase {
         try await cacheManager.storeBlob(digest: digest1, data: Data("blob1".utf8))
         try await cacheManager.storeBlob(digest: digest2, data: Data("blob2".utf8))
 
-        let blobs = cacheManager.listBlobs()
+        let blobs = await cacheManager.listBlobs()
 
         XCTAssertTrue(blobs.contains { $0.digest == digest1 })
         XCTAssertTrue(blobs.contains { $0.digest == digest2 })
     }
 
-    func testListBlobsEmptyInitially() {
-        let blobs = cacheManager.listBlobs()
+    func testListBlobsEmptyInitially() async {
+        let blobs = await cacheManager.listBlobs()
         XCTAssertTrue(blobs.isEmpty)
     }
 
@@ -221,12 +225,12 @@ final class ImageCacheManagerTests: XCTestCase {
         try await cacheManager.storeBlob(digest: digest1, data: Data("blob1".utf8))
         try await cacheManager.storeBlob(digest: digest2, data: Data("blob2".utf8))
 
-        try cacheManager.clearCache()
+        try await cacheManager.clearCache()
 
-        let blobs = cacheManager.listBlobs()
+        let blobs = await cacheManager.listBlobs()
         XCTAssertTrue(blobs.isEmpty)
 
-        let stats = cacheManager.getStats()
+        let stats = await cacheManager.getStats()
         XCTAssertEqual(stats.totalBlobs, 0)
         XCTAssertEqual(stats.totalBytes, 0)
     }
@@ -245,7 +249,7 @@ final class ImageCacheManagerTests: XCTestCase {
         try await cacheManager.storeBlob(digest: digest2, data: data2)
 
         // First blob should be evicted (LRU)
-        let blobs = cacheManager.listBlobs()
+        let blobs = await cacheManager.listBlobs()
         XCTAssertEqual(blobs.count, 1)
         XCTAssertEqual(blobs.first?.digest, digest2)
     }
@@ -269,7 +273,7 @@ final class ImageCacheManagerTests: XCTestCase {
         let digest4 = "sha256:lru4"
         try await cacheManager.storeBlob(digest: digest4, data: data)
 
-        let blobs = cacheManager.listBlobs()
+        let blobs = await cacheManager.listBlobs()
 
         // Should have 3 blobs: digest1 (accessed), digest3, digest4
         // digest2 (least recently used) should be evicted

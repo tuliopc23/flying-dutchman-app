@@ -7,64 +7,65 @@ import FlyingDutchmanContainers
 /// Central state coordinator for the Flying Dutchman app (macOS 26+ Tahoe)
 @MainActor
 @Observable
-public final class AppState {
+final class AppState {
     // MARK: - Navigation State
     
     /// Current selected section in the sidebar
-    public var selectedSection: AppSection = .containers
+    var selectedSection: AppSection = .containers
     
     /// Navigation path for detail drill-downs
-    public var navigationPath = NavigationPath()
+    var navigationPath = NavigationPath()
     
     /// Whether the command palette is visible
-    public var showPalette: Bool = false
+    var showPalette: Bool = false
     
     /// User appearance override (Light/Dark)
-    public var appearanceOverride: ColorScheme?
+    var appearanceOverride: ColorScheme?
     
     // MARK: - Engine & Lifecycle State
     
     /// Global engine health status
-    public var engineStatus: String = "Connecting..."
-    public var isEngineHealthy: Bool = false
-    public var primaryStatus: String = "unknown"
-    public var workerStatuses: [String: String] = [:]
-    public var engineMode: String?
+    var engineStatus: String = "Connecting..."
+    var isEngineHealthy: Bool = false
+    var primaryStatus: String = "unknown"
+    var workerStatuses: [String: String] = [:]
+    var engineMode: String?
     
     // MARK: - Feature ViewModels (Lazily loaded)
     
-    public let containers = ContainerListViewModel()
-    public let images = ImageListViewModel()
-    public let volumes = VolumeListViewModel()
-    public let networks = NetworkListViewModel()
-    public let events = EventsViewModel()
-    public let logs = LogsViewModel()
-    public let stacks = StacksViewModel()
-    public let sidebar = SidebarViewModel()
+    let containers = ContainerListViewModel()
+    let images = ImageListViewModel()
+    let volumes = VolumeListViewModel()
+    let networks = NetworkListViewModel()
+    let events = EventsViewModel()
+    let logs = LogsViewModel()
+    let stacks = StacksViewModel()
+    let sidebar = SidebarViewModel()
     
     // MARK: - Diagnostics
     
-    public var platformStatus: RuntimeChecks.PlatformStatus?
-    public var containerizationStatus: RuntimeChecks.ToolCheck?
+    var platformStatus: RuntimeChecks.PlatformStatus?
+    var containerizationStatus: RuntimeChecks.ToolCheck?
     
     // MARK: - Initialization & Bootstrap
     
-    public init() {
+    init() {
         // Initial setup
         self.platformStatus = RuntimeChecks.platformSupport()
         self.containerizationStatus = RuntimeChecks.containerizationFramework()
     }
     
     /// Perform parallel bootstrap of all app systems
-    public func bootstrap() async {
+    func bootstrap() async {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.refreshEngineStatus() }
-            // ViewModels now use @FetchAll, so manual loading is removed
-            // group.addTask { await self.containers.load() }
-            // group.addTask { await self.images.load() }
-            // group.addTask { await self.volumes.load() }
-            // group.addTask { await self.networks.load() }
-            // group.addTask { await self.stacks.load() }
+            // ViewModels now use manual loading again
+            group.addTask { await self.containers.load() }
+            group.addTask { await self.images.load() }
+            group.addTask { await self.volumes.load() }
+            group.addTask { await self.networks.load() }
+            group.addTask { await self.stacks.load() }
+            group.addTask { await self.events.startStreaming() }
             group.addTask { await self.sidebar.load() }
         }
         
@@ -74,7 +75,7 @@ public final class AppState {
     
     // MARK: - Global Actions
     
-    public func refreshEngineStatus() async {
+    func refreshEngineStatus() async {
         do {
             async let httpStatus: EngineStatus? = try? EngineClient.fetchHealth()
             async let detail: EngineStatusDetail? = try? EngineClient.fetchStatus()
@@ -109,15 +110,14 @@ public final class AppState {
         }
     }
     
-    public func refreshCurrentSection() async {
+    func refreshCurrentSection() async {
         switch selectedSection {
-        // No need to manually load lists anymore (@FetchAll handles it)
         case .containers: break 
         case .images: break
         case .volumes: break
         case .networks: break
         case .logs: await logs.load(containers: containers.containers)
-        case .events: await events.load()
+        case .events: events.startStreaming()
         case .stacks: break
         }
     }

@@ -141,6 +141,22 @@ public final class DatabaseContainer: @unchecked Sendable {
                 }
             }
         }
+        migrator.registerMigration("v5_ui_state") { db in
+            if try !db.tableExists("uiState") {
+                try db.create(table: "uiState") { t in
+                    t.column("id", .text).primaryKey()
+                    t.column("selectedSection", .text).notNull()
+                    t.column("appearanceOverride", .text)
+                    t.column("engineHost", .text).notNull()
+                    t.column("enginePort", .integer).notNull()
+                    t.column("defaultFollowLogs", .boolean).notNull()
+                    t.column("logsPollIntervalSeconds", .double).notNull()
+                    t.column("eventsPollIntervalSeconds", .double).notNull()
+                    t.column("eventsLimit", .integer).notNull()
+                    t.column("lastUpdated", .datetime).notNull()
+                }
+            }
+        }
         return migrator
     }()
 }

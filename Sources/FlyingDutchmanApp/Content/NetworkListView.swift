@@ -1,23 +1,25 @@
 import Shared
 import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
-import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
-import FlyingDutchmanPersistence
 import SwiftUI
-import FlyingDutchmanPersistence
-import SQLiteData
 
 @MainActor
 @Observable
-final class NetworkListViewModel {
-    @FetchAll var networks: [NetworkSummary]
-    var error: String?
-    var isLoading: Bool = false
-    var searchQuery: String = ""
+public final class NetworkListViewModel {
+    public var networks: [NetworkSummary] = []
+    public var error: String?
+    public var isLoading: Bool = false
+    public var searchQuery: String = ""
+    
+    private let store = NetworkStore()
+    
+    public init() {}
 
-    func load() async {
-        // No manual load needed - @FetchAll auto-updates!
+    public func load() async {
+        isLoading = true
+        networks = await store.fetchAll()
+        isLoading = false
     }
 
     var filtered: [NetworkSummary] {

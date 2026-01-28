@@ -1,6 +1,8 @@
 import Foundation
 import ArgumentParser
 import Shared
+import FlyingDutchmanNetworking
+import FlyingDutchmanContainers
 
 extension Containers {
     struct Run: AsyncParsableCommand {
@@ -46,21 +48,20 @@ extension Containers {
             
             // Create container
             let config = ContainerConfig(
-                command: nil,
-                env: envDict.isEmpty ? nil : envDict,
                 ports: nil, // Legacy format not used here
                 portMappings: portMappings.isEmpty ? nil : portMappings,
+                env: envDict.isEmpty ? nil : envDict,
                 volumes: nil,
-                workingDir: workdir,
+                networkMode: nil,
                 cpuLimit: nil,
-                memoryLimit: nil
+                memoryLimit: nil,
+                command: nil,
+                workingDir: workdir
             )
             
             CLIOutput.section("Creating Container")
             CLIOutput.line("Name", containerName)
             CLIOutput.line("Image", image)
-            
-            let client = EngineClient() // EngineClient is an enum with static methods, no instance needed
             
             do {
                 let container = try await EngineClient.createContainer(name: containerName, image: image, config: config)

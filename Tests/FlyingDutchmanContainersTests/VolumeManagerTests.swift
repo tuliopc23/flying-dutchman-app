@@ -2,6 +2,7 @@ import XCTest
 @testable import FlyingDutchmanContainers
 @testable import FlyingDutchmanPersistence
 @testable import Shared
+import GRDB
 
 final class VolumeManagerTests: XCTestCase {
     var volumeManager: VolumeManager!
@@ -35,7 +36,7 @@ final class VolumeManagerTests: XCTestCase {
     // MARK: - Create Volume
 
     func testCreateVolumeSucceeds() async throws {
-        let volume = try volumeManager.createVolume(name: "test-volume")
+        let volume = try await volumeManager.createVolume(name: "test-volume")
 
         XCTAssertEqual(volume.name, "test-volume")
         XCTAssertNotNil(volume.id)
@@ -43,25 +44,25 @@ final class VolumeManagerTests: XCTestCase {
     }
 
     func testCreateVolumeWithDriver() async throws {
-        let volume = try volumeManager.createVolume(name: "custom-driver", driver: "nfs")
+        let volume = try await volumeManager.createVolume(name: "custom-driver", driver: "nfs")
 
         // Verify volume was created (driver is stored in path or metadata)
         XCTAssertNotNil(volume.id)
     }
 
     func testCreateVolumeIdempotent() async throws {
-        let volume1 = try volumeManager.createVolume(name: "idempotent")
-        let volume2 = try volumeManager.createVolume(name: "idempotent")
+        let volume1 = try await volumeManager.createVolume(name: "idempotent")
+        let volume2 = try await volumeManager.createVolume(name: "idempotent")
 
         XCTAssertEqual(volume1.id, volume2.id)
         XCTAssertEqual(volume1.name, volume2.name)
     }
 
     func testListVolumes() async throws {
-        try volumeManager.createVolume(name: "volume1")
-        try volumeManager.createVolume(name: "volume2")
+        try await volumeManager.createVolume(name: "volume1")
+        try await volumeManager.createVolume(name: "volume2")
 
-        let volumes = volumeManager.listVolumes()
+        let volumes = await volumeManager.listVolumes()
 
         XCTAssertTrue(volumes.count >= 2)
         XCTAssertTrue(volumes.contains { $0.name == "volume1" })
@@ -71,17 +72,17 @@ final class VolumeManagerTests: XCTestCase {
     // MARK: - Remove Volume
 
     func testRemoveVolumeSucceeds() async throws {
-        let volume = try volumeManager.createVolume(name: "to-remove")
+        let volume = try await volumeManager.createVolume(name: "to-remove")
 
-        try volumeManager.removeVolume(name: volume.name)
+        try await volumeManager.removeVolume(name: volume.name)
 
-        let volumes = volumeManager.listVolumes()
+        let volumes = await volumeManager.listVolumes()
         XCTAssertFalse(volumes.contains { $0.name == volume.name })
     }
 
     func testRemoveNonExistentVolumeThrows() async {
         do {
-            try volumeManager.removeVolume(name: "does-not-exist")
+            try await volumeManager.removeVolume(name: "does-not-exist")
             XCTFail("Expected error was not thrown")
         } catch {
             XCTAssertTrue(error is VolumeError)
@@ -91,9 +92,9 @@ final class VolumeManagerTests: XCTestCase {
     // MARK: - Prune Volumes
 
     func testPruneVolumesRemovesNonDefault() async throws {
-        try volumeManager.createVolume(name: "volume-to-prune")
+        _ = try await volumeManager.createVolume(name: "volume-to-prune")
 
-        let removedCount = try volumeManager.pruneVolumes()
+        let removedCount = try await volumeManager.pruneVolumes()
 
         XCTAssertGreaterThanOrEqual(removedCount, 1)
     }
@@ -101,9 +102,9 @@ final class VolumeManagerTests: XCTestCase {
     // MARK: - Inspect Volume
 
     func testInspectVolume() async throws {
-        let volume = try volumeManager.createVolume(name: "inspect-me")
+        let volume = try await volumeManager.createVolume(name: "inspect-me")
 
-        let inspection = try volumeManager.inspectVolume(name: volume.name)
+        let inspection = try await volumeManager.inspectVolume(name: volume.name)
 
         XCTAssertEqual(inspection.name, volume.name)
         XCTAssertEqual(inspection.driver, "local")
@@ -113,7 +114,7 @@ final class VolumeManagerTests: XCTestCase {
 
     func testInspectNonExistentVolumeThrows() async {
         do {
-            _ = try volumeManager.inspectVolume(name: "does-not-exist")
+            _ = try await volumeManager.inspectVolume(name: "does-not-exist")
             XCTFail("Expected error was not thrown")
         } catch {
             XCTAssertTrue(error is VolumeError)
@@ -127,7 +128,7 @@ final class VolumeManagerTests: XCTestCase {
         let tempFile = tempDir + "/testfile.txt"
         try "test content".write(to: URL(fileURLWithPath: tempFile), atomically: true, encoding: .utf8)
 
-        let mount = try volumeManager.validateMount("\(tempFile):/container/path")
+        let mount = try await volumeManager.validateMount("\(tempFile):/container/path")
 
         XCTAssertEqual(mount.source, tempFile)
         XCTAssertEqual(mount.destination, "/container/path")
@@ -136,7 +137,7 @@ final class VolumeManagerTests: XCTestCase {
     }
 
     func testValidateNamedVolume() async throws {
-        let mount = try volumeManager.validateMount("my-volume:/data")
+        let mount = try await volumeManager.validateMount("my-volume:/data")
 
         XCTAssertEqual(mount.source, "my-volume")
         XCTAssertEqual(mount.destination, "/data")
@@ -144,14 +145,14 @@ final class VolumeManagerTests: XCTestCase {
     }
 
     func testValidateMountWithReadOnlyMode() async throws {
-        let mount = try volumeManager.validateMount("/host:/container:ro")
+        let mount = try await volumeManager.validateMount("/host:/container:ro")
 
         XCTAssertEqual(mount.mode, "ro")
     }
 
     func testValidateMountInvalidFormatThrows() async {
         do {
-            _ = try volumeManager.validateMount("invalid-format")
+            _ = try await volumeManager.validateMount("invalid-format")
             XCTFail("Expected error was not thrown")
         } catch {
             XCTAssertTrue(error is VolumeError)
@@ -160,7 +161,7 @@ final class VolumeManagerTests: XCTestCase {
 
     func testValidateMountNonExistentPathThrows() async throws {
         do {
-            _ = try volumeManager.validateMount("/non/existent/path:/container")
+            _ = try await volumeManager.validateMount("/non/existent/path:/container")
             XCTFail("Expected error was not thrown")
         } catch {
             XCTAssertTrue(error is VolumeError)
@@ -172,7 +173,7 @@ final class VolumeManagerTests: XCTestCase {
         try "test".write(to: URL(fileURLWithPath: tempFile), atomically: true, encoding: .utf8)
 
         do {
-            _ = try volumeManager.validateMount("\(tempFile):/container:invalid-mode")
+            _ = try await volumeManager.validateMount("\(tempFile):/container:invalid-mode")
             XCTFail("Expected error was not thrown")
         } catch {
             XCTAssertTrue(error is VolumeError)
@@ -185,10 +186,10 @@ final class VolumeManagerTests: XCTestCase {
         let volumeName = "setup-test"
         let mount = Mount(source: volumeName, destination: "/data", mode: "rw", type: .volume)
 
-        let hostPath = try volumeManager.setupVolume(mount: mount)
+        let hostPath = try await volumeManager.setupVolume(mount: mount)
 
         // Should create volume if it doesn't exist
-        let volume = try volumeStore.fetch(name: volumeName)
+        let volume = try await volumeStore.fetch(name: volumeName)
         XCTAssertNotNil(volume)
         XCTAssertEqual(hostPath, volume?.mountPath)
     }
@@ -199,7 +200,7 @@ final class VolumeManagerTests: XCTestCase {
 
         let mount = Mount(source: tempFile, destination: "/container/file", mode: "rw", type: .bind)
 
-        let hostPath = try volumeManager.setupVolume(mount: mount)
+        let hostPath = try await volumeManager.setupVolume(mount: mount)
 
         // Bind mounts should return the expanded path
         XCTAssertTrue(hostPath.contains(tempFile))
@@ -208,16 +209,16 @@ final class VolumeManagerTests: XCTestCase {
     // MARK: - Get or Create
 
     func testGetOrCreateReturnsExisting() async throws {
-        let volume1 = try volumeManager.createVolume(name: "get-or-create")
+        let volume1 = try await volumeManager.createVolume(name: "get-or-create")
 
-        let volume2 = try volumeManager.getOrCreateVolume(name: "get-or-create")
+        let volume2 = try await volumeManager.getOrCreateVolume(name: "get-or-create")
 
         XCTAssertEqual(volume1.id, volume2.id)
         XCTAssertEqual(volume1.name, volume2.name)
     }
 
     func testGetOrCreateCreatesNew() async throws {
-        let volume = try volumeManager.getOrCreateVolume(name: "new-volume")
+        let volume = try await volumeManager.getOrCreateVolume(name: "new-volume")
 
         XCTAssertNotNil(volume.id)
         XCTAssertEqual(volume.name, "new-volume")
@@ -227,13 +228,13 @@ final class VolumeManagerTests: XCTestCase {
 
     func testVolumeMountType() async throws {
         // Mount without slash is a named volume
-        let mount1 = try volumeManager.validateMount("my-volume:/data")
+        let mount1 = try await volumeManager.validateMount("my-volume:/data")
         XCTAssertEqual(mount1.type, .volume)
 
         // Mount with slash is a bind mount
         let tempFile = tempDir + "/test.txt"
         try "test".write(to: URL(fileURLWithPath: tempFile), atomically: true, encoding: .utf8)
-        let mount2 = try volumeManager.validateMount("\(tempFile):/data")
+        let mount2 = try await volumeManager.validateMount("\(tempFile):/data")
         XCTAssertEqual(mount2.type, .bind)
     }
 }

@@ -73,7 +73,9 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
         status: Status,
         ports: [String],
         mounts: [MountSpec] = [],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        rootfsPath: String? = nil,
+        ipAddress: String? = nil
     ) {
         self.id = id
         self.name = name

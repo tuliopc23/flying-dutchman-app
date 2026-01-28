@@ -17,11 +17,8 @@ extension View {
         isEnabled: Bool = true
     ) -> some View {
         self
-            .background(.glass) // Native Tahoe semantic material
-            .glassEffect(in: shape, isEnabled: isEnabled)
-            .visualEffect { content, _ in
-                content.shadow(.drop(color: .black.opacity(0.1), radius: 10, y: 5))
-            }
+            .background(.ultraThinMaterial, in: shape)
+            .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
     }
     
     /// Apply Liquid Glass effect with card shape (12pt rounded rect)

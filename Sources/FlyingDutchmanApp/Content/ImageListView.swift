@@ -1,23 +1,23 @@
 import Shared
 import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
-import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
-import FlyingDutchmanPersistence
 import SwiftUI
-import FlyingDutchmanPersistence
-import SQLiteData
 
 @MainActor
 @Observable
 final class ImageListViewModel {
-    @FetchAll var images: [ImageSummary]
+    var images: [ImageSummary] = []
     var error: String?
     var isLoading: Bool = false
     var searchQuery: String = ""
     var pullReference: String = ""
     var pullMessage: String?
     var isPulling: Bool = false
+    
+    private let store = ImageStore()
+    
+    init() {}
 
     var filtered: [ImageSummary] {
         guard !searchQuery.isEmpty else { return images }
@@ -28,7 +28,9 @@ final class ImageListViewModel {
     }
 
     func load() async {
-        // No manual load needed - @FetchAll auto-updates!
+        isLoading = true
+        images = await store.fetchAll()
+        isLoading = false
     }
 
     func pull() async {
@@ -38,7 +40,7 @@ final class ImageListViewModel {
         error = nil
         do {
             pullMessage = try await EngineClient.pullImage(reference: pullReference)
-            // No need to reload - DB updates automatically
+            await load()
         } catch {
             self.error = "Pull failed: \(error.localizedDescription)"
         }

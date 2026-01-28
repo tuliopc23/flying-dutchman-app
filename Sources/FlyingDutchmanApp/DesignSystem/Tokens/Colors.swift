@@ -141,11 +141,10 @@ extension Color {
         // Asset catalog colors automatically handle light/dark
         // This fallback ensures we have values if assets aren't configured
         return Color(
-            .init(name: nil) { traitCollection in
-                switch traitCollection.userInterfaceStyle {
-                case .dark:
+            .init(name: nil) { appearance in
+                if appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua {
                     return NSColor(dark)
-                default:
+                } else {
                     return NSColor(light)
                 }
             }

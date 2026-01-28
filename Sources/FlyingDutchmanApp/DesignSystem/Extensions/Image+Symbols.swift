@@ -46,37 +46,16 @@ extension Image {
     public static func systemIconXLarge(_ name: String, weight: Font.Weight = .semibold) -> some View {
         systemIcon(name, size: DesignSystem.Size.iconXLarge, weight: weight)
     }
+
+    // MARK: - Common Icons
     
-    // MARK: - Toolbar Icon (Monochrome)
-    
-    /// Toolbar icon with Tahoe monochrome rendering
-    /// - Parameter name: SF Symbol name
-    /// - Returns: Icon configured for toolbar use (16pt, medium weight, monochrome)
-    public static func toolbarIcon(_ name: String) -> some View {
-        systemIcon(name, size: DesignSystem.Size.iconRegular, weight: .medium, renderingMode: .monochrome)
-    }
-    
-    // MARK: - Status Icons (Multicolor)
-    
-    /// Status icon with multicolor rendering (maintains symbol's original colors)
-    /// - Parameters:
-    ///   - name: SF Symbol name
-    ///   - size: Icon size (default: regular)
-    /// - Returns: Icon with multicolor rendering
-    public static func statusIcon(_ name: String, size: CGFloat = DesignSystem.Size.iconRegular) -> some View {
-        systemIcon(name, size: size, weight: .medium, renderingMode: .multicolor)
-    }
-    
-    // MARK: - Hierarchical Rendering
-    
-    /// Icon with hierarchical rendering (layers use opacity variations)
-    /// - Parameters:
-    ///   - name: SF Symbol name
-    ///   - size: Icon size (default: regular)
-    /// - Returns: Icon with hierarchical rendering
-    public static func hierarchicalIcon(_ name: String, size: CGFloat = DesignSystem.Size.iconRegular) -> some View {
-        systemIcon(name, size: size, weight: .medium, renderingMode: .hierarchical)
-    }
+    public static var iconPlay: Image { Image(systemName: "play.fill") }
+    public static var iconPause: Image { Image(systemName: "pause.fill") }
+    public static var iconStop: Image { Image(systemName: "stop.fill") }
+    public static var iconRefresh: Image { Image(systemName: "arrow.clockwise") }
+    public static var iconSearch: Image { Image(systemName: "magnifyingglass") }
+    public static var iconSettings: Image { Image(systemName: "gearshape.fill") }
+    public static var iconSidebar: Image { Image(systemName: "sidebar.left") }
 }
 
 // MARK: - Common SF Symbols Reference
@@ -104,89 +83,3 @@ extension Image {
         self.symbolEffect(.variableColor)
     }
 }
-
-// MARK: - Usage Examples
-
-/*
- // Toolbar button with icon
- Button {
-     refresh()
- } label: {
-     Image.toolbarIcon("arrow.clockwise")
- }
- .buttonStyle(.glass)
- 
- // Status indicator with multicolor icon
- HStack {
-     Image.iconRunning
-     Text("Running")
- }
- .foregroundStyle(DesignSystem.Colors.success)
- 
- // Large icon for header
- VStack {
-     Image.systemIconXLarge("shippingbox.fill")
-         .foregroundStyle(DesignSystem.Colors.accent)
-     Text("Containers")
-         .font(DesignSystem.Typography.title1)
- }
- 
- // Icon with bounce effect
- Image.systemIcon("checkmark.circle.fill", size: DesignSystem.Size.iconLarge)
-     .foregroundStyle(DesignSystem.Colors.success)
-     .bounce(value: isComplete)
- 
- // Custom size with hierarchical rendering
- Image.hierarchicalIcon("arrow.down.circle.fill", size: 32)
-     .foregroundStyle(DesignSystem.Colors.primary)
- 
- // Inline icon with text
- Label {
-     Text("Settings")
- } icon: {
-     Image.iconSettings
- }
- */
-
-// MARK: - SF Symbols Best Practices
-
-/*
- Tahoe SF Symbols Guidelines:
- 
- 1. **Rendering modes**
-    - Monochrome: Toolbars, navigation (Tahoe standard)
-    - Multicolor: Status indicators, semantic meaning
-    - Hierarchical: Depth within single-color icons
-    - Palette: Custom multi-color (use sparingly)
- 
- 2. **Weights & sizes**
-    - Match icon weight to surrounding text weight
-    - Small (12pt): Inline with body text
-    - Regular (16pt): UI elements, buttons
-    - Large (20pt): Emphasis, section headers
-    - XLarge (24pt): Hero elements, empty states
- 
- 3. **Accessibility**
-    - Always provide `.accessibilityLabel()` for icon-only buttons
-    - Use `Image(decorative:)` for purely decorative icons
-    - SF Symbols scale with Dynamic Type automatically
- 
- 4. **Symbol effects (SF Symbols 7)**
-    - Bounce: Success feedback, completion
-    - Pulse: Loading, processing
-    - Variable color: Progress, states
-    - Use effects sparingly—not every icon needs animation
- 
- 5. **Color consistency**
-    - Monochrome toolbars inherit tint color
-    - Multicolor icons use built-in semantic colors
-    - Apply custom colors with `.foregroundStyle()` when needed
-    - Respect system accent color for user-configurable tinting
- 
- 6. **Common patterns**
-    ✅ Toolbar: Monochrome, regular size, medium weight
-    ✅ Status: Multicolor, regular/large size, filled variants
-    ✅ Inline: Small size, match text weight
-    ❌ Mixing rendering modes in same context (confusing)
-    ❌ Heavy weights in small sizes (too bold)
- */

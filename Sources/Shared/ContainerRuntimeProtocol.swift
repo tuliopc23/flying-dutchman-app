@@ -1,5 +1,4 @@
 import Foundation
-import Shared
 
 /// Configuration for creating a container
 public struct ContainerConfig: Codable, Sendable {

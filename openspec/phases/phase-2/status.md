@@ -1,28 +1,29 @@
-# Phase 2 Status: UI/UX & Architecture
+# Phase 2 Status: Networking
 
-updated: 2026-01-05
-status: 🟡 In Progress (Refactoring)
+updated: 2026-01-27
+status: 🟡 In Progress
 
 ---
 
-## 🎯 Current Sprint: Tahoe Modernization
+## 🎯 Current Sprint: Networking Stabilization & DNS
 
-### Foundation & Tokens
-- [x] Fix `EdgeInsets` naming conflict in `Spacing.swift` ✅
-- [x] Modernize `View+Glass.swift` for macOS 26+ native APIs ✅
-- [x] Update `Colors.swift` with Tahoe-optimized palette ✅
+### 2.1 Core Networking (Stabilization)
+- [x] Bridge network driver (NetworkManager + IPAllocator) ✅
+- [x] Port forwarding (`-p` flag + PortForwardManager) ✅
+- [x] Container IP allocation (CIDR) ✅
+- [ ] Fix `NetworkError` redeclaration
+- [ ] Resolve module ownership (Containers <-> Networking)
+- [ ] Fix HTTP container create route (ContainerConfig)
 
-### Architecture (Observation)
-- [x] Create `@Observable AppState` coordinator ✅
-- [x] Migrate `StatusViewModel` to Observation ✅
-- [x] Migrate `ContainerListViewModel` to Observation ✅
-- [x] Migrate `ImageListViewModel` to Observation ✅
+### 2.2 DNS & Domains
+- [ ] Local DNS resolver (UDP 5353)
+- [ ] Resolver file (/etc/resolver/fd.local)
+- [ ] Zero-config domains (*.fd.local)
 
-### Main Layout
-- [x] Refactor `MainWindow` to `NavigationSplitView` ✅
-- [x] Implement `SidebarView` with Tahoe styling ✅
-- [x] Implement Unified Chrome (titlebar/toolbar) ✅
-- [x] Add `MeshGradient` background to root window ✅ (via containerBackground)
+### 2.3 HTTPS
+- [ ] Local CA generation
+- [ ] Automatic certificate provisioning
+- [ ] Reverse proxy for HTTPS termination
 
 ---
 
@@ -30,13 +31,13 @@ status: 🟡 In Progress (Refactoring)
 
 | Category | Requirement | Status |
 | :--- | :--- | :--- |
-| **Architecture** | Centralized AppState | ✅ 100% |
-| **Navigation** | Native SplitView Sidebar | ✅ 100% |
-| **Design** | Official Liquid Glass Usage | ✅ 100% |
-| **MVP** | Functional Container Workflow | ✅ 100% |
+| **Core** | Bridge Networking | ✅ Done |
+| **Core** | Port Forwarding | 🟡 Partial |
+| **DNS** | Local Resolution | ⚪ Not Started |
+| **HTTPS** | Local Certificates | ⚪ Not Started |
 
 ---
 
 ## 📝 Change Log
 
-- **2026-01-05**: Initialized Phase 2 spec. Identified Tahoe-native APIs as primary target.
+- **2026-01-27**: Reset Phase 2 status to align with Networking roadmap.

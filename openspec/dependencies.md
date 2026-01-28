@@ -46,8 +46,10 @@
 | [apple/swift-nio-transport-services](https://github.com/apple/swift-nio-transport-services) | 1.21.0+ | Network.framework integration | FlyingDutchmanContainers | ✅ |
 | [hummingbird-project/hummingbird](https://github.com/hummingbird-project/hummingbird) | 2.0.0+ | HTTP server framework | FlyingDutchmanNetworking | ✅ |
 | [swift-server/async-http-client](https://github.com/swift-server/async-http-client) | 1.20.0+ | HTTP client | FlyingDutchmanNetworking | ✅ |
+| [orlandos-nl/DNSClient](https://github.com/orlandos-nl/DNSClient) | 2.0.0+ | Pure Swift DNS Client | FlyingDutchmanNetworking | ✅ Integrated |
+| [apple/swift-certificates](https://github.com/apple/swift-certificates) | 1.0.0+ | X.509 certificate generation | FlyingDutchmanNetworking | ✅ Integrated |
 
-**Rationale**: Swift-NIO is the foundation for server-side Swift. Hummingbird chosen over Vapor for its lightweight footprint and better async/await integration.
+**Rationale**: Swift-NIO is the foundation for server-side Swift. Hummingbird chosen over Vapor for its lightweight footprint and better async/await integration. DNSClient and swift-certificates added for Phase 2 (Networking).
 
 ### CLI & Lifecycle
 
@@ -109,47 +111,6 @@
 - Port forwarding for service proxying
 
 **Rejected Alternative**: apple/swift-nio-ssh directly - too low-level, no SFTP, requires extensive boilerplate
-
-### DNS Resolution (Phase 2.2)
-
-| Package | Version | Purpose | Module | Status |
-|---------|---------|---------|--------|--------|
-| [orlandos-nl/DNSClient](https://github.com/orlandos-nl/DNSClient) | 2.0.0+ | Pure Swift DNS Client | FlyingDutchmanNetworking | ✅ Selected |
-
-**Rationale**: Pure Swift implementation built on SwiftNIO, providing both client and server capabilities. Essential for implementing the custom DNS server required for `.fd.local` domain resolution.
-
-**Configuration Strategy**:
-```swift
-// Initialize DNS Client with NIO EventLoopGroup
-let client = try DNSClient(
-    group: eventLoopGroup,
-    host: "8.8.8.8" // Upstream resolver
-)
-
-// For custom server implementation (Phase 2.2)
-// DNSClient provides message parsing/serialization helpers
-// to build a UDP DNS server on port 53/5353
-```
-
-**Rejected Alternatives**: 
-- swift-async-dns-resolver - Wrapper around c-ares, less flexible for building a custom server
-- dnsmasq subprocess - external process management overhead
-
-### HTTPS & Certificates (Phase 2.3)
-
-| Package | Version | Purpose | Module | Status |
-|---------|---------|---------|--------|--------|
-| [apple/swift-certificates](https://github.com/apple/swift-certificates) | 1.0.0+ | X.509 certificate generation | FlyingDutchmanNetworking | ✅ Selected |
-
-**Rationale**: Apple official, Swift 6 compatible, pure Swift X.509 implementation. Enables programmatic CA creation and leaf certificate signing for automatic HTTPS on `*.fd.local` domains.
-
-**Implementation Plan**:
-1. Generate root CA on first launch (10-year validity)
-2. Store CA in macOS Keychain (prompt user to trust)
-3. Issue leaf certs per container/service on-demand (1-year validity)
-4. Export PEM for reverse proxy (Hummingbird TLS)
-
-**Dependencies**: Pulls in `swift-crypto` for cryptographic primitives
 
 ---
 

@@ -1,5 +1,7 @@
 import Foundation
 import ArgumentParser
+import FlyingDutchmanNetworking
+import Shared
 
 /// CLI command for logging out from a container registry
 ///
@@ -53,52 +55,6 @@ struct Logout: AsyncParsableCommand {
                 normalized = String(normalized.dropLast())
             }
             return normalized
-        }
-    }
-}
-
-// MARK: - EngineClient Extension
-
-extension EngineClient {
-    /// Send logout request to Engine
-    @MainActor
-    static func logout(registry: String) async throws {
-        let url = URL(string: "\(baseURL)/auth/logout")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let payload: [String: String] = [
-            "registry": registry
-        ]
-        
-        request.httpBody = try JSONEncoder().encode(payload)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let http = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
-        }
-        
-        guard http.statusCode == 200 else {
-            // Try to parse error message
-            if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
-                throw LogoutError.failed(message: errorMessage)
-            }
-            throw LogoutError.failed(message: "HTTP \(http.statusCode)")
-        }
-    }
-}
-
-/// Logout-specific errors
-enum LogoutError: Error, LocalizedError {
-    case failed(message: String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .failed(let message):
-            return "Logout failed: \(message)"
         }
     }
 }

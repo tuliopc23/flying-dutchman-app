@@ -7,7 +7,7 @@ import SwiftUI
 extension DesignSystem {
     /// Shadow presets for depth hierarchy
     /// Use sparingly with Liquid Glass—glass provides depth inherently
-    public enum Shadow {
+    @MainActor public enum Shadow {
         // MARK: - Shadow Definitions
         
         /// Subtle shadow - minimal depth for hover states
@@ -59,7 +59,7 @@ extension DesignSystem {
     }
     
     /// Shadow style container
-    public struct ShadowStyle {
+    public struct ShadowStyle: Sendable {
         public let color: Color
         public let radius: CGFloat
         public let x: CGFloat

@@ -3,7 +3,7 @@ import Foundation
 import Shared
 
 /// Groups the encoder and decoder into a single handler for convenience
-public final class ControlPlaneCodec: ChannelDuplexHandler {
+public final class ControlPlaneCodec: ChannelDuplexHandler, Sendable {
     public typealias InboundIn = ByteBuffer
     public typealias InboundOut = ControlPlaneEvent
     public typealias OutboundIn = ControlPlaneCommand
@@ -38,7 +38,7 @@ public final class ControlPlaneCodec: ChannelDuplexHandler {
 }
 
 /// Encodes Commands to length-prefixed JSON bytes
-final class ControlPlaneRequestEncoder {
+final class ControlPlaneRequestEncoder: Sendable {
     func encode(data: ControlPlaneCommand, out: inout ByteBuffer) throws {
         let json = try JSONEncoder().encode(data)
         // Length prefix framing (4 bytes length + JSON body)
@@ -48,7 +48,7 @@ final class ControlPlaneRequestEncoder {
 }
 
 /// Decodes length-prefixed JSON bytes to Events
-final class ControlPlaneResponseDecoder: ByteToMessageDecoder {
+final class ControlPlaneResponseDecoder: ByteToMessageDecoder, Sendable {
     typealias InboundOut = ControlPlaneEvent
     
     func decode(context: ChannelHandlerContext, buffer: inout ByteBuffer) throws -> DecodingState {

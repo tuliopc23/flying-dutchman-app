@@ -1,5 +1,7 @@
 import Foundation
 import ArgumentParser
+import FlyingDutchmanNetworking
+import Shared
 
 /// CLI command for logging in to a container registry
 ///
@@ -109,53 +111,5 @@ struct Login: AsyncParsableCommand {
         }
         
         return readLine() ?? ""
-    }
-}
-
-// MARK: - EngineClient Extension
-
-extension EngineClient {
-    /// Send login request to Engine
-    @MainActor
-    static func login(registry: String, username: String, password: String) async throws {
-        let url = URL(string: "\(baseURL)/auth/login")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let payload: [String: String] = [
-            "registry": registry,
-            "username": username,
-            "password": password
-        ]
-        
-        request.httpBody = try JSONEncoder().encode(payload)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let http = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
-        }
-        
-        guard http.statusCode == 200 else {
-            // Try to parse error message
-            if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
-                throw LoginError.authenticationFailed(message: errorMessage)
-            }
-            throw LoginError.authenticationFailed(message: "HTTP \(http.statusCode)")
-        }
-    }
-}
-
-/// Login-specific errors
-enum LoginError: Error, LocalizedError {
-    case authenticationFailed(message: String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .authenticationFailed(let message):
-            return "Authentication failed: \(message)"
-        }
     }
 }

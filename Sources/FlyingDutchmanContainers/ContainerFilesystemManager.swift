@@ -174,7 +174,7 @@ public actor ContainerFilesystemManager {
     
     // MARK: - Private Helpers
     
-    private func createBaseDirectory() {
+    nonisolated private func createBaseDirectory() {
         do {
             try FileManager.default.createDirectory(
                 at: baseDirectory,

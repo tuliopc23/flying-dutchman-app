@@ -36,11 +36,25 @@ struct ContainersRoutes: @unchecked Sendable {
             }
 
             // Create container via runtime
+            // Merge legacy fields with config object
+            let baseConfig = payload.config ?? ContainerConfig.default
+            
+            let mergedPorts = baseConfig.ports ?? payload.ports
+            let mergedEnv = baseConfig.env ?? payload.env
+            let mergedVolumes = baseConfig.volumes ?? payload.volumes
+            
             let config = ContainerConfig(
-                ports: payload.ports,
-                env: payload.env,
-                volumes: payload.volumes
+                ports: mergedPorts,
+                portMappings: baseConfig.portMappings,
+                env: mergedEnv,
+                volumes: mergedVolumes,
+                networkMode: baseConfig.networkMode,
+                cpuLimit: baseConfig.cpuLimit,
+                memoryLimit: baseConfig.memoryLimit,
+                command: baseConfig.command,
+                workingDir: baseConfig.workingDir
             )
+            
             let container = try await runtime.createContainer(
                 name: payload.name,
                 image: payload.image,

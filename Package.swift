@@ -34,15 +34,15 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0"),
         .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
         .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0"),
-        .package(url: "https://github.com/pointfreeco/sqlite-data.git", from: "1.0.0")
+        .package(url: "https://github.com/orlandos-nl/DNSClient.git", from: "2.0.0"),
+        .package(url: "https://github.com/apple/swift-certificates.git", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "Shared",
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Dependencies", package: "swift-dependencies"),
-                .product(name: "SQLiteData", package: "sqlite-data")
+                .product(name: "Dependencies", package: "swift-dependencies")
             ],
             path: "Sources/Shared"
         ),
@@ -98,7 +98,9 @@ let package = Package(
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "GRDBSQLite", package: "GRDB.swift"),
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "DNSClient", package: "DNSClient"),
+                .product(name: "X509", package: "swift-certificates")
             ],
             path: "Sources/FlyingDutchmanNetworking"
         ),
@@ -132,8 +134,7 @@ let package = Package(
                 "FlyingDutchmanPersistence",
                 .product(name: "SwiftNavigation", package: "swift-navigation"),
                 .product(name: "SwiftUINavigation", package: "swift-navigation"),
-                .product(name: "Dependencies", package: "swift-dependencies"),
-                .product(name: "SQLiteData", package: "sqlite-data")
+                .product(name: "Dependencies", package: "swift-dependencies")
             ],
             path: "Sources/FlyingDutchmanApp"
         ),
@@ -165,6 +166,15 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift")
             ],
             path: "Tests/FlyingDutchmanPersistenceTests"
+        ),
+        .testTarget(
+            name: "FlyingDutchmanContainersTests",
+            dependencies: [
+                "FlyingDutchmanContainers",
+                "Shared",
+                "FlyingDutchmanPersistence"
+            ],
+            path: "Tests/FlyingDutchmanContainersTests"
         )
     ]
 )

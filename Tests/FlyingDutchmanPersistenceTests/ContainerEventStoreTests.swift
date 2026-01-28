@@ -1,4 +1,5 @@
 import XCTest
+import GRDB
 @testable import FlyingDutchmanPersistence
 @testable import Shared
 
@@ -26,7 +27,7 @@ final class ContainerEventStoreTests: XCTestCase {
 
         await eventStore.record(event)
 
-        let retrieved = eventStore.events(for: event.containerID)
+        let retrieved = await eventStore.events(for: event.containerID)
         XCTAssertEqual(retrieved.count, 1)
         XCTAssertEqual(retrieved[0].id, event.id)
         XCTAssertEqual(retrieved[0].containerID, event.containerID)
@@ -40,7 +41,7 @@ final class ContainerEventStoreTests: XCTestCase {
 
         await eventStore.record(event)
 
-        let retrieved = eventStore.events(for: event.containerID)
+        let retrieved = await eventStore.events(for: event.containerID)
         XCTAssertEqual(retrieved.count, 1)
 
         if case .logOutput(let message) = retrieved[0].type {
@@ -64,7 +65,7 @@ final class ContainerEventStoreTests: XCTestCase {
 
         await eventStore.record(event)
 
-        let retrieved = eventStore.events(for: event.containerID)
+        let retrieved = await eventStore.events(for: event.containerID)
         XCTAssertEqual(retrieved.count, 1)
 
         if case .resourceUpdate(let info) = retrieved[0].type {
@@ -87,7 +88,7 @@ final class ContainerEventStoreTests: XCTestCase {
             await eventStore.record(event)
         }
 
-        let retrieved = eventStore.events(for: containerID, limit: 10)
+        let retrieved = await eventStore.events(for: containerID, limit: 10)
         XCTAssertEqual(retrieved.count, 5)
     }
 
@@ -108,7 +109,7 @@ final class ContainerEventStoreTests: XCTestCase {
         await eventStore.record(event1)
         await eventStore.record(event2)
 
-        let retrieved = eventStore.events(for: containerID)
+        let retrieved = await eventStore.events(for: containerID)
         XCTAssertEqual(retrieved.count, 1)
         XCTAssertEqual(retrieved[0].containerID, containerID)
     }
@@ -124,12 +125,12 @@ final class ContainerEventStoreTests: XCTestCase {
             await eventStore.record(event)
         }
 
-        let retrieved = eventStore.events(for: containerID, limit: 5)
+        let retrieved = await eventStore.events(for: containerID, limit: 5)
         XCTAssertEqual(retrieved.count, 5)
     }
 
-    func testFetchEventsEmptyInitially() {
-        let events = eventStore.events(for: UUID())
+    func testFetchEventsEmptyInitially() async {
+        let events = await eventStore.events(for: UUID())
         XCTAssertTrue(events.isEmpty)
     }
 
@@ -145,7 +146,7 @@ final class ContainerEventStoreTests: XCTestCase {
             await eventStore.record(event)
         }
 
-        let retrieved = eventStore.recent(limit: 10)
+        let retrieved = await eventStore.recent(limit: 10)
 
         // Should be in chronological order (oldest first)
         XCTAssertEqual(retrieved.count, 3)
@@ -165,10 +166,10 @@ final class ContainerEventStoreTests: XCTestCase {
 
         await eventStore.deleteEvents(for: containerID)
 
-        let retrieved = eventStore.events(for: containerID)
+        let retrieved = await eventStore.events(for: containerID)
         XCTAssertTrue(retrieved.isEmpty)
 
-        let otherRetrieved = eventStore.events(for: otherContainerID)
+        let otherRetrieved = await eventStore.events(for: otherContainerID)
         XCTAssertEqual(otherRetrieved.count, 1)
     }
 
@@ -187,7 +188,7 @@ final class ContainerEventStoreTests: XCTestCase {
 
         await eventStore.record(event)
 
-        let retrieved = eventStore.events(for: event.containerID).first
+        let retrieved = await eventStore.events(for: event.containerID).first
         XCTAssertNotNil(retrieved)
 
         // Verify event type round-trips correctly
@@ -227,7 +228,7 @@ final class ContainerEventStoreTests: XCTestCase {
         await eventStore.record(logEvent)
         await eventStore.record(resourceEvent)
 
-        let retrieved = eventStore.events(for: containerID)
+        let retrieved = await eventStore.events(for: containerID)
         XCTAssertEqual(retrieved.count, 3)
 
         // Verify log output with special characters
@@ -258,7 +259,7 @@ final class ContainerEventStoreTests: XCTestCase {
 
         await eventStore.record(event)
 
-        let retrieved = eventStore.events(for: event.containerID).first
+        let retrieved = await eventStore.events(for: event.containerID).first
         XCTAssertNotNil(retrieved)
 
         // Timestamps should match within a reasonable tolerance
@@ -279,9 +280,14 @@ final class ContainerEventStoreTests: XCTestCase {
             await eventStore.record(ContainerEvent(containerID: container3, type: .logOutput("C3: \(i)")))
         }
 
-        XCTAssertEqual(eventStore.events(for: container1).count, 5)
-        XCTAssertEqual(eventStore.events(for: container2).count, 5)
-        XCTAssertEqual(eventStore.events(for: container3).count, 5)
+        let events1 = await eventStore.events(for: container1)
+        XCTAssertEqual(events1.count, 5)
+
+        let events2 = await eventStore.events(for: container2)
+        XCTAssertEqual(events2.count, 5)
+
+        let events3 = await eventStore.events(for: container3)
+        XCTAssertEqual(events3.count, 5)
     }
 
     // MARK: - High Volume
@@ -298,7 +304,7 @@ final class ContainerEventStoreTests: XCTestCase {
             await eventStore.record(event)
         }
 
-        let retrieved = eventStore.events(for: containerID, limit: 200)
+        let retrieved = await eventStore.events(for: containerID, limit: 200)
         XCTAssertEqual(retrieved.count, eventCount)
     }
 }

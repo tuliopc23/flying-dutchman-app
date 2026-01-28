@@ -30,22 +30,25 @@ final class ContainerDetailViewModel {
     
     func start() async {
         await performAction { [self] in
-            let updated = try await EngineClient.startContainer(container.id)
+            let updated = try await EngineClient.startContainer(id: container.id)
             self.container = updated
+            return updated
         }
     }
     
     func stop() async {
         await performAction { [self] in
-            let updated = try await EngineClient.stopContainer(container.id)
+            let updated = try await EngineClient.stopContainer(id: container.id)
             self.container = updated
+            return updated
         }
     }
     
     func restart() async {
         await performAction { [self] in
-            let updated = try await EngineClient.restartContainer(container.id)
+            let updated = try await EngineClient.restartContainer(id: container.id)
             self.container = updated
+            return updated
         }
     }
     

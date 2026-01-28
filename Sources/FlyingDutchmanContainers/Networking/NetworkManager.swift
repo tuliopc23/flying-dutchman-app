@@ -55,7 +55,7 @@ public actor NetworkManager {
     /// Allocate IP for a container in a network
     public func allocateIP(networkID: UUID, containerID: UUID) async throws -> String {
         guard var allocator = allocators[networkID] else {
-            throw NetworkError.networkNotFound(networkID.uuidString)
+            throw ContainerNetworkError.networkNotFound(networkID.uuidString)
         }
         
         let ip = try allocator.allocateNext()

@@ -27,7 +27,6 @@ struct MainWindow: View {
                 }
                 .navigationTitle(state.selectedSection.title)
                 .toolbarTitleDisplayMode(.inline)
-                .containerBackground(.glass, for: .navigation) // Tahoe-native blur
                 .toolbar {
                     MainToolbar()
                 }
@@ -105,48 +104,32 @@ struct EngineStatusHero: View {
         }
     }
 
-    @ViewBuilder
-    private var contentForSection: some View {
-        switch selectedSection {
+struct DetailContentView: View {
+    @Environment(AppState.self) private var state
+    
+    var body: some View {
+        switch state.selectedSection {
         case .containers:
             VStack(spacing: DesignSystem.Spacing.lg) {
-                StackDetailView(stack: sidebarViewModel.selectedStack)
-                ContainerListView(viewModel: containersViewModel, stack: sidebarViewModel.selectedStack)
+                StackDetailView(stack: state.sidebar.selectedStack)
+                ContainerListView(viewModel: state.containers, stack: state.sidebar.selectedStack)
             }
         case .images:
-            ImageListView(viewModel: imagesViewModel)
+            ImageListView(viewModel: state.images)
         case .volumes:
-            VolumeListView(viewModel: volumesViewModel)
+            VolumeListView(viewModel: state.volumes)
         case .networks:
-            NetworkListView(viewModel: networksViewModel)
+            NetworkListView(viewModel: state.networks)
         case .logs:
-            LogsView(viewModel: logsViewModel, containers: containersViewModel.containers)
+            LogsView(viewModel: state.logs, containers: state.containers.containers)
         case .events:
-            EventsView(viewModel: eventsViewModel)
+            EventsView(viewModel: state.events)
         case .stacks:
-            StacksView(viewModel: stacksViewModel)
+            StacksView(viewModel: state.stacks)
         }
     }
+}
 
-    @MainActor
-    private func refreshCurrentSection() async {
-        switch selectedSection {
-        case .containers:
-            await containersViewModel.load()
-        case .images:
-            await imagesViewModel.load()
-        case .volumes:
-            await volumesViewModel.load()
-        case .networks:
-            await networksViewModel.load()
-        case .logs:
-            await logsViewModel.load(containers: containersViewModel.containers)
-        case .events:
-            eventsViewModel.startStreaming()
-        case .stacks:
-            await stacksViewModel.load()
-        }
-    }
     
     // MARK: - Status Helpers (migrated from legacy DesignTokens)
     

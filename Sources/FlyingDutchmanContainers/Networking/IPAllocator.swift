@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 /// Manages IP address allocation for a subnet
 public struct IPAllocator: Sendable {
@@ -18,11 +19,11 @@ public struct IPAllocator: Sendable {
         guard parts.count == 2,
               let prefixLen = Int(parts[1]),
               prefixLen >= 0 && prefixLen <= 32 else {
-            throw NetworkError.invalidSubnet(subnet)
+            throw ContainerNetworkError.invalidSubnet(subnet)
         }
         
         guard let ip = IPAllocator.ipToUInt32(String(parts[0])) else {
-            throw NetworkError.invalidSubnet(subnet)
+            throw ContainerNetworkError.invalidSubnet(subnet)
         }
         
         self.baseIP = ip
@@ -45,7 +46,7 @@ public struct IPAllocator: Sendable {
                 return IPAllocator.uint32ToIP(baseIP | i)
             }
         }
-        throw NetworkError.subnetExhausted(subnet)
+        throw ContainerNetworkError.subnetExhausted(subnet)
     }
     
     /// Mark an IP as allocated manually
@@ -89,19 +90,5 @@ public struct IPAllocator: Sendable {
     
     private static func uint32ToIP(_ ip: UInt32) -> String {
         return "\(ip >> 24).\( (ip >> 16) & 0xFF ).\( (ip >> 8) & 0xFF ).\(ip & 0xFF)"
-    }
-}
-
-public enum NetworkError: Error, LocalizedError {
-    case invalidSubnet(String)
-    case subnetExhausted(String)
-    case networkNotFound(String)
-    
-    public var errorDescription: String? {
-        switch self {
-        case .invalidSubnet(let s): return "Invalid subnet format: \(s)"
-        case .subnetExhausted(let s): return "No more IPs available in subnet \(s)"
-        case .networkNotFound(let n): return "Network not found: \(n)"
-        }
     }
 }

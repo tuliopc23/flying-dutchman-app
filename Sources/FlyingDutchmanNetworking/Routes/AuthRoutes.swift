@@ -1,5 +1,6 @@
 import Foundation
 import Hummingbird
+import Shared
 import FlyingDutchmanContainers
 
 /// HTTP routes for registry authentication (login/logout)

@@ -1,27 +1,27 @@
 import Shared
 import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
-import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
-import FlyingDutchmanPersistence
 import SwiftUI
-import FlyingDutchmanPersistence
-import SQLiteData
 
 @MainActor
 @Observable
-final class StacksViewModel {
-    @FetchAll var stacks: [StackSummary]
-    var error: String?
-    var isLoading: Bool = false
-    var searchQuery: String = ""
-    var showCreate: Bool = false
-    var newName: String = ""
-    var newDescription: String = ""
-    var newContainers: String = ""
-    var lastActionMessage: String?
+public final class StacksViewModel {
+    public var stacks: [StackSummary] = []
+    public var error: String?
+    public var isLoading: Bool = false
+    public var searchQuery: String = ""
+    public var showCreate: Bool = false
+    public var newName: String = ""
+    public var newDescription: String = ""
+    public var newContainers: String = ""
+    public var lastActionMessage: String?
+    
+    private let store = StackStore()
+    
+    public init() {}
 
-    var filtered: [StackSummary] {
+    public var filtered: [StackSummary] {
         guard !searchQuery.isEmpty else { return stacks }
         let needle = searchQuery.lowercased()
         return stacks.filter { stack in
@@ -29,11 +29,13 @@ final class StacksViewModel {
         }
     }
 
-    func load() async {
-        // No manual load needed - @FetchAll auto-updates!
+    public func load() async {
+        isLoading = true
+        stacks = store.fetchAll()
+        isLoading = false
     }
 
-    func create() async {
+    public func create() async {
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         isLoading = true
@@ -62,7 +64,7 @@ final class StacksViewModel {
         isLoading = false
     }
 
-    func start(_ stack: StackSummary) async {
+    public func start(_ stack: StackSummary) async {
         isLoading = true
         error = nil
         do {
@@ -74,7 +76,7 @@ final class StacksViewModel {
         isLoading = false
     }
 
-    func stop(_ stack: StackSummary) async {
+    public func stop(_ stack: StackSummary) async {
         isLoading = true
         error = nil
         do {

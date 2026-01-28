@@ -1,7 +1,5 @@
 import Foundation
-import SQLiteData
 
-@Table
 public struct UIState: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var selectedSection: String

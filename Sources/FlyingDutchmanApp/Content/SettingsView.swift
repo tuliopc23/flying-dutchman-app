@@ -1,93 +1,86 @@
 import Shared
-import SQLiteData
 import SwiftUI
+import FlyingDutchmanPersistence
 
 struct SettingsView: View {
-    @FetchAll private var states: [UIState]
+    @State private var state: UIState = UIState()
+    private let store = UIStateStore()
     
-    private var state: UIState? {
-        states.first ?? UIState()
-    }
-
     var body: some View {
         Form {
             Section("Engine") {
                 TextField("Host", text: Binding(
-                    get: { state?.engineHost ?? AppConfig.Engine.host },
+                    get: { state.engineHost },
                     set: { newValue in
-                        ensureState().engineHost = newValue
+                        state.engineHost = newValue
                         persist()
                     }
                 ))
 
                 Stepper(value: Binding(
-                    get: { state?.enginePort ?? AppConfig.Engine.port },
+                    get: { state.enginePort },
                     set: { newValue in
-                        ensureState().enginePort = newValue
+                        state.enginePort = newValue
                         persist()
                     }
                 ), in: 1...65_535) {
-                    Text("Port: \(state?.enginePort ?? AppConfig.Engine.port)")
+                    Text("Port: \(state.enginePort)")
                 }
             }
 
             Section("UI") {
                 Toggle("Default: Follow logs", isOn: Binding(
-                    get: { state?.defaultFollowLogs ?? false },
+                    get: { state.defaultFollowLogs },
                     set: { newValue in
-                        ensureState().defaultFollowLogs = newValue
+                        state.defaultFollowLogs = newValue
                         persist()
                     }
                 ))
 
                 Stepper(value: Binding(
-                    get: { Int(state?.logsPollIntervalSeconds ?? 5) },
+                    get: { Int(state.logsPollIntervalSeconds) },
                     set: { newValue in
-                        ensureState().logsPollIntervalSeconds = Double(newValue)
+                        state.logsPollIntervalSeconds = Double(newValue)
                         persist()
                     }
                 ), in: 1...60) {
-                    Text("Logs poll: \(Int(state?.logsPollIntervalSeconds ?? 5))s")
+                    Text("Logs poll: \(Int(state.logsPollIntervalSeconds))s")
                 }
 
                 Stepper(value: Binding(
-                    get: { Int(state?.eventsPollIntervalSeconds ?? 5) },
+                    get: { Int(state.eventsPollIntervalSeconds) },
                     set: { newValue in
-                        ensureState().eventsPollIntervalSeconds = Double(newValue)
+                        state.eventsPollIntervalSeconds = Double(newValue)
                         persist()
                     }
                 ), in: 1...60) {
-                    Text("Events poll: \(Int(state?.eventsPollIntervalSeconds ?? 5))s")
+                    Text("Events poll: \(Int(state.eventsPollIntervalSeconds))s")
                 }
 
                 Stepper(value: Binding(
-                    get: { state?.eventsLimit ?? 50 },
+                    get: { state.eventsLimit },
                     set: { newValue in
-                        ensureState().eventsLimit = newValue
+                        state.eventsLimit = newValue
                         persist()
                     }
                 ), in: 10...500, step: 10) {
-                    Text("Events limit: \(state?.eventsLimit ?? 50)")
+                    Text("Events limit: \(state.eventsLimit)")
                 }
             }
         }
         .padding(DesignSystem.Inset.lg)
         .frame(width: 420)
         .background(DesignSystem.Colors.background)
-    }
-
-    private func ensureState() -> UIState {
-        if let existing = state {
-            return existing
+        .task {
+            state = store.get()
         }
-        let created = UIState()
-        modelContext.insert(created)
-        try? modelContext.save()
-        return created
     }
 
     private func persist() {
-        state?.lastUpdated = Date()
-        try? modelContext.save()
+        state.lastUpdated = Date()
+        let currentState = state
+        Task {
+            try? await store.save(currentState)
+        }
     }
 }

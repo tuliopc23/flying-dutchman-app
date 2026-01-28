@@ -72,7 +72,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             throw EngineError.kernelNotFound(path: kernelPath.string)
         }
         
-        let kernel = try Kernel(
+        let kernel = Kernel(
             path: URL(fileURLWithPath: kernelPath.string),
             platform: .linuxArm
         )
@@ -99,7 +99,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         try await networkManager.initialize()
 
         // Get all containers from persistence
-        let storedContainers = await containerStore.fetchAll()
+        let storedContainers = containerStore.fetchAll()
 
         // Rebuild state machines and reconcile states
         var reconciled = 0
@@ -170,7 +170,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     
     public func listContainers() async throws -> [ContainerSummary] {
         // Return containers from GRDB, sync state machines
-        let stored = await containerStore.fetchAll()
+        let stored = containerStore.fetchAll()
 
         // Update status based on state machines and active VMs
         return stored.map { container in
@@ -319,7 +319,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             // ... (mount setup)
 
             // Create the LinuxContainer via ContainerManager
-            let linuxContainer = try await manager.create(container.name, reference: container.image) { cfg in
+            let _ = try await manager.create(container.name, reference: container.image) { cfg in
                 cfg.cpus = cpuCount
                 cfg.memoryInBytes = UInt64(memoryBytes)
                 
@@ -334,6 +334,9 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             // ... (VM boot)
             
             // ... (port forwarding)
+            
+            // Rootfs URL (Added during stabilization)
+            let rootfsURL: URL? = nil // Placeholder until exposed rootfs logic is confirmed
             
             // Update state machine and status to running
             try stateMachine.transition(to: .running)
@@ -454,7 +457,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
         try await containerStore.delete(id: id)
 
         // Delete container logs
-        await logStore.delete(containerID: id)
+        logStore.delete(containerID: id)
         await eventStore.deleteEvents(for: id)
 
         // Clean up rootfs and config
@@ -481,7 +484,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             Task {
                 do {
                     // First, yield any historical logs from storage
-                    let historicalLogs = await logStore.fetch(containerID: id, limit: 200)
+                    let historicalLogs = logStore.fetch(containerID: id, limit: 200)
                     for logLine in historicalLogs {
                         continuation.yield(logLine)
                     }
@@ -598,7 +601,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     }
     
     public func listImages() async throws -> [ImageSummary] {
-        await imageStore.fetchAll()
+        imageStore.fetchAll()
     }
 
     public func eventStream() -> AsyncStream<ContainerEvent> {
@@ -831,7 +834,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
                     case .logLine(let line):
                         continuation.yield(line)
                         // Also persist to log store for historical access
-                        await logStore.append(containerID: containerID, line: line)
+                        self.logStore.append(containerID: containerID, line: line)
                         
                     case .exit(let code):
                         logger.info("Container \(containerID) process exited with code \(code)")

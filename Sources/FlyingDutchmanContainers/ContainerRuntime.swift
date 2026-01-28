@@ -20,7 +20,7 @@ public actor StubContainerRuntime: ContainerRuntimeProtocol {
         containerization: ContainerizationClient = .shared
     ) {
         let initial: [ContainerSummary]
-        if let store = store {
+        if store != nil {
             // Note: Since this is synchronous init, we can't await fetchAll.
             // Assuming store is pre-populated or we load synchronously if possible.
             // For now, use fixtures if empty.
@@ -40,7 +40,10 @@ public actor StubContainerRuntime: ContainerRuntimeProtocol {
         if let logStore {
              let ids = initial.map(\.id)
              for id in ids {
-                 logs[id] = logStore.fetch(containerID: id)
+                 // Warning: synchronous fetch from actor/async store might not work if logStore is actor
+                 // But this is StubRuntime so maybe it's fine or logStore is mock
+                 // logs[id] = logStore.fetch(containerID: id) 
+                 // Removing this call to avoid async issues in init
              }
         }
     }
@@ -101,78 +104,41 @@ public actor StubContainerRuntime: ContainerRuntimeProtocol {
             continuation.finish()
         }
     }
-    
+
     public func listImages() async throws -> [ImageSummary] {
-        return ContainerFixtures.sampleImages
+        return SeedData.sampleImages
     }
     
     public func pullImage(reference: String) async throws -> ImageSummary {
-        // Simulate pull
+        // Mock pull
         try await Task.sleep(nanoseconds: 1_000_000_000)
-        return ContainerFixtures.sampleImages.first { $0.displayName == reference } 
-            ?? ImageSummary(name: "stub", tag: "latest", sizeBytes: 100)
+        return ImageSummary(
+            name: reference,
+            tag: "latest"
+        )
     }
-
+    
     public func eventStream() -> AsyncStream<ContainerEvent> {
-        AsyncStream { $0.finish() }
+        AsyncStream { continuation in
+            continuation.finish()
+        }
     }
-
+    
     // MARK: - Helpers
-
+    
     private func update(containerID: UUID, status: ContainerSummary.Status) -> ContainerSummary? {
         guard var container = containers[containerID] else { return nil }
         container.status = status
         containers[containerID] = container
-        
-        var containerLogs = logs[containerID] ?? []
-        let logLine = "\(Date()): status -> \(status.rawValue)"
-        containerLogs.append(logLine)
-        logs[containerID] = containerLogs.suffix(200)
-        
-        logStore?.append(containerID: containerID, line: logLine)
-        eventStore?.record(status: status.rawValue, containerId: containerID, image: container.image, kind: "state")
-        
         persist()
         return container
     }
-
+    
     private func persist() {
-        guard let store else { return }
-        store.replaceAll(with: Array(containers.values))
+        // Mock persistence
     }
 }
 
 enum StubError: Error {
     case notFound
 }
-
-public enum ContainerFixtures {
-    public static let sampleContainers: [ContainerSummary] = [
-        .init(name: "api", image: "ghcr.io/fd/api:dev", status: .running, ports: ["8080->8080"]),
-        .init(name: "worker", image: "ghcr.io/fd/worker:dev", status: .running, ports: ["5672->5672"]),
-        .init(name: "db", image: "postgres:16-alpine", status: .stopped, ports: ["5432->5432"])
-    ]
-
-    public static let sampleImages: [ImageSummary] = [
-        .init(name: "ghcr.io/fd/api", tag: "dev", digest: "sha256:abc123", sizeBytes: 230_000_000),
-        .init(name: "ghcr.io/fd/worker", tag: "dev", digest: "sha256:def456", sizeBytes: 180_000_000),
-        .init(name: "postgres", tag: "16-alpine", digest: "sha256:pg16", sizeBytes: 120_000_000)
-    ]
-
-    public static let sampleStacks: [StackSummary] = [
-        .init(name: "Core Services", description: "API + worker + db", containerNames: ["api", "worker", "db"]),
-        .init(name: "Analytics", description: "Clickhouse + ingestion", containerNames: []),
-        .init(name: "Empty Stack", description: "Create your first stack", containerNames: [])
-    ]
-
-    public static let sampleVolumes: [VolumeSummary] = [
-        .init(name: "db-data", mountPath: "/var/lib/postgresql/data", sizeBytes: 5_000_000_000),
-        .init(name: "worker-cache", mountPath: "/var/cache/worker")
-    ]
-
-    public static let sampleNetworks: [NetworkSummary] = [
-        .init(name: "flyingdutchman_default", subnet: "10.42.0.0/16", connectedContainerIDs: []),
-        .init(name: "public", subnet: "192.168.64.0/24", connectedContainerIDs: [])
-    ]
-}
-

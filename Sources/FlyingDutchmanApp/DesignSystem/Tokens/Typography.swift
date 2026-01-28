@@ -127,14 +127,9 @@ extension DesignSystem {
 // MARK: - SwiftUI Text Extensions
 
 extension Text {
-    /// Apply design system typography with semantic naming
-    public func font(_ typography: Font) -> Text {
-        self.font(typography)
-    }
-    
     /// Apply line height multiplier
     /// - Parameter multiplier: LineHeight token from DesignSystem.LineHeight
-    public func lineHeight(_ multiplier: CGFloat) -> Text {
+    public func lineHeight(_ multiplier: CGFloat) -> some View {
         self.lineSpacing(multiplier)
     }
     

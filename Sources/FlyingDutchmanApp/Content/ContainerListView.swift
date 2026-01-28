@@ -1,23 +1,23 @@
 import Shared
 import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
-import FlyingDutchmanPersistence
 import FlyingDutchmanNetworking
-import FlyingDutchmanPersistence
 import SwiftUI
-import FlyingDutchmanPersistence
-import SQLiteData
 
 @MainActor
 @Observable
-final class ContainerListViewModel {
-    @FetchAll var containers: [ContainerSummary]
-    var error: String?
-    var isLoading: Bool = false
-    var searchQuery: String = ""
-    var showRunningOnly: Bool = false
+public final class ContainerListViewModel {
+    public var containers: [ContainerSummary] = []
+    public var error: String?
+    public var isLoading: Bool = false
+    public var searchQuery: String = ""
+    public var showRunningOnly: Bool = false
+    
+    private let store = ContainerStore()
+    
+    public init() {}
 
-    var filtered: [ContainerSummary] {
+    public var filtered: [ContainerSummary] {
         containers.filter { container in
             let matchesQuery: Bool
             if searchQuery.isEmpty {
@@ -31,23 +31,21 @@ final class ContainerListViewModel {
         }
     }
 
-    func load() async {
-        // No manual load needed - @FetchAll auto-updates!
-        // isLoading = true
-        // defer { isLoading = false }
-        // We might trigger a refresh from the engine if needed
-        // but local DB is source of truth for UI
+    public func load() async {
+        isLoading = true
+        containers = await store.fetchAll()
+        isLoading = false
     }
 
-    func start(_ container: ContainerSummary) async {
+    public func start(_ container: ContainerSummary) async {
         await mutate(container, action: EngineClient.startContainer)
     }
 
-    func stop(_ container: ContainerSummary) async {
+    public func stop(_ container: ContainerSummary) async {
         await mutate(container, action: EngineClient.stopContainer)
     }
 
-    func restart(_ container: ContainerSummary) async {
+    public func restart(_ container: ContainerSummary) async {
         await mutate(container, action: EngineClient.restartContainer)
     }
 
@@ -59,8 +57,6 @@ final class ContainerListViewModel {
         defer { isLoading = false }
         do {
             _ = try await action(container.id)
-            // No need to manually update local array
-            // Engine updates DB -> SQLiteData sees change -> @FetchAll updates -> UI refreshes
         } catch {
             self.error = "Action failed: \(error.localizedDescription)"
         }
