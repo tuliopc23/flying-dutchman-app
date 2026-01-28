@@ -96,6 +96,8 @@ let package = Package(
                 "FlyingDutchmanContainers",
                 "FlyingDutchmanPersistence",
                 .product(name: "Hummingbird", package: "hummingbird"),
+                .product(name: "HummingbirdHTTP2", package: "hummingbird"),
+                .product(name: "HummingbirdTLS", package: "hummingbird"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "GRDBSQLite", package: "GRDB.swift"),
                 .product(name: "Dependencies", package: "swift-dependencies"),

@@ -1,5 +1,8 @@
 import Foundation
 import Hummingbird
+import HummingbirdCore
+import HummingbirdHTTP2
+import HummingbirdTLS
 import Shared
 import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
@@ -204,6 +207,7 @@ public struct EngineServer {
     public static func start(
         host: String = AppConfig.Engine.host,
         port: Int = AppConfig.Engine.port,
+        tlsConfiguration: TLSConfiguration? = nil,
         runtime: ContainerRuntimeProtocol,
         store: AnyContainerStore? = nil,
         imageStore: ImageStore? = nil,
@@ -225,8 +229,16 @@ public struct EngineServer {
             eventStore: eventStore
         )
 
+        let serverBuilder: HTTPServerBuilder
+        if let tlsConfiguration {
+            serverBuilder = try .http2Upgrade(tlsConfiguration: tlsConfiguration)
+        } else {
+            serverBuilder = .http1()
+        }
+
         let app = Application(
             router: router,
+            server: serverBuilder,
             configuration: configuration,
             onServerRunning: { _ in
                 Loggers.make(category: "flyingdutchman.networking").info("HTTP server started on \(host):\(port)")

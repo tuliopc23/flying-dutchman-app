@@ -85,6 +85,8 @@ let project = Project(
                 .target(name: "Shared"),
                 .target(name: "FlyingDutchmanContainers"),
                 .package(product: "Hummingbird"),
+                .package(product: "HummingbirdHTTP2"),
+                .package(product: "HummingbirdTLS"),
                 .package(product: "AsyncHTTPClient"),
                 .package(product: "DNSClient"),
                 .package(product: "X509")

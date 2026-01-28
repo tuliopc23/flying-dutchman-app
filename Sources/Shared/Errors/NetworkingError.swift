@@ -13,6 +13,9 @@ public enum NetworkingError: FlyingDutchmanError {
 
     /// A certificate validation error occurred
     case certificateError(String)
+    
+    /// Failed to bind to a local port
+    case portBindingFailed(port: Int)
 
     // MARK: - FlyingDutchmanError
 
@@ -29,6 +32,9 @@ public enum NetworkingError: FlyingDutchmanError {
 
         case .certificateError:
             return "Security certificate error"
+            
+        case let .portBindingFailed(port):
+            return "Failed to bind to local port \(port)"
         }
     }
 
@@ -49,6 +55,9 @@ public enum NetworkingError: FlyingDutchmanError {
 
         case let .certificateError(details):
             return "TLS certificate validation failed: \(details)"
+            
+        case let .portBindingFailed(port):
+            return "Failed to bind listener to port \(port). The port may be in use or requires privileges."
         }
     }
 
@@ -62,6 +71,8 @@ public enum NetworkingError: FlyingDutchmanError {
             return true // DNS may become available
         case .certificateError:
             return false // Usually requires config change
+        case .portBindingFailed:
+            return false // Usually requires picking a different port or killing the process using it
         }
     }
 
@@ -75,6 +86,8 @@ public enum NetworkingError: FlyingDutchmanError {
             return "Check the hostname and your DNS settings"
         case .certificateError:
             return "Verify the server's SSL certificate is valid and trusted"
+        case .portBindingFailed:
+            return "Try using a different port or check if another application is using it"
         }
     }
 }

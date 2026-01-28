@@ -4,5 +4,5 @@
 --wrapcollections before-first
 --maxwidth 120
 --self insert
---disable redundantSelf,nestedTernary,redundantType
+--disable redundantSelf,redundantType
 --exclude .build,.tuist,Tuist/Derived,.specify

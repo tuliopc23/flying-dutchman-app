@@ -3,6 +3,7 @@ import NIOCore
 import NIOPosix
 import DNSClient
 import Logging
+import Darwin
 
 public actor DNSServer {
     private let group: EventLoopGroup
@@ -30,6 +31,10 @@ public actor DNSServer {
         self.channel = channel
         logger.info("DNS Server listening on \(host):\(port)")
     }
+    
+    public var boundPort: Int? {
+        channel?.localAddress?.port
+    }
 
     public func shutdown() async {
         try? await channel?.close()
@@ -38,7 +43,7 @@ public actor DNSServer {
     }
 }
 
-private final class DNSHandler: ChannelInboundHandler {
+private final class DNSHandler: ChannelInboundHandler, Sendable {
     typealias InboundIn = AddressedEnvelope<ByteBuffer>
     typealias OutboundOut = AddressedEnvelope<ByteBuffer>
 
@@ -52,8 +57,93 @@ private final class DNSHandler: ChannelInboundHandler {
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let envelope = unwrapInboundIn(data)
-        logger.warning("DNS Server received request but handling is stubbed due to API verification pending.")
-        // TODO: Implement DNS Message decoding using correct DNSClient API
+        let inboundData = envelope.data
+        let remoteAddress = envelope.remoteAddress
+        let allocator = context.channel.allocator
+        let promise = context.eventLoop.makePromise(of: AddressedEnvelope<ByteBuffer>.self)
+        
+        promise.futureResult.whenSuccess { responseEnvelope in
+            context.writeAndFlush(self.wrapOutboundOut(responseEnvelope), promise: nil)
+        }
+        
+        promise.futureResult.whenFailure { error in
+            self.logger.error("Failed to handle DNS request: \(error)")
+        }
+        
+        do {
+            let request = try DNSMessageDecoder.parse(inboundData)
+            
+            Task {
+                var answers: [Record] = []
+                
+                for question in request.questions {
+                    if question.type == .a {
+                        let hostname = question.labels.string
+                        if let ip = await self.routingTable.resolveIPv4(hostname: hostname) {
+                            if let address = self.ipToUInt32(ip) {
+                                let resource = ARecord(address: address)
+                                let record = Record.a(ResourceRecord(
+                                    domainName: question.labels,
+                                    dataType: DNSResourceType.a.rawValue,
+                                    dataClass: DataClass.internet.rawValue,
+                                    ttl: 60,
+                                    resource: resource
+                                ))
+                                answers.append(record)
+                            }
+                        }
+                    }
+                }
+                
+                let responseOptions: MessageOptions
+                if answers.isEmpty {
+                     responseOptions = [.answer, .authorativeAnswer, .resultCodeNameError]
+                } else {
+                     responseOptions = [.answer, .authorativeAnswer, .resultCodeSuccess]
+                }
+
+                let header = DNSMessageHeader(
+                    id: request.header.id,
+                    options: responseOptions,
+                    questionCount: UInt16(request.questions.count),
+                    answerCount: UInt16(answers.count),
+                    authorityCount: 0,
+                    additionalRecordCount: 0
+                )
+                
+                let response = Message(
+                    header: header,
+                    questions: request.questions,
+                    answers: answers,
+                    authorities: [],
+                    additionalData: []
+                )
+                
+                do {
+                    var labelIndices: [String: UInt16] = [:]
+                    let responseBuffer = try DNSMessageEncoder.encodeMessage(
+                        response,
+                        allocator: allocator,
+                        labelIndices: &labelIndices
+                    )
+                    
+                    let responseEnvelope = AddressedEnvelope(remoteAddress: remoteAddress, data: responseBuffer)
+                    promise.succeed(responseEnvelope)
+                } catch {
+                    promise.fail(error)
+                }
+            }
+        } catch {
+            logger.error("Failed to decode DNS message: \(error)")
+        }
+    }
+
+    private func ipToUInt32(_ ip: String) -> UInt32? {
+        var addr = in_addr()
+        if inet_pton(AF_INET, ip, &addr) == 1 {
+            return UInt32(bigEndian: addr.s_addr)
+        }
+        return nil
     }
 }
 

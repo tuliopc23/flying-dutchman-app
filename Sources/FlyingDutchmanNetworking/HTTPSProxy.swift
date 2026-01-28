@@ -1,0 +1,136 @@
+import Foundation
+import Hummingbird
+import HummingbirdTLS
+import Logging
+import ServiceLifecycle
+import NIOCore
+import NIOHTTP1
+import AsyncHTTPClient
+import HTTPTypes
+
+public struct HTTPSProxy: Service {
+    let host: String
+    let port: Int
+    let routingTable: DomainRoutingTable
+    let ca: CertificateAuthority
+    let logger = Loggers.make(category: "https.proxy")
+    let httpClient: HTTPClient
+    
+    public init(host: String = "127.0.0.1", port: Int = 8443, routingTable: DomainRoutingTable, ca: CertificateAuthority) {
+        self.host = host
+        self.port = port
+        self.routingTable = routingTable
+        self.ca = ca
+        self.httpClient = HTTPClient(eventLoopGroupProvider: .singleton)
+    }
+    
+    public func run() async throws {
+        // Generate wildcard cert for *.fd.local
+        let (cert, key) = try ca.generateLeafCert(hostname: "*.fd.local")
+        
+        let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
+            certificateChain: [.certificate(cert)],
+            privateKey: .privateKey(key)
+        )
+        
+        let router = Router()
+        router.add(middleware: ProxyMiddleware(routingTable: routingTable, httpClient: httpClient, logger: logger))
+        
+        // Catch-all to ensure middleware runs if it didn't return
+        router.get("**") { _, _ in
+             Response(status: .notFound)
+        }
+        
+        // Use .tls() wrapper if available, or .http2Upgrade if http1+tls is not directly exposed as static method
+        // Assuming .tls wrapper exists for any server builder
+        let app = Application(
+            router: router,
+            server: try .tls(.http1(), configuration: tlsConfiguration),
+            configuration: .init(address: .hostname(host, port: port)),
+            onServerRunning: { _ in
+                self.logger.info("HTTPS Proxy started on \(self.host):\(self.port)")
+            }
+        )
+        
+        try await app.runService()
+    }
+}
+
+struct ProxyMiddleware: RouterMiddleware {
+    let routingTable: DomainRoutingTable
+    let httpClient: HTTPClient
+    let logger: Logger
+    
+    typealias Context = BasicRequestContext
+    
+    func handle(_ request: Request, context: Context, next: (Request, Context) async throws -> Response) async throws -> Response {
+        // Try authority first, then Host header
+        let hostname: String
+        if let authority = request.uri.authority {
+            hostname = authority.split(separator: ":")[0].description
+        } else if let hostHeader = request.headers[HTTPField.Name("Host")!] {
+            hostname = hostHeader.split(separator: ":")[0].description
+        } else {
+             return try await next(request, context)
+        }
+        
+        // Only proxy .fd.local domains
+        guard hostname.hasSuffix(".fd.local") else {
+             return try await next(request, context)
+        }
+        
+        guard let upstream = await routingTable.resolveUpstream(hostname: hostname) else {
+            logger.warning("No upstream found for \(hostname)")
+            throw HTTPError(.notFound)
+        }
+        
+        // Construct upstream URL
+        var components = URLComponents()
+        components.scheme = upstream.scheme
+        components.host = upstream.host
+        components.port = upstream.port
+        components.path = request.uri.path
+        components.query = request.uri.query
+        
+        guard let url = components.string else {
+            throw HTTPError(.badRequest)
+        }
+        
+        var clientRequest = HTTPClientRequest(url: url)
+        clientRequest.method = NIOHTTP1.HTTPMethod(rawValue: request.method.rawValue)
+        
+        for field in request.headers {
+            clientRequest.headers.add(name: field.name.rawName, value: field.value)
+        }
+        
+        // Forward body
+        clientRequest.body = .stream(request.body, length: .unknown)
+        
+        do {
+            let response = try await httpClient.execute(clientRequest, timeout: .seconds(30))
+            
+            // Convert Response Status
+            let status = HTTPResponse.Status(code: Int(response.status.code), reasonPhrase: response.status.reasonPhrase)
+            
+            // Convert Response Headers
+            var headers = HTTPFields()
+            for (name, value) in response.headers {
+                if let fieldName = HTTPField.Name(name) {
+                    headers[fieldName] = value
+                }
+            }
+            
+            // Convert Body
+            let body = ResponseBody(asyncSequence: response.body)
+            
+            return Response(
+                status: status,
+                headers: headers,
+                body: body
+            )
+        } catch {
+            logger.error("Proxy error: \(error)")
+            throw HTTPError(.badGateway)
+        }
+    }
+}
