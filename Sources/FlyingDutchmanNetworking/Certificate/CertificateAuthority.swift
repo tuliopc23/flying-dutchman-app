@@ -2,8 +2,9 @@ import Foundation
 import Crypto
 import X509
 import Shared
+import NIOSSL
 
-public final class CertificateAuthority {
+public final class CertificateAuthority: @unchecked Sendable {
     private let storagePath: URL
     private let caKeyFilename = "ca-key.pem"
     private let caCertFilename = "ca-cert.pem"
@@ -25,6 +26,7 @@ public final class CertificateAuthority {
         let (caCert, caKey) = try getOrCreateRootCA()
         
         let key = P256.Signing.PrivateKey()
+        let certKey = Certificate.PrivateKey(key)
         let now = Date()
         let expiry = now.addingTimeInterval(60 * 60 * 24 * 365) // 1 year
         
@@ -38,7 +40,7 @@ public final class CertificateAuthority {
         let leaf = try Certificate(
             version: .v3,
             serialNumber: serialNumber,
-            publicKey: .init(key.publicKey),
+            publicKey: certKey.publicKey,
             notValidBefore: now,
             notValidAfter: expiry,
             issuer: caCert.subject,
@@ -53,10 +55,12 @@ public final class CertificateAuthority {
                 )
                 ExtendedKeyUsage([.serverAuth, .clientAuth])
                 SubjectAlternativeNames([.dnsName(hostname)])
-                AuthorityKeyIdentifier(try caCert.publicKey)
-                SubjectKeyIdentifier(try key.publicKey)
+                // Authority Key Identifier: Hash of Issuer's Public Key
+                AuthorityKeyIdentifier(keyIdentifier: try caCert.publicKey.keyIdentifier)
+                // Subject Key Identifier: Hash of Subject's Public Key
+                try certKey.publicKey.keyIdentifier
             },
-            issuerPrivateKey: .init(caKey)
+            issuerPrivateKey: Certificate.PrivateKey(caKey)
         )
         
         return (leaf, key)
@@ -80,6 +84,7 @@ public final class CertificateAuthority {
     
     private func createRootCA() throws -> (Certificate, P256.Signing.PrivateKey) {
         let key = P256.Signing.PrivateKey()
+        let certKey = Certificate.PrivateKey(key)
         let now = Date()
         let expiry = now.addingTimeInterval(60 * 60 * 24 * 365 * 10) // 10 years
         
@@ -94,7 +99,7 @@ public final class CertificateAuthority {
         let cert = try Certificate(
             version: .v3,
             serialNumber: serialNumber,
-            publicKey: .init(key.publicKey),
+            publicKey: certKey.publicKey,
             notValidBefore: now,
             notValidAfter: expiry,
             issuer: subjectName,
@@ -107,9 +112,9 @@ public final class CertificateAuthority {
                 Critical(
                     KeyUsage(digitalSignature: true, keyCertSign: true, cRLSign: true)
                 )
-                SubjectKeyIdentifier(try key.publicKey)
+                SubjectKeyIdentifier(hash: try certKey.publicKey.keyIdentifier)
             },
-            issuerPrivateKey: .init(key)
+            issuerPrivateKey: certKey
         )
         
         try saveRootCA(cert: cert, key: key)
@@ -117,12 +122,28 @@ public final class CertificateAuthority {
     }
     
     private func saveRootCA(cert: Certificate, key: P256.Signing.PrivateKey) throws {
-        let certPEM = try cert.serializeAsPEM()
+        let certPEM = try cert.serializeAsPEM().pemString
         let keyPEM = key.pemRepresentation
         
         try certPEM.write(to: storagePath.appendingPathComponent(caCertFilename), atomically: true, encoding: .utf8)
         try keyPEM.write(to: storagePath.appendingPathComponent(caKeyFilename), atomically: true, encoding: .utf8)
         
         logger.info("Generated and saved new Root CA to \(storagePath.path)")
+    }
+}
+
+extension Certificate {
+    func toNIOSSL() throws -> NIOSSLCertificate {
+        let pem = try self.serializeAsPEM().pemString
+        let bytes = Array(pem.utf8)
+        return try NIOSSLCertificate(bytes: bytes, format: .pem)
+    }
+}
+
+extension P256.Signing.PrivateKey {
+    func toNIOSSL() throws -> NIOSSLPrivateKey {
+        let pem = self.pemRepresentation
+        let bytes = Array(pem.utf8)
+        return try NIOSSLPrivateKey(bytes: bytes, format: .pem)
     }
 }

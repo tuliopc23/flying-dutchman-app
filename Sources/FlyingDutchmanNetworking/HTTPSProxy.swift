@@ -7,6 +7,8 @@ import NIOCore
 import NIOHTTP1
 import AsyncHTTPClient
 import HTTPTypes
+import NIOSSL
+import Shared
 
 public struct HTTPSProxy: Service {
     let host: String
@@ -29,8 +31,8 @@ public struct HTTPSProxy: Service {
         let (cert, key) = try ca.generateLeafCert(hostname: "*.fd.local")
         
         let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
-            certificateChain: [.certificate(cert)],
-            privateKey: .privateKey(key)
+            certificateChain: [.certificate(try cert.toNIOSSL())],
+            privateKey: .privateKey(try key.toNIOSSL())
         )
         
         let router = Router()
@@ -45,7 +47,7 @@ public struct HTTPSProxy: Service {
         // Assuming .tls wrapper exists for any server builder
         let app = Application(
             router: router,
-            server: try .tls(.http1(), configuration: tlsConfiguration),
+            server: try .tls(.http1(), configuration: try TLSChannelConfiguration(tlsConfiguration: tlsConfiguration)),
             configuration: .init(address: .hostname(host, port: port)),
             onServerRunning: { _ in
                 self.logger.info("HTTPS Proxy started on \(self.host):\(self.port)")
@@ -64,11 +66,9 @@ struct ProxyMiddleware: RouterMiddleware {
     typealias Context = BasicRequestContext
     
     func handle(_ request: Request, context: Context, next: (Request, Context) async throws -> Response) async throws -> Response {
-        // Try authority first, then Host header
+        // Try Host header
         let hostname: String
-        if let authority = request.uri.authority {
-            hostname = authority.split(separator: ":")[0].description
-        } else if let hostHeader = request.headers[HTTPField.Name("Host")!] {
+        if let hostHeader = request.headers[HTTPField.Name("Host")!] {
             hostname = hostHeader.split(separator: ":")[0].description
         } else {
              return try await next(request, context)
@@ -134,3 +134,4 @@ struct ProxyMiddleware: RouterMiddleware {
         }
     }
 }
+
