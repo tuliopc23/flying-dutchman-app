@@ -85,7 +85,8 @@ public struct EngineServer {
         stackStore: StackStore? = nil,
         volumeStore: VolumeStore? = nil,
         networkStore: NetworkStore? = nil,
-        eventStore: ShimEventStore? = nil
+        eventStore: ShimEventStore? = nil,
+        machineRuntime: MachineRuntimeProtocol? = nil
     ) -> Router<BasicRequestContext> {
         let router = Router(context: BasicRequestContext.self)
 
@@ -116,6 +117,10 @@ public struct EngineServer {
         VolumesRoutes(store: volumeStore).register(on: router)
         NetworksRoutes(store: networkStore).register(on: router)
         AuthRoutes(runtime: runtime).register(on: router)
+        
+        if let machineRuntime = machineRuntime {
+            MachinesRoutes(runtime: machineRuntime).register(on: router)
+        }
         
         // Docker API compatibility layer
         DockerShimServer(runtime: runtime).register(on: router)
@@ -214,10 +219,11 @@ public struct EngineServer {
         stackStore: StackStore? = nil,
         volumeStore: VolumeStore? = nil,
         networkStore: NetworkStore? = nil,
-        eventStore: ShimEventStore? = nil
+        eventStore: ShimEventStore? = nil,
+        routingTable: DomainRoutingTable,
+        machineRuntime: MachineRuntimeProtocol? = nil
     ) async throws {
         // 1. Initialize Networking Infrastructure
-        let routingTable = DomainRoutingTable()
         
         let fm = FileManager.default
         let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
@@ -271,7 +277,8 @@ public struct EngineServer {
             stackStore: stackStore,
             volumeStore: volumeStore,
             networkStore: networkStore,
-            eventStore: eventStore
+            eventStore: eventStore,
+            machineRuntime: machineRuntime
         )
 
         let serverBuilder: HTTPServerBuilder

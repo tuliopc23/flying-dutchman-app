@@ -1,5 +1,4 @@
 import Foundation
-import Shared
 
 public struct Upstream: Sendable {
     public let host: String

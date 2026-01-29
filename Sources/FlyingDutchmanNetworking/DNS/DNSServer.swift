@@ -4,6 +4,7 @@ import NIOPosix
 import DNSClient
 import Logging
 import Darwin
+import Shared
 
 public actor DNSServer {
     private let group: EventLoopGroup

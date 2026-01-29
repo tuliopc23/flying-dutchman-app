@@ -1,8 +1,8 @@
 # Flying Dutchman Roadmap
 
-> **Current Phase**: 2 (Networking)
-> **Last Updated**: 2026-01-27
-> **Status**: 🟡 In Progress
+> **Current Phase**: 3 (Platform)
+> **Last Updated**: 2026-01-29
+> **Status**: ⚪ Not Started
 
 ---
 
@@ -12,8 +12,8 @@
 |-------|------|--------|----------|
 | 0 | Foundation | ✅ Complete | 100% |
 | 1 | Container Core | ✅ Complete | 100% |
-| 2 | Networking | 🟡 In Progress | 20% |
-| 3 | Platform | ⚪ Not Started | 0% |
+| 2 | Networking | ✅ Complete | 100% |
+| 3 | Platform | 🟡 In Progress | 25% |
 | 4 | UX Polish | ⚪ Not Started | 0% |
 
 ---
@@ -97,45 +97,60 @@
 
 ---
 
-## Phase 2: Networking
+## Phase 2: Networking ✅
 
 **Goal**: Full container networking with zero-config domains and HTTPS.
 **Capabilities**: `container-networking`
 **Primary Module**: `FlyingDutchmanNetworking`
+**Status**: Complete (2026-01-29)
 
 ### 2.1 Core Networking ✅
 - [x] Bridge network driver (NetworkManager + IPAllocator)
 - [x] Port forwarding (`-p` flag + PortForwardManager)
 - [x] Container IP allocation (CIDR)
-- [ ] Fix NetworkError & Module Ownership (Stabilization)
-- [ ] Host networking mode (`--net host`)
-- [ ] IPv6 and ICMP support
+- [x] DomainRoutingTable wired into ContainerizationRuntime
+- [ ] Host networking mode (`--net host`) - deferred to Phase 3
+- [ ] IPv6 and ICMP support - deferred to Phase 3
 
-### 2.2 DNS & Domains
-- [ ] Local DNS resolver (UDP 5353)
-- [ ] Resolver file (/etc/resolver/fd.local)
-- [ ] Zero-config domains (`*.fd.local`)
-- [ ] Compose service domains (`service.project.fd.local`)
+### 2.2 DNS & Domains ✅
+- [x] Local DNS resolver (UDP 5353)
+- [x] Resolver file installer (`fd networking install-resolver`)
+- [x] Zero-config domains (`*.fd.local`)
+- [x] Container registration/unregistration in routing table
+- [ ] Compose service domains (`service.project.fd.local`) - deferred
 
-### 2.3 HTTPS
-- [ ] Local CA generation
-- [ ] Automatic certificate provisioning
-- [ ] Reverse proxy for HTTPS termination
+### 2.3 HTTPS ✅
+- [x] Local CA generation (CertificateAuthority)
+- [x] Automatic certificate provisioning (wildcard `*.fd.local`)
+- [x] Reverse proxy for HTTPS termination (port 8443)
+- [x] Trust CA command (`fd trust-ca`)
+
+### 2.4 CLI Commands ✅
+- [x] `fd networking install-resolver` - Install DNS resolver
+- [x] `fd networking uninstall-resolver` - Remove DNS resolver
+- [x] `fd trust-ca` - Trust Root CA certificate
 
 ---
 
-## Phase 3: Platform
+## Phase 3: Platform 🟡
 
 **Goal**: Linux machines and Kubernetes development environment.
 **Capabilities**: `linux-machines`, `kubernetes-dev`, `cli-headless`
 **Primary Modules**: `FlyingDutchmanKubernetes`, `FlyingDutchmanCLI`
+**Status**: In Progress (2026-01-29)
 
-### 3.1 Linux Machines
-- [ ] Machine creation (multi-distro)
-- [ ] Machine lifecycle management
-- [ ] File sharing (Mac ↔ Linux)
-- [ ] SSH access (built-in server)
+### 3.1 Linux Machines 🟡
+- [x] Machine models and data structures
+- [x] MachineStore (GRDB persistence)
+- [x] MachineRuntimeProtocol and VirtualizationRuntime foundation
+- [x] CLI commands (list, create, start, stop, restart, delete, ssh, exec)
+- [x] HTTP API endpoints (/machines/*)
+- [x] Engine integration and wiring
+- [ ] Actual VM creation with Virtualization framework
+- [ ] File sharing (Mac ↔ Linux via virtiofs)
+- [ ] SSH server auto-configuration
 - [ ] Cloud-init provisioning
+- [ ] Disk image management (download/cache)
 
 ### 3.2 Kubernetes
 - [ ] Single-node cluster provisioning

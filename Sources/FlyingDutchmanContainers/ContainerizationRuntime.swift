@@ -28,6 +28,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     private let authManager = RegistryAuthManager()
     private let portForwardManager = PortForwardManager()
     private let networkManager = NetworkManager()
+    private let routingTable: DomainRoutingTable?
     
     // NIO Transport
     private let group = NIOTSEventLoopGroup(loopCount: 1)
@@ -52,10 +53,12 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
     
     public init(
         kernelPath: FilePath? = nil,
-        initfsReference: String = "ghcr.io/apple/containerization/vminit:0.13.0"
+        initfsReference: String = "ghcr.io/apple/containerization/vminit:0.13.0",
+        routingTable: DomainRoutingTable? = nil
     ) {
         self.kernelPath = kernelPath ?? Self.defaultKernelPath()
         self.initfsReference = initfsReference
+        self.routingTable = routingTable
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(self.group))
     }
     
@@ -357,6 +360,12 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             updated.rootfsPath = rootfsURL?.path
             updated.ipAddress = containerIP
             try await containerStore.update(updated)
+            
+            // Register with routing table for DNS/HTTPS proxy
+            if let routingTable = self.routingTable {
+                await routingTable.register(container: updated, config: config)
+                logger.info("Registered \(updated.name).fd.local in routing table")
+            }
 
             logger.info("Container \(container.id) started successfully")
             return updated
@@ -434,6 +443,12 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
 
         // Cleanup state
         activeContainers.removeValue(forKey: id)
+        
+        // Unregister from routing table
+        if let routingTable = self.routingTable {
+            await routingTable.unregister(containerID: id)
+            logger.info("Unregistered container \(id) from routing table")
+        }
         
         // Update state machine and status to stopped
         try stateMachine.transition(to: .stopped)

@@ -8,7 +8,8 @@ public enum RuntimeFactory {
     public static func makeRuntime(
         store: AnyContainerStore? = nil,
         logStore: (any ContainerLogStoring)? = nil,
-        eventStore: EventRecorder? = nil
+        eventStore: EventRecorder? = nil,
+        routingTable: DomainRoutingTable? = nil
     ) -> ContainerRuntimeProtocol {
         let runtimeEnv = ProcessInfo.processInfo.environment["FD_RUNTIME"]?.lowercased()
 
@@ -23,7 +24,7 @@ public enum RuntimeFactory {
 
         case "native", "containerization":
             logger.info("FD_RUNTIME=\(runtimeEnv ?? "native"): Using Containerization runtime")
-            return ContainerizationRuntime()
+            return ContainerizationRuntime(routingTable: routingTable)
 
         case "stub":
             logger.info("FD_RUNTIME=stub: Using stub runtime")
@@ -36,7 +37,7 @@ public enum RuntimeFactory {
             switch client.availability {
             case .native:
                 logger.info("Auto-detected native Containerization runtime (kernel present)")
-                return ContainerizationRuntime()
+                return ContainerizationRuntime(routingTable: routingTable)
                 
             case .missingKernel:
                 logger.warning("Containerization framework available but kernel missing at \(ContainerizationClient.kernelPath.path)")

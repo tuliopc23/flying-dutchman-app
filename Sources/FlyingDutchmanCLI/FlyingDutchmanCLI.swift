@@ -19,10 +19,20 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
             Stacks.self,
             Volumes.self,
             Networks.self,
+            Networking.self,
+            Machines.self,
             Events.self,
             Login.self,
-            Logout.self
+            Logout.self,
+            TrustCA.self
         ]
+    )
+}
+
+struct Networking: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Networking operations",
+        subcommands: [InstallResolver.self, UninstallResolver.self]
     )
 }
 

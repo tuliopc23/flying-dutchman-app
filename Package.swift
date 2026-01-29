@@ -42,7 +42,8 @@ let package = Package(
             name: "Shared",
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "Hummingbird", package: "hummingbird")
             ],
             path: "Sources/Shared"
         ),

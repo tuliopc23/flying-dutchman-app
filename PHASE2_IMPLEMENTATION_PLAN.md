@@ -1,177 +1,131 @@
-# Phase 2 Implementation Plan - Networking
+# Phase 2 Implementation Plan - Networking (Hummingbird Edition)
 
-**Created**: 2026-01-10  
-**Updated**: 2026-01-27
-**Status**: 🟡 In Progress  
-**Phase**: 2 - Networking  
-**Goal**: Full container networking with zero-config domains and HTTPS
+**Created**: 2026-01-10
+**Updated**: 2026-01-29
+**Status**: 🟡 In Progress
+**Approach**: High-level frameworks (Hummingbird + AsyncHTTPClient) for "Faster Development".
 
 ---
 
 ## 🎯 Phase 2 Overview
 
 ### Goal
-Enable containers to communicate with each other and the host, with zero-config DNS and HTTPS support.
+Enable containers to communicate with each other and the host, with zero-config DNS (`*.fd.local`) and automatic HTTPS.
 
-### Primary Module
-`FlyingDutchmanNetworking` (and `FlyingDutchmanContainers` for core network primitives)
+### Architecture (Hummingbird-First)
+Instead of low-level raw NIO proxying, we will leverage **Hummingbird** for the application layer and **AsyncHTTPClient** for the proxying logic.
 
-### Capabilities
-- `container-networking` - Bridge networks, port forwarding
-- `dns-resolver` - Local DNS for `.fd.local` domains
-- `https-termination` - Local CA + automatic certificates
-
-### Success Criteria
-- ✅ Containers can expose ports to host (`-p 8080:80`)
-- [ ] Containers on same network can communicate
-- [ ] Containers accessible via `container.fd.local`
-- [ ] HTTPS works without browser warnings
+1.  **DNS Server**: Resolves `*.fd.local` -> `127.0.0.1`.
+2.  **HTTPS Proxy**: A Hummingbird Server listening on `127.0.0.1:8443`.
+    *   **TLS**: Uses a generated **Wildcard Certificate** (`*.fd.local`), avoiding complex SNI logic.
+    *   **Routing**: Extracts `Host` header, looks up container IP, and streams the request/response via `AsyncHTTPClient`.
 
 ---
 
-## 📋 Phase 2 Sub-Phases
+## 📦 Selected Stack
 
-### 2.1 Core Networking (Completed ✅)
-**Goal**: Port forwarding and bridge networks
-
-**Tasks**:
-- [x] Port forwarding (`-p` flag) ✅
-- [x] Bridge network driver (NetworkManager) ✅
-- [x] Container IP allocation (IPAllocator) ✅
-- [x] Fix NetworkError redeclarations & module ownership ✅
-- [x] Fix CLI port mapping routing (ContainerConfig) ✅
+| Component | Library | Role |
+| :--- | :--- | :--- |
+| **DNS Server** | `orlandos-nl/DNSClient` | UDP 5353 Server (Existing). |
+| **Certificates** | `apple/swift-certificates` | Generate Root CA + Wildcard Leaf Cert. |
+| **Reverse Proxy** | `hummingbird-project/hummingbird` | HTTPS Server & Request Handling. |
+| **Proxy Client** | `swift-server/async-http-client` | Streaming HTTP client to upstream containers. |
 
 ---
 
-### 2.2 DNS & Domains (In Progress 🟡)
-**Goal**: Zero-config domain resolution
+## 🗓️ Step-by-Step Implementation Guide
 
-**Tasks**:
-- [x] Dependencies added (`DNSClient`) ✅
-- [x] `DomainRoutingTable` implementation (Actor) ✅
-- [x] `DNSServer` scaffolding (UDP 5353) ✅
-- [x] `ResolverInstaller` for `/etc/resolver/fd.local` ✅
-- [ ] Wire `DNSServer` to real DNSClient message handling logic (currently stubbed)
-- [ ] Implement DNS query handling: Resolve `A` records to `127.0.0.1` (for proxy)
-- [ ] Integration testing with `dig @127.0.0.1 -p 5353`
+### Part 1: The "Wake Up" (DNS Wiring) 🟡
+*Status: Code exists but is dormant. Needs wiring.*
 
-**Estimated Remaining**: 2 days
+**Objective**: Make `dig @127.0.0.1 -p 5353 nginx.fd.local` return `127.0.0.1`.
 
----
+#### Step 1.1: Wire Engine Main
+**File**: `Sources/FlyingDutchmanEngine/FlyingDutchmanEngineMain.swift`
+**Instructions**:
+1.  Initialize `DomainRoutingTable` (Actor) early in the startup sequence.
+2.  Initialize `DNSServer` with the routing table.
+3.  Add the `DNSServer` to a `ServiceGroup` (or Task) to run it alongside `EngineServer`.
 
-### 2.3 HTTPS (Next Up ⚪)
-**Goal**: Automatic HTTPS certificates
-
-**Tasks**:
-1. [ ] Dependencies added (`swift-certificates`) ✅
-2. [ ] Local CA generation (self-signed root)
-3. [ ] Certificate provisioning (wildcard `*.fd.local`)
-4. [ ] Reverse proxy for HTTPS termination (NIO TLS + `DomainRoutingTable`)
-5. [ ] Certificate trust (export PEM for keychain)
-
-**Estimated**: 4-5 days
+#### Step 1.2: Wire Runtime
+**File**: `Sources/FlyingDutchmanContainers/ContainerizationRuntime.swift`
+**Instructions**:
+1.  Update `init` to accept `DomainRoutingTable`.
+2.  In `startContainer()`: After successful start, call `await routingTable.register(container: config:)`.
+3.  In `stopContainer()`: Call `await routingTable.unregister(containerID:)`.
 
 ---
 
-### 2.4 Wiring & CLI (Pending ⚪)
-**Goal**: End-to-end integration
+### Part 2: The "Authority" (Certificates) ⚪
+*Status: New Implementation.*
 
-**Tasks**:
-1. [ ] Wire `DNSServer` and `HTTPSProxyServer` into `FlyingDutchmanEngine` lifecycle
-2. [ ] Update `ContainerizationRuntime` to register/unregister domains on start/stop
-3. [ ] Add `fd networking install-resolver` command
-4. [ ] Add `fd networking export-ca` command
-5. [ ] Add `fd networking status` command
+**Objective**: Generate valid TLS certificates on startup.
 
----
-
-## 📦 External Dependencies
-
-### 1. SwiftNIO (Integrated) ✅
-- **Package**: `apple/swift-nio`
-- **Use**: TCP proxy, DNS UDP server, HTTPS proxy
-
-### 2. DNSClient (Integrated) ✅
-- **Package**: `orlandos-nl/DNSClient`
-- **Use**: DNS message parsing and serialization
-
-### 3. swift-certificates (Integrated) ✅
-- **Package**: `apple/swift-certificates`
-- **Use**: X.509 Certificate Authority and Leaf Certificate generation
+#### Step 2.1: Certificate Manager
+**File**: `Sources/FlyingDutchmanNetworking/Certificate/CertificateManager.swift` (Create New)
+**Instructions**:
+1.  Import `X509` (swift-certificates).
+2.  Create `class CertificateManager`.
+3.  **Root CA**:
+    *   Check for existing Root Key/Cert in `~/.flyingdutchman/certs/`.
+    *   If missing, generate a P256 Private Key and a Self-Signed Root Certificate ("Flying Dutchman Root CA").
+    *   Save them to disk (PEM format).
+4.  **Leaf Cert**:
+    *   Generate a dynamic keypair.
+    *   Create a CSR (Certificate Signing Request) for `*.fd.local`.
+    *   Sign it with the Root CA.
+    *   Return the `NIOSSLCertificateSource` (Chain + Private Key) for Hummingbird.
 
 ---
 
-## 🏗️ Architecture Design (Updated)
+### Part 3: The "Proxy" (Hummingbird) ⚪
+*Status: New Implementation.*
 
-### Networking Stack
+**Objective**: HTTPS Termination and Proxying.
 
-```
-┌─────────────────────────────────────────┐
-│          Host (macOS)                   │
-│  ┌────────────────────────────────┐    │
-│  │  Flying Dutchman Daemon        │    │
-│  │  ┌──────────────────────────┐  │    │
-│  │  │  PortForwardManager      │  │    │
-│  │  │  (Containers Module)     │  │    │
-│  │  └──────────────────────────┘  │    │
-│  │  ┌──────────────────────────┐  │    │
-│  │  │  NetworkManager          │  │    │
-│  │  │  (Containers Module)     │  │    │
-│  │  └──────────────────────────┘  │    │
-│  │  ┌──────────────────────────┐  │    │
-│  │  │  DomainRoutingTable      │  │    │
-│  │  │  (Networking Module)     │  │    │
-│  │  └──────────────────────────┘  │    │
-│  │  ┌──────────────────────────┐  │    │
-│  │  │  DNSServer (UDP:5353)    │  │    │
-│  │  │  (Networking Module)     │  │    │
-│  │  └──────────────────────────┘  │    │
-│  │  ┌──────────────────────────┐  │    │
-│  │  │  HTTPSProxy (TCP:8443)   │  │    │
-│  │  │  (Networking Module)     │  │    │
-│  │  └──────────────────────────┘  │    │
-│  └────────────────────────────────┘    │
-└─────────────────────────────────────────┘
-```
+#### Step 3.1: Proxy Handler (The Logic)
+**File**: `Sources/FlyingDutchmanNetworking/Routes/ProxyRoutes.swift` (Create New)
+**Instructions**:
+1.  Extend `Application` (Hummingbird).
+2.  Create a wildcard route `router.all("**")`.
+3.  **Handler Logic**:
+    *   Get `Host` header (e.g., `nginx.fd.local`).
+    *   Ask `DomainRoutingTable` for the upstream IP (e.g., `127.0.0.1:32768`).
+    *   If found:
+        *   Create `HTTPClientRequest` (AsyncHTTPClient).
+        *   Copy Method, Headers, and Body stream.
+        *   `try await client.execute(request, timeout: .seconds(30))`.
+        *   Stream the response back to the Hummingbird `Response`.
+    *   If not found: Return 404 / 502 Bad Gateway.
 
-### DNS Resolution Flow (Updated)
-
-```
-Browser → nginx.fd.local
-    ↓
-macOS Resolver (/etc/resolver/fd.local) → 127.0.0.1:5353
-    ↓
-DNSServer (UDP :5353)
-    ↓
-Lookup: nginx.fd.local (DomainRoutingTable)
-    ↓
-Return A record: 127.0.0.1 (Loopback)
-```
-
-### HTTPS Flow (Updated)
-
-```
-Browser → https://nginx.fd.local (resolves to 127.0.0.1)
-    ↓
-HTTPSProxy (TCP :8443 or :443 via PF redirect)
-    ↓
-Certificate: *.fd.local (Wildcard)
-    ↓
-Decrypt TLS
-    ↓
-Lookup Upstream: nginx.fd.local → 127.0.0.1:8080 (DomainRoutingTable)
-    ↓
-Forward HTTP Request → 127.0.0.1:8080
-    ↓
-PortForwardManager (NIO TCP Proxy)
-    ↓
-VSOCK → Container
-```
+#### Step 3.2: HTTPS Server (The Service)
+**File**: `Sources/FlyingDutchmanNetworking/HTTPSProxyServer.swift`
+**Instructions**:
+1.  Create `actor HTTPSProxyServer`.
+2.  Init with `CertificateManager`, `DomainRoutingTable`.
+3.  **Start**:
+    *   Get Certs from Manager.
+    *   Configure `TLSConfiguration` with the wildcard cert.
+    *   Build `Hummingbird.Application`.
+    *   Add `ProxyRoutes`.
+    *   Run application listening on `127.0.0.1:8443`.
 
 ---
 
-## 🚀 Next Steps
+### Part 4: CLI & Trust ⚪
+*Status: User Experience.*
 
-1. **Complete DNS**: Fill in `DNSServer` logic with real `DNSClient` message handling.
-2. **Implement HTTPS**: Create `LocalCertificateAuthority` and `HTTPSProxyServer`.
-3. **Wire Lifecycle**: Update EngineMain to start/stop networking services.
+#### Step 4.1: Trust Command
+**File**: `Sources/FlyingDutchmanCLI/Commands/Networking/TrustCA.swift`
+**Instructions**:
+1.  Implement `fd networking trust-ca`.
+2.  Action: Execute `security add-trusted-cert ...` (macOS shell command) pointing to the Root CA path.
+3.  Requires `sudo` (handled by system prompt).
+
+---
+
+## 🚀 Execution Order
+
+1.  **Execute Part 1 (Wiring)** immediately to fix the broken state.
+2.  **Execute Part 2 (Certs)** to get the materials for TLS.
+3.  **Execute Part 3 (Proxy)** to turn on the HTTPS server.

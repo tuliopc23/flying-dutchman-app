@@ -41,3 +41,26 @@ The system SHALL provide automatic HTTPS for container domains using a local CA 
 #### Scenario: First HTTPS access
 - **WHEN** a user visits `https://fd.local` or `https://container.fd.local` for the first time
 - **THEN** the system prompts to install a local certificate and HTTPS works for container domains
+
+---
+
+## Implementation Details
+
+### Architecture
+- **DNS Server**: Embedded SwiftNIO UDP server listening on `127.0.0.1:5353`.
+  - Library: `orlandos-nl/DNSClient` for message coding.
+  - Logic: Resolves `*.fd.local` A records to `127.0.0.1`.
+- **Domain Routing Table**: In-memory actor (`DomainRoutingTable`) that maps hostnames to container ports.
+  - Updated by `ContainerizationRuntime` on container lifecycle events.
+- **HTTPS Proxy**: Embedded SwiftNIO TCP server (likely port 8443 or dynamic).
+  - Library: `apple/swift-nio-ssl`.
+  - Logic: Terminates TLS using dynamically generated certificates.
+- **Certificate Authority**:
+  - Library: `apple/swift-certificates`.
+  - Storage: Root CA key/cert stored in secure app data.
+  - Trust: Root CA added to macOS System Keychain via CLI command.
+
+### Dependencies
+- `apple/swift-nio`: Core networking.
+- `orlandos-nl/DNSClient`: DNS protocol.
+- `apple/swift-certificates`: X.509 generation.

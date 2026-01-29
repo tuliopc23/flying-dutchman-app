@@ -29,8 +29,20 @@ struct FlyingDutchmanEngineMain {
         let networkStore = NetworkStore()
         let logStore = ContainerLogStore()
         let eventStore = ShimEventStore()
+        let machineStore = MachineStore()
+        
+        // Create routing table for DNS/HTTPS proxy
+        let routingTable = DomainRoutingTable()
 
-        let runtime = RuntimeFactory.makeRuntime(store: containerStore, logStore: logStore, eventStore: eventStore)
+        let runtime = RuntimeFactory.makeRuntime(
+            store: containerStore, 
+            logStore: logStore, 
+            eventStore: eventStore,
+            routingTable: routingTable
+        )
+        
+        // Create machine runtime for Linux VMs
+        let machineRuntime = VirtualizationRuntime(machineStore: machineStore)
 
         // Log runtime mode for diagnostics
         let runtimeName = await runtime.name
@@ -55,7 +67,9 @@ struct FlyingDutchmanEngineMain {
                 stackStore: stackStore,
                 volumeStore: volumeStore,
                 networkStore: networkStore,
-                eventStore: eventStore
+                eventStore: eventStore,
+                routingTable: routingTable,
+                machineRuntime: machineRuntime
             )
         } catch {
             logger.error("Engine server failed: \(error.localizedDescription)")
