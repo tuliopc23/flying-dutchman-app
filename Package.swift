@@ -35,7 +35,8 @@ let package = Package(
         .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
         .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0"),
         .package(url: "https://github.com/orlandos-nl/DNSClient.git", from: "2.0.0"),
-        .package(url: "https://github.com/apple/swift-certificates.git", from: "1.0.0")
+        .package(url: "https://github.com/apple/swift-certificates.git", from: "1.0.0"),
+        .package(url: "https://github.com/orlandos-nl/Citadel.git", from: "0.7.0")
     ],
     targets: [
         .target(
@@ -71,7 +72,8 @@ let package = Package(
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "ProcessEnv", package: "ProcessEnv"),
                 .product(name: "Yams", package: "Yams"),
-                .product(name: "GRDB", package: "GRDB.swift")
+                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "Citadel", package: "Citadel")
             ],
             path: "Sources/FlyingDutchmanContainers"
         ),

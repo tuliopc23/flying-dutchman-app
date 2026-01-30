@@ -12,6 +12,8 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
         abstract: "Flying Dutchman CLI (foundation stub)",
         version: AppConfig.version,
         subcommands: [
+            Start.self,
+            Stop.self,
             Version.self,
             Doctor.self,
             Containers.self,
@@ -21,7 +23,10 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
             Networks.self,
             Networking.self,
             Machines.self,
+            Kubernetes.self,
             Events.self,
+            Config.self,
+            Completion.self,
             Login.self,
             Logout.self,
             TrustCA.self

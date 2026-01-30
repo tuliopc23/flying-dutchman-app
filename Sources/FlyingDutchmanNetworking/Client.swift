@@ -31,6 +31,10 @@ public enum EngineClient {
         }
         return try JSONDecoder().decode(EngineStatusDetail.self, from: data)
     }
+    
+    @MainActor public static func getStatus() async throws -> EngineStatusDetail {
+        try await fetchStatus()
+    }
 
     @MainActor public static func listContainers() async throws -> [ContainerSummary] {
         let url = URL(string: "\(baseURL)/containers")!

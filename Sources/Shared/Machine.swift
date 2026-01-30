@@ -15,6 +15,8 @@ public struct Machine: Codable, Sendable, Identifiable {
     public var diskGB: Int
     public var ipAddress: String?
     public var sshPort: Int?
+    public var isKubernetesCluster: Bool
+    public var kubernetesVersion: String?
     public var createdAt: Date
     public var updatedAt: Date
     
@@ -29,6 +31,8 @@ public struct Machine: Codable, Sendable, Identifiable {
         diskGB: Int = 20,
         ipAddress: String? = nil,
         sshPort: Int? = nil,
+        isKubernetesCluster: Bool = false,
+        kubernetesVersion: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -42,6 +46,8 @@ public struct Machine: Codable, Sendable, Identifiable {
         self.diskGB = diskGB
         self.ipAddress = ipAddress
         self.sshPort = sshPort
+        self.isKubernetesCluster = isKubernetesCluster
+        self.kubernetesVersion = kubernetesVersion
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

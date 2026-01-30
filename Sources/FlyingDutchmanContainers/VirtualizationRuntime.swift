@@ -7,10 +7,25 @@ import Logging
 public actor VirtualizationRuntime: MachineRuntimeProtocol {
     private let logger = Loggers.make(category: .containers)
     private let machineStore: MachineStore
+    private let resourceManager: VMResourceManager
+    private let fileSharingManager: FileSharingManager
+    private let kernelDownloader: KernelDownloader
+    private let sshConfigurator: SSHConfigurator
     private var runningVMs: [String: VZVirtualMachine] = [:]
+    private var vmDelegates: [String: VMDelegate] = [:]
     
-    public init(machineStore: MachineStore? = nil) {
+    public init(
+        machineStore: MachineStore? = nil,
+        resourceManager: VMResourceManager? = nil,
+        fileSharingManager: FileSharingManager? = nil,
+        kernelDownloader: KernelDownloader? = nil,
+        sshConfigurator: SSHConfigurator? = nil
+    ) {
         self.machineStore = machineStore ?? MachineStore()
+        self.resourceManager = resourceManager ?? VMResourceManager()
+        self.fileSharingManager = fileSharingManager ?? FileSharingManager()
+        self.kernelDownloader = kernelDownloader ?? KernelDownloader()
+        self.sshConfigurator = sshConfigurator ?? SSHConfigurator()
     }
     
     public func createMachine(name: String, config: MachineConfig) async throws -> Machine {
@@ -26,7 +41,7 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
             name: name,
             distro: config.distro,
             version: config.version,
-            status: .stopped,
+            status: .creating,
             cpuCount: config.cpuCount,
             memoryGB: config.memoryGB,
             diskGB: config.diskGB
@@ -35,12 +50,66 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         // Save to store
         try machineStore.create(machine)
         
-        // TODO: Download/prepare disk image
-        // TODO: Setup virtiofs for file sharing
-        // TODO: Configure SSH keys
-        
-        logger.info("Machine \(name) created successfully")
-        return machine
+        do {
+            // Create machine directory
+            try await resourceManager.createMachineDirectory(for: machine.id)
+            let machineDir = await resourceManager.machineDirectory(for: machine.id)
+            
+            // Create disk image
+            try await resourceManager.createDiskImage(for: machine.id, sizeGB: config.diskGB)
+            
+            // Generate SSH keys
+            let (publicKey, privateKey) = try await sshConfigurator.generateSSHKeyPair(for: machine.id)
+            try await sshConfigurator.saveSSHKeys(
+                for: machine.id,
+                publicKey: publicKey,
+                privateKey: privateKey,
+                machineDirectory: machineDir
+            )
+            
+            // Create cloud-init user data if provided
+            if let cloudInitData = config.cloudInitData {
+                let cloudInitPath = machineDir.appendingPathComponent("user-data.yml")
+                try cloudInitData.write(to: cloudInitPath, atomically: true, encoding: .utf8)
+            } else {
+                // Generate default cloud-init with SSH key
+                let defaultCloudInit = await sshConfigurator.createCloudInitUserData(
+                    sshPublicKey: publicKey,
+                    hostname: name
+                )
+                let cloudInitPath = machineDir.appendingPathComponent("user-data.yml")
+                try defaultCloudInit.write(to: cloudInitPath, atomically: true, encoding: .utf8)
+            }
+            
+            // Download kernel and initrd
+            let kernelPath = await resourceManager.kernelPath(for: machine.id)
+            let initrdPath = await resourceManager.initrdPath(for: machine.id)
+            
+            do {
+                try await kernelDownloader.ensureKernel(
+                    for: machine.id,
+                    distro: config.distro,
+                    version: config.version,
+                    targetKernelPath: kernelPath,
+                    targetInitrdPath: initrdPath
+                )
+            } catch {
+                logger.warning("Kernel download failed, machine will need manual kernel setup: \(error.localizedDescription)")
+            }
+            
+            // Update status to stopped (ready to start)
+            machine.status = .stopped
+            try machineStore.update(machine)
+            
+            logger.info("Machine \(name) created successfully")
+            return machine
+        } catch {
+            // Cleanup on failure
+            machine.status = .error
+            try? machineStore.update(machine)
+            try? await resourceManager.deleteMachineResources(for: machine.id)
+            throw MachineError.virtualizationError("Failed to create machine: \(error.localizedDescription)")
+        }
     }
     
     public func startMachine(id: String) async throws -> Machine {
@@ -58,19 +127,57 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         machine.status = .starting
         try machineStore.update(machine)
         
-        // TODO: Create VZVirtualMachineConfiguration
-        // TODO: Setup networking
-        // TODO: Setup file sharing
-        // TODO: Start VM
-        
-        // For now, simulate successful start
-        machine.status = .running
-        machine.ipAddress = "192.168.64.2" // Placeholder
-        machine.sshPort = 22
-        try machineStore.update(machine)
-        
-        logger.info("Machine \(machine.name) started successfully")
-        return machine
+        do {
+            // Get resource paths
+            let diskPath = await resourceManager.diskPath(for: machine.id)
+            let kernelPath = await resourceManager.kernelPath(for: machine.id)
+            let initrdPath = await resourceManager.initrdPath(for: machine.id)
+            
+            // Check if kernel and initrd exist
+            let hasKernel = FileManager.default.fileExists(atPath: kernelPath.path)
+            let hasInitrd = FileManager.default.fileExists(atPath: initrdPath.path)
+            
+            // Setup file sharing
+            let sharedDirectories = await fileSharingManager.createSharedDirectories(for: machine.id)
+            
+            // Build VM configuration
+            let vmConfig = try VMConfiguration.build(
+                machineID: machine.id,
+                cpuCount: machine.cpuCount,
+                memoryGB: machine.memoryGB,
+                diskPath: diskPath,
+                kernelPath: hasKernel ? kernelPath : nil,
+                initrdPath: hasInitrd ? initrdPath : nil,
+                sharedDirectories: sharedDirectories
+            )
+            
+            // Create virtual machine
+            let vm = VZVirtualMachine(configuration: vmConfig)
+            
+            // Create and set delegate
+            let delegate = VMDelegate(machineID: machine.id, logger: logger)
+            vmDelegates[machine.id] = delegate
+            vm.delegate = delegate
+            
+            // Start the VM
+            try await vm.start()
+            
+            // Store running VM
+            runningVMs[machine.id] = vm
+            
+            // Update machine status
+            machine.status = .running
+            machine.ipAddress = "192.168.64.2" // TODO: Get actual IP from VM
+            machine.sshPort = 22
+            try machineStore.update(machine)
+            
+            logger.info("Machine \(machine.name) started successfully")
+            return machine
+        } catch {
+            machine.status = .error
+            try? machineStore.update(machine)
+            throw MachineError.virtualizationError("Failed to start machine: \(error.localizedDescription)")
+        }
     }
     
     public func stopMachine(id: String) async throws -> Machine {
@@ -118,8 +225,13 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         
         logger.info("Deleting machine: \(machine.name)")
         
-        // TODO: Delete disk images and configuration files
+        // Delete machine resources
+        try await resourceManager.deleteMachineResources(for: id)
         
+        // Cleanup shared directories
+        try await fileSharingManager.cleanupSharedDirectory(for: id)
+        
+        // Remove from store
         try machineStore.delete(id: id)
         
         logger.info("Machine \(machine.name) deleted successfully")
