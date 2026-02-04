@@ -35,7 +35,6 @@ public final class NetworkListViewModel {
 
 public struct NetworkListView: View {
     @Bindable var viewModel: NetworkListViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     public init(viewModel: NetworkListViewModel) {
         self.viewModel = viewModel
@@ -60,18 +59,6 @@ public struct NetworkListView: View {
                 .buttonStyle(.glass)
                 .help("Refresh Networks")
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-
-            // Search
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                TextField("Search networks...", text: $viewModel.searchQuery)
-                    .textFieldStyle(.plain)
-            }
-            .padding(DesignSystem.Inset.sm)
-            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-            .clipShape(DesignSystem.Shapes.input)
             .padding(.horizontal, DesignSystem.Spacing.md)
 
             if let error = viewModel.error {
@@ -109,6 +96,7 @@ public struct NetworkListView: View {
                 Task { await viewModel.load() }
             }
         }
+        .searchable(text: $viewModel.searchQuery)
     }
 }
 

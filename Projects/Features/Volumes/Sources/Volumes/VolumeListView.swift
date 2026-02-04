@@ -37,7 +37,6 @@ public final class VolumeListViewModel {
 
 public struct VolumeListView: View {
     @Bindable var viewModel: VolumeListViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     public init(viewModel: VolumeListViewModel) {
         self.viewModel = viewModel
@@ -62,18 +61,6 @@ public struct VolumeListView: View {
                 .buttonStyle(.glass)
                 .help("Refresh Volumes")
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-
-            // Search
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                TextField("Search volumes...", text: $viewModel.searchQuery)
-                    .textFieldStyle(.plain)
-            }
-            .padding(DesignSystem.Inset.sm)
-            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-            .clipShape(DesignSystem.Shapes.input)
             .padding(.horizontal, DesignSystem.Spacing.md)
 
             if let error = viewModel.error {
@@ -111,6 +98,7 @@ public struct VolumeListView: View {
                 Task { await viewModel.load() }
             }
         }
+        .searchable(text: $viewModel.searchQuery)
     }
 }
 

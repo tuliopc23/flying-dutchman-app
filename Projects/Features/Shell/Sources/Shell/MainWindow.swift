@@ -11,30 +11,29 @@ public struct MainWindow: View {
     public var body: some View {
         @Bindable var state = state
 
-        let features = state.features
-
         NavigationSplitView {
             SidebarView(selection: $state.selectedSection)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 240)
         } detail: {
             NavigationStack(path: $state.navigationPath) {
-                ScrollView {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
                         DiagnosticsSection()
                         EngineStatusHero()
-                        DetailContentView()
                     }
-                    .padding(DesignSystem.Spacing.xl)
+                    .padding(.horizontal, DesignSystem.Spacing.xl)
+                    .padding(.top, DesignSystem.Spacing.xl)
+
+                    DetailContentView()
                 }
                 .navigationTitle(state.selectedSection.title)
                 .toolbarTitleDisplayMode(.inline)
-                .toolbar {
+                .toolbar(id: "main-toolbar") {
                     MainToolbar()
                 }
             }
         }
         .unifiedChrome()
-        .preferredColorScheme(state.appearanceOverride)
         .sheet(isPresented: $state.showPalette) {
             Text("Command Palette Placeholder")
                 .frame(width: 520, height: 300)
@@ -150,27 +149,20 @@ struct DetailContentView: View {
     }
 }
 
-struct MainToolbar: ToolbarContent {
+struct MainToolbar: CustomizableToolbarContent {
     @Environment(AppState.self) private var state
 
-    var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .primaryAction) {
+    var body: some CustomizableToolbarContent {
+        ToolbarItem(id: "refresh", placement: .primaryAction) {
             Button {
                 Task { await state.refreshCurrentSection() }
             } label: {
                 Label("Refresh", systemImage: "arrow.clockwise")
             }
             .buttonStyle(.glass)
+        }
 
-            Menu {
-                Button("Light") { state.appearanceOverride = .light }
-                Button("Dark") { state.appearanceOverride = .dark }
-                Button("System") { state.appearanceOverride = nil }
-            } label: {
-                Label("Appearance", systemImage: "circle.lefthalf.filled")
-            }
-            .buttonStyle(.glass)
-
+        ToolbarItem(id: "command-palette", placement: .primaryAction) {
             Button {
                 state.showPalette = true
             } label: {

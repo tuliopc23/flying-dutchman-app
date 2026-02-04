@@ -18,8 +18,6 @@ public final class AppState {
     /// Whether the command palette is visible
     var showPalette: Bool = false
     
-    /// User appearance override (Light/Dark)
-    var appearanceOverride: ColorScheme?
     
     // MARK: - Engine & Lifecycle State
     

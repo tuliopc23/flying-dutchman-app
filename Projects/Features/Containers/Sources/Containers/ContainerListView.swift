@@ -69,7 +69,6 @@ public struct ContainerListView: View {
     @Bindable var viewModel: ContainerListViewModel
     var stack: StackSummary?
     @State private var selectedContainer: ContainerSummary?
-    @Environment(\.colorScheme) private var colorScheme
 
     public init(viewModel: ContainerListViewModel, stack: StackSummary? = nil) {
         self.viewModel = viewModel
@@ -100,23 +99,11 @@ public struct ContainerListView: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.md)
 
-            // Search & Filter
-            HStack(spacing: DesignSystem.Spacing.md) {
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(DesignSystem.Colors.textTertiary)
-                    TextField("Search containers...", text: $viewModel.searchQuery)
-                        .textFieldStyle(.plain)
-                }
-                .padding(DesignSystem.Inset.sm)
-                .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                .clipShape(DesignSystem.Shapes.input)
-                
-                Toggle("Running only", isOn: $viewModel.showRunningOnly)
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-            }
-            .padding(.horizontal, DesignSystem.Spacing.md)
+            // Filter
+            Toggle("Running only", isOn: $viewModel.showRunningOnly)
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .padding(.horizontal, DesignSystem.Spacing.md)
 
             if let error = viewModel.error {
                 DiagnosticsBanner(
@@ -156,6 +143,7 @@ public struct ContainerListView: View {
                 Task { await viewModel.load() }
             }
         }
+        .searchable(text: $viewModel.searchQuery)
         .navigationDestination(for: ContainerSummary.self) { container in
             ContainerDetailView(viewModel: ContainerDetailViewModel(container: container))
         }

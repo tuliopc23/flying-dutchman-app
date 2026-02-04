@@ -32,7 +32,6 @@ public struct SidebarView: View {
                 Section("Project Stacks") {
                     ForEach(state.sidebar.stacks) { stack in
                         Label(stack.name, systemImage: "square.stack.3d.up")
-                            .tag(stack.id) // Selection can be extended to support stacks directly
                     }
                 }
             }

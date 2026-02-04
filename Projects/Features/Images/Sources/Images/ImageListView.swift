@@ -103,18 +103,6 @@ public struct ImageListView: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.md)
 
-            // Search
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                TextField("Search images...", text: $viewModel.searchQuery)
-                    .textFieldStyle(.plain)
-            }
-            .padding(DesignSystem.Inset.sm)
-            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-            .clipShape(DesignSystem.Shapes.input)
-            .padding(.horizontal, DesignSystem.Spacing.md)
-
             if let error = viewModel.error {
                 DiagnosticsBanner(
                     title: "Error", 
@@ -150,6 +138,7 @@ public struct ImageListView: View {
                 Task { await viewModel.load() }
             }
         }
+        .searchable(text: $viewModel.searchQuery)
     }
 }
 

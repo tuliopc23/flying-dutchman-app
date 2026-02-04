@@ -138,18 +138,6 @@ public struct LogsView: View {
             }
             .padding(DesignSystem.Spacing.md)
             .background(.thinMaterial)
-            
-            // Search Bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                TextField("Filter logs...", text: $viewModel.filter)
-                    .textFieldStyle(.plain)
-            }
-            .padding(DesignSystem.Inset.sm)
-            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .padding(.bottom, DesignSystem.Spacing.sm)
 
             Divider()
 
@@ -177,7 +165,7 @@ public struct LogsView: View {
                     }
                     .padding(DesignSystem.Spacing.md)
                 }
-                .background(Color.black.opacity(0.9))
+                .background(DesignTokens.glassFieldBackground(for: colorScheme))
                 .onChange(of: viewModel.lines.count) { _, count in
                     if viewModel.follow && count > 0 {
                         withAnimation {
@@ -187,7 +175,7 @@ public struct LogsView: View {
                 }
             }
         }
-        .background(Color.black)
+        .background(DesignSystem.Colors.surfacePrimary)
         .clipShape(DesignSystem.Shapes.card)
         .padding(DesignSystem.Spacing.md)
         .glassContainer()
@@ -210,6 +198,7 @@ public struct LogsView: View {
                 viewModel.cancelFollow()
             }
         }
+        .searchable(text: $viewModel.filter)
     }
 }
 
@@ -221,13 +210,13 @@ struct LogLineRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Text("\(index + 1)")
-                .font(.system(size: 10, weight: .regular, design: .monospaced))
-                .foregroundStyle(Color.white.opacity(0.3))
+                .font(DesignSystem.Typography.caption2)
+                .foregroundStyle(DesignSystem.Colors.textTertiary)
                 .frame(width: 30, alignment: .trailing)
             
             Text(line)
-                .font(.system(size: 11, weight: .regular, design: .monospaced))
-                .foregroundStyle(Color.white.opacity(0.9))
+                .font(DesignSystem.Typography.codeSmall)
+                .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .textSelection(.enabled)
             
             Spacer()
@@ -240,7 +229,7 @@ struct LogLineRow: View {
                     #endif
                 } label: {
                     Image(systemName: "doc.on.doc")
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
                 }
                 .buttonStyle(.borderless)
             }

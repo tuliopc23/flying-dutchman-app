@@ -23,12 +23,6 @@ public struct AppCommands: Commands {
                         .keyboardShortcut(section.shortcutKey, modifiers: [.command, .option])
                 }
             }
-
-            Menu("Appearance") {
-                Button("System") { state.appearanceOverride = nil }
-                Button("Light") { state.appearanceOverride = .light }
-                Button("Dark") { state.appearanceOverride = .dark }
-            }
         }
     }
 }

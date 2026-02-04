@@ -102,7 +102,6 @@ public final class StacksViewModel {
 
 public struct StacksView: View {
     @Bindable var viewModel: StacksViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     public init(viewModel: StacksViewModel) {
         self.viewModel = viewModel
@@ -134,18 +133,6 @@ public struct StacksView: View {
                 }
                 .buttonStyle(.glass)
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-
-            // Search
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DesignSystem.Colors.textTertiary)
-                TextField("Search stacks...", text: $viewModel.searchQuery)
-                    .textFieldStyle(.plain)
-            }
-            .padding(DesignSystem.Inset.sm)
-            .background(DesignTokens.glassFieldBackground(for: colorScheme))
-            .clipShape(DesignSystem.Shapes.input)
             .padding(.horizontal, DesignSystem.Spacing.md)
 
             if let message = viewModel.lastActionMessage {
@@ -193,6 +180,7 @@ public struct StacksView: View {
                 Task { await viewModel.load() }
             }
         }
+        .searchable(text: $viewModel.searchQuery)
     }
 
     private var createSheet: some View {

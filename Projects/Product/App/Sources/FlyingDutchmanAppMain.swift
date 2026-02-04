@@ -41,6 +41,7 @@ struct FlyingDutchmanApp: App {
         .windowStyle(.hiddenTitleBar) // Modern Tahoe look
         .windowToolbarStyle(.unified)
         .commands {
+            ToolbarCommands()
             AppCommands(state: state)
         }
 
