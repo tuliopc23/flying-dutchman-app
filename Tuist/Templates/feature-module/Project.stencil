@@ -1,0 +1,18 @@
+import ProjectDescription
+import ProjectDescriptionHelpers
+
+let project = Project(
+    name: "{{ name }}",
+    targets: makeFeature(
+        name: "{{ name }}",
+        interfaceDependencies: [
+            // Add dependencies if the Interface needs shared types.
+            // .project(target: "Shared", path: "../../Core/Shared")
+        ],
+        dependencies: [
+            .project(target: "Shared", path: "../../Core/Shared"),
+            .project(target: "DesignSystem", path: "../../Core/DesignSystem"),
+            .project(target: "UIComponents", path: "../../Core/UIComponents")
+        ]
+    )
+)

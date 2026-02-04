@@ -18,7 +18,11 @@ This repo is already partially modularized with Tuist into `Core/`, `Domain/`, a
 - [x] Tuist caching config enabled in `Tuist.swift` (`generationOptions: .options(enableCaching: true)`).
 - [x] `Projects/Product/App/Sources/DesignSystem/**` removed; Core `DesignSystem` is source of truth.
 - [x] `Projects/Product/App/Sources/Components/**` duplicates removed; Core `UIComponents` is source of truth.
-- [ ] Remaining feature extractions not started (Shell, Containers, Stacks, Images, Volumes, Networks, Diagnostics).
+- [x] Remaining feature extractions completed (Shell, Containers, Stacks, Images, Volumes, Networks, Diagnostics).
+- [x] Product App target is now a thin composition root that wires feature implementations.
+- [x] Shell depends on feature Interfaces only; Product wires implementations.
+- [x] Tuist Cloud project created and linked (fullHandle + cloud projectId).
+- [x] Tuist Registry enabled.
 
 ## Current Repo Reality (Verified Locally)
 
@@ -49,11 +53,8 @@ This repo is already partially modularized with Tuist into `Core/`, `Domain/`, a
 - `Tuist/ProjectDescriptionHelpers/Feature.swift` defines `makeFeature(name:dependencies:resources:)` that generates 5 targets with Swift 6.2 + strict concurrency.
 - `Tuist/ProjectDescriptionHelpers/Target+Helpers.swift` defines `.core`, `.domain`, `.feature` convenience constructors.
 
-### Known gaps (this plan addresses)
-- `Projects/Features/**` does not exist yet and is not included in `Workspace.swift`.
-- Strict concurrency settings are applied by `makeFeature(...)` but not by `.core(...)`/`.domain(...)` helpers.
-- `Projects/Product/App/Sources/DesignSystem/**` and `Projects/Product/App/Sources/Components/**` still exist even though `Projects/Core/DesignSystem` and `Projects/Core/UIComponents` exist. This duplication needs consolidation.
-- Tuist Cloud / caching setup in the plan was inaccurate. Config must be done in `Tuist.swift`.
+### Known gaps (post-completion)
+- None. The extraction and consolidation steps in this plan are complete.
 
 ## Goals / Non-goals
 

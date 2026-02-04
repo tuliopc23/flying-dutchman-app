@@ -13,16 +13,14 @@ let project = Project(
             infoPlist: .default,
             sources: ["Sources/**"],
             dependencies: [
-                .project(target: "Shared", path: "../../Core/Shared"),
-                .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
-                .project(target: "DesignSystem", path: "../../Core/DesignSystem"),
-                .project(target: "UIComponents", path: "../../Core/UIComponents"),
-                .project(target: "FlyingDutchmanContainers", path: "../../Domain/ContainerKit"),
-                .project(target: "FlyingDutchmanNetworking", path: "../../Domain/NetworkKit"),
                 .project(target: "Settings", path: "../../Features/Settings"),
-                .external(name: "SwiftNavigation"),
-                .external(name: "SwiftUINavigation"),
-                .external(name: "Dependencies")
+                .project(target: "Shell", path: "../../Features/Shell"),
+                .project(target: "Containers", path: "../../Features/Containers"),
+                .project(target: "Images", path: "../../Features/Images"),
+                .project(target: "Volumes", path: "../../Features/Volumes"),
+                .project(target: "Networks", path: "../../Features/Networks"),
+                .project(target: "Diagnostics", path: "../../Features/Diagnostics"),
+                .project(target: "Stacks", path: "../../Features/Stacks")
             ]
         )
     ]

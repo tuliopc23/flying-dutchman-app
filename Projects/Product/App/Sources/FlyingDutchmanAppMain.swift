@@ -1,12 +1,33 @@
 import SwiftUI
-import Shared
-import FlyingDutchmanPersistence
 import Settings
+import Shell
+import Containers
+import ContainersInterface
+import Images
+import ImagesInterface
+import Volumes
+import VolumesInterface
+import Networks
+import NetworksInterface
+import Diagnostics
+import DiagnosticsInterface
+import Stacks
+import StacksInterface
 
 @main
+@MainActor
 struct FlyingDutchmanApp: App {
     // Single source of truth for the entire app state (macOS 26+ Observation)
-    @State private var state = AppState()
+    @State private var state = AppState(
+        features: ShellFeatureRegistry(
+            containers: .live,
+            images: .live,
+            volumes: .live,
+            networks: .live,
+            diagnostics: .live,
+            stacks: .live
+        )
+    )
 
     var body: some Scene {
         WindowGroup(id: "main") {
@@ -20,7 +41,7 @@ struct FlyingDutchmanApp: App {
         .windowStyle(.hiddenTitleBar) // Modern Tahoe look
         .windowToolbarStyle(.unified)
         .commands {
-            AppCommands()
+            AppCommands(state: state)
         }
 
         Settings {

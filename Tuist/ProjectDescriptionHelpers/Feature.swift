@@ -16,6 +16,7 @@ import ProjectDescription
 public func makeFeature(
     name: String,
     dependencies: [TargetDependency] = [],
+    interfaceDependencies: [TargetDependency] = [],
     resources: ResourceFileElements? = nil
 ) -> [Target] {
     let bundlePrefix = "com.flyingdutchman.feature"
@@ -34,7 +35,7 @@ public func makeFeature(
         deploymentTargets: .macOS("26.0"),
         infoPlist: .default,
         sources: ["Sources/\(name)Interface/**"],
-        dependencies: [],
+        dependencies: interfaceDependencies,
         settings: .settings(base: swiftSettings)
     )
     

@@ -1,0 +1,19 @@
+import SwiftUI
+import DesignSystem
+
+public struct {{ name }}RootView: View {
+    public init() {}
+
+    public var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                Text("{{ name }}")
+                    .font(DesignSystem.Typography.title2)
+                Text("Replace this with the real feature UI.")
+                    .font(DesignSystem.Typography.body)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+            }
+            .padding(DesignSystem.Inset.md)
+        }
+    }
+}

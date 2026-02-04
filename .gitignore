@@ -35,3 +35,6 @@ Thumbs.db
 # Tuist
 Tuist/Projects
 Tuist/Config
+
+# Tuist-generated InfoPlists
+Projects/**/Derived/

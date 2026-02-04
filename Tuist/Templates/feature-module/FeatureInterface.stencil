@@ -1,0 +1,9 @@
+import SwiftUI
+
+public struct {{ name }}Feature {
+    public var rootView: @MainActor () -> AnyView
+
+    public init(rootView: @escaping @MainActor () -> AnyView) {
+        self.rootView = rootView
+    }
+}

@@ -1,0 +1,11 @@
+import SwiftUI
+import {{ name }}
+
+@main
+struct {{ name }}ExampleApp: App {
+    var body: some Scene {
+        WindowGroup {
+            {{ name }}RootView()
+        }
+    }
+}
