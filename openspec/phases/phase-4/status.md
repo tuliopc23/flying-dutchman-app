@@ -1,42 +1,72 @@
-# Phase 4 Status: UX Polish & Modernization
+# Phase 4: UX Polish - Status
 
-updated: 2026-01-05
-status: 🟡 In Progress (Refactoring)
-
----
-
-## 🎯 Current Sprint: Tahoe Modernization
-
-### Foundation & Tokens
-- [x] Fix `EdgeInsets` naming conflict in `Spacing.swift` ✅
-- [x] Modernize `View+Glass.swift` for macOS 26+ native APIs ✅
-- [x] Update `Colors.swift` with Tahoe-optimized palette ✅
-
-### Architecture (Observation)
-- [x] Create `@Observable AppState` coordinator ✅
-- [x] Migrate `StatusViewModel` to Observation ✅
-- [x] Migrate `ContainerListViewModel` to Observation ✅
-- [x] Migrate `ImageListViewModel` to Observation ✅
-
-### Main Layout
-- [x] Refactor `MainWindow` to `NavigationSplitView` ✅
-- [x] Implement `SidebarView` with Tahoe styling ✅
-- [x] Implement Unified Chrome (titlebar/toolbar) ✅
-- [x] Add `MeshGradient` background to root window ✅ (via containerBackground)
+phase: 4
+status: in-progress
+started: 2026-02-03
+updated: 2026-02-03
+blockers: []
 
 ---
 
-## 🚦 Acceptance Criteria Progress
+## Overview
 
-| Category | Requirement | Status |
-| :--- | :--- | :--- |
-| **Architecture** | Centralized AppState | ✅ 100% |
-| **Navigation** | Native SplitView Sidebar | ✅ 100% |
-| **Design** | Official Liquid Glass Usage | ✅ 100% |
-| **MVP** | Functional Container Workflow | ✅ 100% |
+Focus on premium macOS-native user experience, bringing the app out of the "developer tool" bucket and into "daily driver" territory.
+
+**Primary Module**: `FlyingDutchmanApp`
+**Capabilities**: `menu-bar`, `command-palette`, `debug-shell`, `settings-efficiency`
 
 ---
 
-## 📝 Change Log
+## Sub-phases
 
-- **2026-01-05**: Migrated progress from Phase 2 to Phase 4 to align with Roadmap.
+### 4.0 Tahoe Modernization ✅
+- [x] Refactor `MainWindow` to `NavigationSplitView`
+- [x] Implement `SidebarView` with Tahoe styling
+- [x] Implement Unified Chrome (titlebar/toolbar)
+- [x] Add `MeshGradient` background
+- [x] Architecture: Centralized `@Observable AppState`
+
+### 4.1 Menu Bar Applet ✅
+- [x] Implement `MenuBarExtra` in App entry point
+- [x] Create `MenuBarView` with status and container list
+- [x] Wire up "Open Dashboard" and "Quit" actions
+- [x] Connect to `AppState` for live engine status
+
+### 4.2 Command Palette ⚪
+- [ ] Global shortcut (⌘K)
+- [ ] Fuzzy search implementation
+- [ ] Action registry (Start/Stop containers, Navigation)
+- [ ] UI overlay
+
+### 4.3 Debug Shell ⚪
+- [ ] Terminal emulator integration (`libghostty` or similar)
+- [ ] `exec` support for Containers via VSOCK
+- [ ] `ssh` support for Machines via Citadel
+- [ ] Theme matching (Dark/Light mode)
+
+### 4.4 Settings & Efficiency ⚪
+- [ ] Resource configuration UI (CPU/RAM slider)
+- [ ] Startup behavior preferences
+- [ ] Update checker
+
+---
+
+## Entry Criteria
+
+- [x] Phase 3 mostly complete (Platform)
+- [x] UI Foundation (4.0) complete
+
+## Exit Criteria
+
+Phase 4 is complete when:
+- [ ] App feels "native" and responsive
+- [ ] Users rarely need to open the main window for simple tasks (Menu Bar covers it)
+- [ ] Power users can navigate via keyboard (Command Palette)
+- [ ] Debugging is built-in (Terminal)
+
+---
+
+## Notes
+
+- The Menu Bar applet is the primary interface for many users.
+- Command Palette should be fast and keyboard-centric.
