@@ -26,9 +26,11 @@ The system SHALL support Docker host networking mode (`--net host`).
 ### Requirement: Zero-config container domains
 The system SHALL provide zero-config container domains in the form `container-name.flyingdutchman.local` (primary) and `container-name.fd.local` (legacy), plus `service.project.flyingdutchman.local` for Compose services.
 
+The system SHALL also provide Kubernetes domains in the form `cluster.k8s.flyingdutchman.local` (primary) and `cluster.k8s.fd.local` (legacy).
+
 **Constraints & Notes:**
 - DNS server MUST be bound to `127.0.0.1:5353`.
-- System MUST install resolver files at `/etc/resolver/flyingdutchman.local` and `/etc/resolver/fd.local` pointing to `127.0.0.1:5353`.
+- System MUST install resolver files at `/etc/resolver/flyingdutchman.local`, `/etc/resolver/fd.local`, `/etc/resolver/k8s.flyingdutchman.local`, and `/etc/resolver/k8s.fd.local` pointing to `127.0.0.1:5353`.
 - Usage of `.local` via resolver file is a specific deviation from mDNS; ensure fallback allows suffix configuration if conflicts arise.
 
 #### Scenario: Access a service by domain

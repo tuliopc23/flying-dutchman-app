@@ -168,6 +168,21 @@ let package = Package(
             path: "Projects/Features/Stacks/Sources/StacksInterface"
         ),
         .target(
+            name: "MachinesInterface",
+            dependencies: [
+                "Shared"
+            ],
+            path: "Projects/Features/Machines/Sources/MachinesInterface"
+        ),
+        .target(
+            name: "KubernetesInterface",
+            path: "Projects/Features/Kubernetes/Sources/KubernetesInterface"
+        ),
+        .target(
+            name: "DebugShellInterface",
+            path: "Projects/Features/DebugShell/Sources/DebugShellInterface"
+        ),
+        .target(
             name: "ShellInterface",
             path: "Projects/Features/Shell/Sources/ShellInterface"
         ),
@@ -192,7 +207,8 @@ let package = Package(
                 "UIComponents",
                 "FlyingDutchmanPersistence",
                 "FlyingDutchmanNetworking",
-                "FlyingDutchmanContainers"
+                "FlyingDutchmanContainers",
+                .product(name: "Dependencies", package: "swift-dependencies")
             ],
             path: "Projects/Features/Containers/Sources/Containers"
         ),
@@ -259,6 +275,40 @@ let package = Package(
             path: "Projects/Features/Stacks/Sources/Stacks"
         ),
         .target(
+            name: "Machines",
+            dependencies: [
+                "MachinesInterface",
+                "Shared",
+                "DesignSystem",
+                "UIComponents",
+                "FlyingDutchmanNetworking",
+                .product(name: "Dependencies", package: "swift-dependencies")
+            ],
+            path: "Projects/Features/Machines/Sources/Machines"
+        ),
+        .target(
+            name: "Kubernetes",
+            dependencies: [
+                "KubernetesInterface",
+                "Shared",
+                "DesignSystem",
+                "UIComponents",
+                "FlyingDutchmanNetworking"
+            ],
+            path: "Projects/Features/Kubernetes/Sources/Kubernetes"
+        ),
+        .target(
+            name: "DebugShell",
+            dependencies: [
+                "DebugShellInterface",
+                "Shared",
+                "DesignSystem",
+                "UIComponents",
+                .product(name: "Dependencies", package: "swift-dependencies")
+            ],
+            path: "Projects/Features/DebugShell/Sources/DebugShell"
+        ),
+        .target(
             name: "Shell",
             dependencies: [
                 "ShellInterface",
@@ -272,6 +322,9 @@ let package = Package(
                 "NetworksInterface",
                 "DiagnosticsInterface",
                 "StacksInterface",
+                "MachinesInterface",
+                "KubernetesInterface",
+                "DebugShellInterface",
                 .product(name: "Dependencies", package: "swift-dependencies")
             ],
             path: "Projects/Features/Shell/Sources/Shell"
@@ -311,6 +364,9 @@ let package = Package(
                 "Networks",
                 "Diagnostics",
                 "Stacks",
+                "Machines",
+                "Kubernetes",
+                "DebugShell",
                 .product(name: "SwiftNavigation", package: "swift-navigation"),
                 .product(name: "SwiftUINavigation", package: "swift-navigation"),
                 .product(name: "Dependencies", package: "swift-dependencies")

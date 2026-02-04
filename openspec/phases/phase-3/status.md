@@ -3,7 +3,7 @@
 phase: 3
 status: in-progress
 started: 2026-01-29
-updated: 2026-02-03
+updated: 2026-02-04
 blockers: []
 
 ---
@@ -43,7 +43,7 @@ Platform phase delivers Linux machines, Kubernetes development environment, and 
 - [x] 1. Single-node cluster provisioning (k3s via cloud-init on VM)
 - [x] 2. `kubectl` context integration (`fd k8s kubeconfig --save`)
 - [x] 3. Service exposure (via direct IP access)
-- [ ] 4. `*.k8s.fd.local` domain routing
+- [x] 4. `*.k8s.flyingdutchman.local` domain routing (legacy `*.k8s.fd.local`)
 - [ ] 5. Ingress controller support
 - [ ] 6. Persistent volume support
 - [x] 7. Cluster lifecycle (create --vm, start, stop, delete)
@@ -76,7 +76,7 @@ Phase 3 is complete when:
 - [x] File sharing works bidirectionally
 - [x] SSH connects without manual configuration
 - [x] Kubernetes cluster runs and `kubectl` works
-- [ ] Services accessible via domain names (`*.k8s.fd.local`)
+- [x] Services accessible via domain names (`*.k8s.flyingdutchman.local`, legacy `*.k8s.fd.local`)
 - [x] CLI can control entire app without GUI
 
 ---

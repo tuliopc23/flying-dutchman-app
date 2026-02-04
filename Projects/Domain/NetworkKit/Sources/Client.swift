@@ -104,6 +104,16 @@ public enum EngineClient {
         try await mutateContainer(id: id, action: "restart")
     }
 
+    @MainActor public static func removeContainer(id: UUID) async throws {
+        let url = URL(string: "\(baseURL)/containers/\(id.uuidString)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+    }
+
     @MainActor private static func mutateContainer(id: UUID, action: String) async throws -> ContainerSummary {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)/\(action)")!
         var request = URLRequest(url: url)

@@ -21,6 +21,9 @@ let project = Project(
                 .project(target: "Networks", path: "../../Features/Networks"),
                 .project(target: "Diagnostics", path: "../../Features/Diagnostics"),
                 .project(target: "Stacks", path: "../../Features/Stacks"),
+                .project(target: "Machines", path: "../../Features/Machines"),
+                .project(target: "Kubernetes", path: "../../Features/Kubernetes"),
+                .project(target: "DebugShell", path: "../../Features/DebugShell"),
             ]
         ),
     ]

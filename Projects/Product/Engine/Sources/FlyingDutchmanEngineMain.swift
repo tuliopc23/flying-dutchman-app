@@ -42,7 +42,7 @@ struct FlyingDutchmanEngineMain {
         )
 
         // Create machine runtime for Linux VMs
-        let machineRuntime = VirtualizationRuntime(machineStore: machineStore)
+        let machineRuntime = VirtualizationRuntime(machineStore: machineStore, routingTable: routingTable)
 
         // Log runtime mode for diagnostics
         let runtimeName = await runtime.name

@@ -30,6 +30,7 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
             Login.self,
             Logout.self,
             TrustCA.self,
+            Shell.self,
         ]
     )
 }

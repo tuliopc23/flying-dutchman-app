@@ -17,7 +17,11 @@ The system SHALL provide a debug shell with built-in tools for container debuggi
 
 #### Scenario: Start a debug shell from the UI
 - **WHEN** a user clicks Debug on a container
-- **THEN** a terminal opens with a shell and common tools available
+- **THEN** the app opens the user's preferred terminal app and runs `fd shell <container>`
+
+**Notes**:
+- Until `libghostty` is embedded, the UI uses external terminal apps (Ghostty/iTerm/WezTerm/kitty/Terminal).
+- The underlying execution is still `exec/attach` over the runtime control channel (VSOCK).
 
 ### Requirement: Remote container debugging
 The system SHALL support debugging containers running on remote Docker hosts via Docker contexts.

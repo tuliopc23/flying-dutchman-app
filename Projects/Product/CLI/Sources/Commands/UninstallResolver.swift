@@ -10,7 +10,7 @@ struct UninstallResolver: AsyncParsableCommand {
 
     func run() async throws {
         let resolverDir = "/etc/resolver"
-        let domains = AppConfig.Networking.allDomainSuffixes
+        let domains = AppConfig.Networking.resolverDomainSuffixes
         let resolverFiles = domains.map { "\(resolverDir)/\($0)" }
 
         let existingFiles = resolverFiles.filter { FileManager.default.fileExists(atPath: $0) }

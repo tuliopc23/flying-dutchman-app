@@ -17,6 +17,8 @@ public actor DomainRoutingTable {
     private var routes: [String: Upstream] = [:]
     /// Map containerID -> [Hostname] (for cleanup)
     private var containerHostnames: [UUID: Set<String>] = [:]
+    /// Map clusterID -> [Hostname] (for cleanup)
+    private var kubernetesHostnames: [String: Set<String>] = [:]
 
     public init() {}
 
@@ -24,13 +26,23 @@ public actor DomainRoutingTable {
         // Find upstream
         if let upstream = determineUpstream(from: config, legacyPorts: container.ports) {
             var hosts = containerHostnames[container.id] ?? []
-            for suffix in AppConfig.Networking.allDomainSuffixes {
+            for suffix in AppConfig.Networking.containerDomainSuffixes {
                 let hostname = AppConfig.Networking.hostname(for: container.name, suffix: suffix)
                 routes[hostname] = upstream
                 hosts.insert(hostname)
             }
             containerHostnames[container.id] = hosts
         }
+    }
+
+    public func registerKubernetesCluster(id: String, name: String, upstream: Upstream) {
+        var hosts = kubernetesHostnames[id] ?? []
+        for suffix in AppConfig.Networking.kubernetesDomainSuffixes {
+            let hostname = AppConfig.Networking.kubernetesHostname(for: name, suffix: suffix)
+            routes[hostname] = upstream
+            hosts.insert(hostname)
+        }
+        kubernetesHostnames[id] = hosts
     }
 
     public func unregister(containerID: UUID) {
@@ -41,6 +53,14 @@ public actor DomainRoutingTable {
         }
 
         containerHostnames.removeValue(forKey: containerID)
+    }
+
+    public func unregisterKubernetesCluster(id: String) {
+        guard let hosts = kubernetesHostnames[id] else { return }
+        for host in hosts {
+            routes.removeValue(forKey: host)
+        }
+        kubernetesHostnames.removeValue(forKey: id)
     }
 
     public func resolveIPv4(hostname: String) -> String? {

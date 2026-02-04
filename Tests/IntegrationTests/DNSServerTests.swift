@@ -33,6 +33,11 @@ final class DNSServerTests: XCTestCase {
         let config = ContainerConfig(ports: ["8080:80"])
 
         await routingTable.register(container: container, config: config)
+        await routingTable.registerKubernetesCluster(
+            id: "k8s-1",
+            name: "dev-cluster",
+            upstream: Upstream(host: "127.0.0.1", port: 30080)
+        )
 
         server = DNSServer(host: "127.0.0.1", port: 0, routingTable: routingTable, group: group)
         try await server.start()
@@ -67,6 +72,11 @@ final class DNSServerTests: XCTestCase {
         let legacyHost = "test-container.\(AppConfig.Networking.legacyDomainSuffix)"
         let legacyResults = try await client.sendQuery(forHost: legacyHost, type: .a).get()
         XCTAssertEqual(legacyResults.answers.count, 1)
+
+        // Kubernetes wildcard domain should resolve too
+        let k8sHost = "dev-cluster.\(AppConfig.Networking.kubernetesPrimarySuffix)"
+        let k8sResults = try await client.sendQuery(forHost: k8sHost, type: .a).get()
+        XCTAssertEqual(k8sResults.answers.count, 1)
 
         // Test NXDOMAIN
         let nxResults = try await client.sendQuery(

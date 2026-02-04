@@ -30,7 +30,18 @@ public enum AppConfig {
         public static let httpsProxyPort: Int = 8443
         public static let primaryDomainSuffix = "flyingdutchman.local"
         public static let legacyDomainSuffix = "fd.local"
-        public static let allDomainSuffixes = [primaryDomainSuffix, legacyDomainSuffix]
+        public static let containerDomainSuffixes = [
+            primaryDomainSuffix,
+            legacyDomainSuffix,
+        ]
+        public static let kubernetesPrimarySuffix = "k8s.flyingdutchman.local"
+        public static let kubernetesLegacySuffix = "k8s.fd.local"
+        public static let kubernetesDomainSuffixes = [
+            kubernetesPrimarySuffix,
+            kubernetesLegacySuffix,
+        ]
+        public static let resolverDomainSuffixes = containerDomainSuffixes + kubernetesDomainSuffixes
+        public static let proxyDomainSuffixes = resolverDomainSuffixes
 
         public static func hostname(for containerName: String, suffix: String = primaryDomainSuffix) -> String {
             "\(containerName).\(suffix)"
@@ -38,6 +49,21 @@ public enum AppConfig {
 
         public static func url(for containerName: String, scheme: String = "https") -> URL? {
             let host = hostname(for: containerName)
+            return URL(string: "\(scheme)://\(host):\(httpsProxyPort)")
+        }
+
+        public static func kubernetesHostname(
+            for clusterName: String,
+            suffix: String = kubernetesPrimarySuffix
+        ) -> String {
+            "\(clusterName).\(suffix)"
+        }
+
+        public static func kubernetesURL(
+            for clusterName: String,
+            scheme: String = "https"
+        ) -> URL? {
+            let host = kubernetesHostname(for: clusterName)
             return URL(string: "\(scheme)://\(host):\(httpsProxyPort)")
         }
     }

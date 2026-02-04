@@ -3,7 +3,7 @@
 phase: 4
 status: in-progress
 started: 2026-02-03
-updated: 2026-02-03
+updated: 2026-02-04
 blockers: []
 
 ---
@@ -34,14 +34,15 @@ Focus on premium macOS-native user experience, bringing the app out of the "deve
 
 ### 4.2 Command Palette ⚪
 - [ ] Global shortcut (⌘K)
-- [ ] Fuzzy search implementation
-- [ ] Action registry (Start/Stop containers, Navigation)
-- [ ] UI overlay
+- [x] Fuzzy search implementation
+- [x] Action registry (Start/Stop containers, Navigation)
+- [x] UI overlay
 
 ### 4.3 Debug Shell ⚪
 - [ ] Terminal emulator integration (`libghostty` or similar)
-- [ ] `exec` support for Containers via VSOCK
-- [ ] `ssh` support for Machines via Citadel
+- [x] External terminal launcher (Ghostty/iTerm/WezTerm/kitty/Terminal)
+- [x] `exec` support for Containers via VSOCK
+- [x] `ssh` support for Machines via Citadel
 - [ ] Theme matching (Dark/Light mode)
 
 ### 4.4 Settings & Efficiency ⚪

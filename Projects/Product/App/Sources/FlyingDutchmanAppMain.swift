@@ -1,9 +1,12 @@
 import Containers
 import ContainersInterface
+import DebugShell
 import Diagnostics
 import DiagnosticsInterface
 import Images
 import ImagesInterface
+import Kubernetes
+import Machines
 import Networks
 import NetworksInterface
 import Settings
@@ -25,7 +28,10 @@ struct FlyingDutchmanApp: App {
             volumes: .live,
             networks: .live,
             diagnostics: .live,
-            stacks: .live
+            stacks: .live,
+            machines: .live,
+            kubernetes: .live,
+            debugShell: .live
         )
     )
 

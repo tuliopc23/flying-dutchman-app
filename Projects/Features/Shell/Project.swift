@@ -16,6 +16,9 @@ let project = Project(
             .project(target: "NetworksInterface", path: "../Networks"),
             .project(target: "DiagnosticsInterface", path: "../Diagnostics"),
             .project(target: "StacksInterface", path: "../Stacks"),
+            .project(target: "MachinesInterface", path: "../Machines"),
+            .project(target: "KubernetesInterface", path: "../Kubernetes"),
+            .project(target: "DebugShellInterface", path: "../DebugShell"),
             .external(name: "Dependencies"),
         ]
     )

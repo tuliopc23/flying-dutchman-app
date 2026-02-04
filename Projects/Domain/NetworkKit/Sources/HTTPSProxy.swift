@@ -33,7 +33,7 @@ public struct HTTPSProxy: Service {
 
     public func run() async throws {
         // Generate wildcard cert for all supported domains
-        let wildcards = AppConfig.Networking.allDomainSuffixes.map { "*.\($0)" }
+        let wildcards = AppConfig.Networking.proxyDomainSuffixes.map { "*.\($0)" }
         let (cert, key) = try ca.generateLeafCert(hostnames: wildcards)
 
         let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
@@ -85,7 +85,7 @@ struct ProxyMiddleware: RouterMiddleware {
         }
 
         // Only proxy supported domains
-        let isSupported = AppConfig.Networking.allDomainSuffixes.contains { suffix in
+        let isSupported = AppConfig.Networking.proxyDomainSuffixes.contains { suffix in
             hostname.hasSuffix(".\(suffix)")
         }
         guard isSupported else {

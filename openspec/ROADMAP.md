@@ -18,7 +18,7 @@
 - **Storage**: Bind mounts + named volumes.
 - **Networking**: DNS resolver, `*.flyingdutchman.local` (legacy `*.fd.local`), HTTPS proxy + CA, port forwarding.
 - **Linux Machines (VMs)**: **Implemented** via Virtualization.framework.
-- **Kubernetes (k3s)**: Provisioning on VMs implemented; domain routing pending.
+- **Kubernetes (k3s)**: Provisioning on VMs implemented; domain routing active (`*.k8s.flyingdutchman.local`, legacy `*.k8s.fd.local`).
 
 ### CLI / Daemon
 - **CLI (`fd`)**: covers containers, images, volumes, networks, machines, k8s, config.
@@ -26,15 +26,13 @@
 
 ### macOS App UI (What Exists)
 - **Shell**: Main window + sidebar + toolbar + menu bar extra.
-- **Screens**: Containers (list + detail), Stacks (list + detail), Images (list + pull), Volumes (list), Networks (list), Logs, Events, Settings.
-- **Command Palette**: placeholder only.
+- **Screens**: Containers, Stacks, Images, Volumes, Networks, Logs, Events, Settings, Machines, Kubernetes, Debug Shell.
+- **Command Palette**: functional search + actions (global shortcut pending).
 - **Diagnostics banners**: platform + containerization checks.
 
 ### macOS App UI (Missing)
-- **Linux Machines UI**: not implemented.
-- **Kubernetes UI**: not implemented.
-- **Debug Shell UI**: not implemented.
-- **Command Palette UX**: not implemented (placeholder only).
+- **Command Palette UX**: global shortcut + polish still pending.
+- **Debug Shell UI**: embedded terminal (libghostty) still pending.
 
 ---
 
@@ -47,11 +45,11 @@
 | Volumes | ✅ | ✅ | ✅ | List only |
 | Networks | ✅ | ✅ | ✅ | List only |
 | Diagnostics (Logs/Events) | ✅ | ✅ | ✅ | Events + Logs views |
-| Linux Machines (VMs) | ✅ | ✅ | ❌ | Virtualization.framework implemented; no UI |
-| Kubernetes (k3s) | ✅ | ✅ | ❌ | Domain routing pending |
+| Linux Machines (VMs) | ✅ | ✅ | ✅ | UI list/detail + actions |
+| Kubernetes (k3s) | ✅ | ✅ | ✅ | UI list/create + kubeconfig |
 | DNS + HTTPS | ✅ | ✅ | ❌ | No UI configuration |
-| Command Palette | ❌ | n/a | ⚠️ Placeholder | No actions wired |
-| Debug Shell (VSOCK) | ⚠️ Partial | ✅ (exec/ssh) | ❌ | UI not implemented |
+| Command Palette | ❌ | n/a | ⚠️ Partial | UI + actions wired; global shortcut pending |
+| Debug Shell (VSOCK) | ⚠️ Partial | ✅ (exec/ssh) | ⚠️ Partial | External terminal launcher; embedded VT pending |
 
 Legend: ✅ implemented, ⚠️ partial, ❌ missing
 
@@ -60,18 +58,15 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 ## 3) Immediate Priorities (Ordered)
 
 ### P0 — macOS App Completeness
-1. **Linux Machines UI**
-   - list, create, start/stop, SSH, resource edits
-2. **Kubernetes UI**
-   - clusters list, create, kubeconfig export
-3. **Command Palette**
-   - real actions + search across entities
-4. **Debug Shell UI**
-   - local exec/attach over VSOCK (per spec)
+1. **Command Palette**
+   - global shortcut + refined UX
+2. **Debug Shell UI**
+   - embedded terminal (libghostty) + theming
+3. **Settings & Preferences**
+   - resource limits and startup behavior
 
 ### P1 — Networking Enhancements
-1. `*.k8s.fd.local` routing
-2. Compose service domains (`service.project.flyingdutchman.local`)
+1. Compose service domains (`service.project.flyingdutchman.local`)
 
 ### P2 — Image & Build Workflow
 1. BuildKit integration
@@ -82,14 +77,13 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 ## 4) Workstreams (Concrete Next Steps)
 
 ### UI Workstream (App)
-- Add **Machines** feature module + UI.
-- Add **Kubernetes** feature module + UI.
-- Replace command palette placeholder with functional palette.
-- Add debug shell view (exec/attach).
+- Finish Command Palette (global shortcut + polish).
+- Embed terminal via `libghostty` for Debug Shell.
+- Add Settings screens for resource limits + startup preferences.
 
 ### Platform Workstream
-- Implement k8s domain routing.
 - Harden HTTPS proxy + DNS resolver UX (UI + status).
+- Compose service domain routing (`service.project.flyingdutchman.local`).
 
 ---
 

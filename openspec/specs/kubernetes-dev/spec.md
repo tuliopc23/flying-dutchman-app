@@ -17,8 +17,8 @@ The system SHALL expose Kubernetes services to the host without manual port forw
 - **THEN** it is reachable from macOS via the cluster's networking integration
 
 ### Requirement: Kubernetes domain routing
-The system SHALL expose cluster-local DNS and `*.k8s.orb.local` domains for LoadBalancer and Ingress traffic.
+The system SHALL expose cluster-local DNS and `*.k8s.flyingdutchman.local` domains for LoadBalancer and Ingress traffic (legacy `*.k8s.fd.local` supported).
 
 #### Scenario: Access Ingress via wildcard domain
 - **WHEN** an Ingress controller is installed
-- **THEN** services are reachable via `example.k8s.orb.local`
+- **THEN** services are reachable via `example.k8s.flyingdutchman.local`

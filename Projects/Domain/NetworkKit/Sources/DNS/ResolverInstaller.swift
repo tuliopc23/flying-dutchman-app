@@ -11,7 +11,7 @@ public enum ResolverInstaller {
 
     public static func installInstruction(port: Int = AppConfig.Networking.dnsPort) -> String {
         let content = resolverFileContent(port: port)
-        let domains = AppConfig.Networking.allDomainSuffixes
+        let domains = AppConfig.Networking.resolverDomainSuffixes
         return """
         To enable Flying Dutchman auto domains, run:
 

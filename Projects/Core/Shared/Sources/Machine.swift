@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Machine: Codable, Sendable, Identifiable {
+public struct Machine: Codable, Sendable, Identifiable, Hashable {
     public let id: String
     public var name: String
     public var distro: String

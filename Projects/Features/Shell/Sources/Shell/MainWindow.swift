@@ -35,8 +35,10 @@ public struct MainWindow: View {
         }
         .unifiedChrome()
         .sheet(isPresented: $state.showPalette) {
-            Text("Command Palette Placeholder")
-                .frame(width: 520, height: 300)
+            CommandPaletteView(registry: state.commandRegistry) {
+                state.showPalette = false
+            }
+            .frame(width: 560, height: 360)
         }
     }
 }
@@ -145,6 +147,12 @@ struct DetailContentView: View {
             features.diagnostics.eventsView()
         case .stacks:
             features.stacks.listView()
+        case .machines:
+            features.machines.listView()
+        case .kubernetes:
+            features.kubernetes.listView()
+        case .debugShell:
+            features.debugShell.listView()
         }
     }
 }

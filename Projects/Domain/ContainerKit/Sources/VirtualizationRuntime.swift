@@ -12,6 +12,7 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
     private let kernelDownloader: KernelDownloader
     private let sshConfigurator: SSHConfigurator
     private let k8sManager: KubernetesClusterManager
+    private let routingTable: DomainRoutingTable?
     private var runningVMs: [String: VZVirtualMachine] = [:]
     private var vmDelegates: [String: VMDelegate] = [:]
 
@@ -21,7 +22,8 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         fileSharingManager: FileSharingManager? = nil,
         kernelDownloader: KernelDownloader? = nil,
         sshConfigurator: SSHConfigurator? = nil,
-        k8sManager: KubernetesClusterManager? = nil
+        k8sManager: KubernetesClusterManager? = nil,
+        routingTable: DomainRoutingTable? = nil
     ) {
         self.machineStore = machineStore ?? MachineStore()
         self.resourceManager = resourceManager ?? VMResourceManager()
@@ -29,6 +31,7 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         self.kernelDownloader = kernelDownloader ?? KernelDownloader()
         self.sshConfigurator = sshConfigurator ?? SSHConfigurator()
         self.k8sManager = k8sManager ?? KubernetesClusterManager()
+        self.routingTable = routingTable
     }
 
     public func createMachine(name: String, config: MachineConfig) async throws -> Machine {
@@ -209,6 +212,10 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
             machine.sshPort = 22
             try machineStore.update(machine)
 
+            if let routingTable {
+                await registerKubernetesDomainsIfNeeded(machine: machine, routingTable: routingTable)
+            }
+
             logger.info("Machine \(machine.name) started successfully. IP: \(detectedIP ?? "unknown")")
             return machine
         } catch {
@@ -242,6 +249,10 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         machine.ipAddress = nil
         try machineStore.update(machine)
 
+        if let routingTable {
+            await routingTable.unregisterKubernetesCluster(id: machine.id)
+        }
+
         logger.info("Machine \(machine.name) stopped successfully")
         return machine
     }
@@ -271,6 +282,10 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
 
         // Remove from store
         try machineStore.delete(id: id)
+
+        if let routingTable {
+            await routingTable.unregisterKubernetesCluster(id: machine.id)
+        }
 
         logger.info("Machine \(machine.name) deleted successfully")
     }
@@ -314,5 +329,11 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
         let b2 = String(format: "%02x", rng.next() % 256)
         let b3 = String(format: "%02x", rng.next() % 256)
         return "\(prefix):\(b1):\(b2):\(b3)"
+    }
+
+    private func registerKubernetesDomainsIfNeeded(machine: Machine, routingTable: DomainRoutingTable) async {
+        guard machine.isKubernetesCluster, let ip = machine.ipAddress else { return }
+        let upstream = Upstream(host: ip, port: 80, scheme: "http")
+        await routingTable.registerKubernetesCluster(id: machine.id, name: machine.name, upstream: upstream)
     }
 }

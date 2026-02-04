@@ -1,3 +1,4 @@
+import Dependencies
 import DesignSystem
 import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
@@ -67,6 +68,7 @@ final class ContainerDetailViewModel {
 struct ContainerDetailView: View {
     @Bindable var viewModel: ContainerDetailViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Dependency(\.terminalLauncher) private var terminalLauncher
 
     var body: some View {
         ScrollView {
@@ -161,6 +163,14 @@ struct ContainerDetailView: View {
                 }
                 .buttonStyle(.bordered)
 
+                Button {
+                    Task { await openDebugShell() }
+                } label: {
+                    Label("Debug Shell", systemImage: "terminal")
+                        .frame(minWidth: 120)
+                }
+                .buttonStyle(.bordered)
+
             case .stopped, .created:
                 Button {
                     Task { await viewModel.start() }
@@ -178,6 +188,14 @@ struct ContainerDetailView: View {
 
     private var statusText: String {
         viewModel.container.status.displayName
+    }
+
+    private func openDebugShell() async {
+        do {
+            try await terminalLauncher.openTerminal("fd shell \(viewModel.container.name)")
+        } catch {
+            viewModel.error = "Failed to open terminal: \(error.localizedDescription)"
+        }
     }
 
     // MARK: - Metadata Card

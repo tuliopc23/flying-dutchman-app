@@ -18,6 +18,9 @@ public final class AppState {
     /// Whether the command palette is visible
     var showPalette: Bool = false
 
+    /// Command palette registry
+    var commandRegistry = CommandRegistry()
+
     // MARK: - Engine & Lifecycle State
 
     /// Global engine health status
@@ -35,6 +38,7 @@ public final class AppState {
 
     let sidebar = SidebarViewModel()
     var containers: [ContainerSummary] = []
+    var machines: [Machine] = []
 
     // MARK: - Diagnostics
 
@@ -48,6 +52,7 @@ public final class AppState {
         // Initial setup
         self.platformStatus = RuntimeChecks.platformSupport()
         self.containerizationStatus = RuntimeChecks.containerizationFramework()
+        rebuildCommandRegistry()
     }
 
     /// Perform parallel bootstrap of all app systems
@@ -55,6 +60,7 @@ public final class AppState {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.refreshEngineStatus() }
             group.addTask { await self.refreshContainers() }
+            group.addTask { await self.refreshMachines() }
             group.addTask { await self.sidebar.load() }
         }
     }
@@ -102,6 +108,16 @@ public final class AppState {
         } else {
             self.containers = []
         }
+        rebuildCommandRegistry()
+    }
+
+    func refreshMachines() async {
+        if let machines = try? await EngineClient.listMachines() {
+            self.machines = machines
+        } else {
+            self.machines = []
+        }
+        rebuildCommandRegistry()
     }
 
     func refreshCurrentSection() async {
@@ -110,8 +126,75 @@ public final class AppState {
             await refreshContainers()
         case .events:
             break
-        case .containers, .images, .volumes, .networks, .stacks:
+        case .machines, .kubernetes:
+            await refreshMachines()
+        case .containers, .images, .volumes, .networks, .stacks, .debugShell:
             await refreshContainers()
         }
+    }
+
+    private func rebuildCommandRegistry() {
+        var actions: [CommandAction] = []
+
+        actions.append(contentsOf: AppSection.allCases.map { section in
+            CommandAction(
+                title: "Go to \(section.title)",
+                subtitle: "Navigation",
+                icon: section.systemImage,
+                perform: { [weak self] in
+                    await MainActor.run { self?.selectedSection = section }
+                }
+            )
+        })
+
+        for container in containers {
+            switch container.status {
+            case .running:
+                actions.append(CommandAction(
+                    title: "Stop \(container.name)",
+                    subtitle: "Container",
+                    icon: "stop.fill",
+                    perform: {
+                        _ = try? await EngineClient.stopContainer(id: container.id)
+                    }
+                ))
+            case .stopped, .created:
+                actions.append(CommandAction(
+                    title: "Start \(container.name)",
+                    subtitle: "Container",
+                    icon: "play.fill",
+                    perform: {
+                        _ = try? await EngineClient.startContainer(id: container.id)
+                    }
+                ))
+            case .starting, .stopping, .removing, .removed:
+                break
+            }
+        }
+
+        for machine in machines {
+            switch machine.status {
+            case .running:
+                actions.append(CommandAction(
+                    title: "Stop \(machine.name)",
+                    subtitle: "Machine",
+                    icon: "stop.fill",
+                    perform: {
+                        _ = try? await EngineClient.stopMachine(nameOrID: machine.id)
+                    }
+                ))
+            case .stopped, .creating, .starting, .stopping, .error:
+                actions.append(CommandAction(
+                    title: "Start \(machine.name)",
+                    subtitle: "Machine",
+                    icon: "play.fill",
+                    perform: {
+                        _ = try? await EngineClient.startMachine(nameOrID: machine.id)
+                    }
+                ))
+            }
+        }
+
+        commandRegistry.actions = actions
     }
 }

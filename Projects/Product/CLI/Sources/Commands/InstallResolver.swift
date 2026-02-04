@@ -10,10 +10,10 @@ struct InstallResolver: AsyncParsableCommand {
 
     func run() async throws {
         let resolverDir = "/etc/resolver"
-        let domains = AppConfig.Networking.allDomainSuffixes
+        let domains = AppConfig.Networking.resolverDomainSuffixes
         let resolverContent = """
         # Flying Dutchman DNS Resolver
-        # Resolves *.flyingdutchman.local (and legacy *.fd.local) domains
+        # Resolves *.flyingdutchman.local, *.k8s.flyingdutchman.local (and legacy *.fd.local) domains
         nameserver 127.0.0.1
         port \(AppConfig.Networking.dnsPort)
 
@@ -58,9 +58,7 @@ struct InstallResolver: AsyncParsableCommand {
 
             CLIOutput.line("Status", "✓ Resolver installed successfully")
             CLIOutput
-                .hint(
-                    "DNS queries for *.flyingdutchman.local will resolve via 127.0.0.1:\(AppConfig.Networking.dnsPort)"
-                )
+                .hint("DNS queries for Flying Dutchman domains resolve via 127.0.0.1:\(AppConfig.Networking.dnsPort)")
             CLIOutput.hint("Test with: dig nginx.flyingdutchman.local")
         } catch {
             CLIOutput.warn("Error", error.localizedDescription)

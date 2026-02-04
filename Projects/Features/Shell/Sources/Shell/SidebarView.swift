@@ -16,6 +16,8 @@ public struct SidebarView: View {
                 SidebarRow(section: .containers)
                 SidebarRow(section: .stacks)
                 SidebarRow(section: .images)
+                SidebarRow(section: .machines)
+                SidebarRow(section: .kubernetes)
             }
 
             Section("Infrastructure") {
@@ -26,6 +28,10 @@ public struct SidebarView: View {
             Section("Monitoring") {
                 SidebarRow(section: .logs)
                 SidebarRow(section: .events)
+            }
+
+            Section("Tools") {
+                SidebarRow(section: .debugShell)
             }
 
             if !state.sidebar.stacks.isEmpty {
