@@ -1,6 +1,6 @@
+import FlyingDutchmanContainers
 import Foundation
 import Hummingbird
-import FlyingDutchmanContainers
 import Shared
 
 struct ContainersRoutes: @unchecked Sendable {
@@ -38,11 +38,11 @@ struct ContainersRoutes: @unchecked Sendable {
             // Create container via runtime
             // Merge legacy fields with config object
             let baseConfig = payload.config ?? ContainerConfig.default
-            
+
             let mergedPorts = baseConfig.ports ?? payload.ports
             let mergedEnv = baseConfig.env ?? payload.env
             let mergedVolumes = baseConfig.volumes ?? payload.volumes
-            
+
             let config = ContainerConfig(
                 ports: mergedPorts,
                 portMappings: baseConfig.portMappings,
@@ -54,7 +54,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 command: baseConfig.command,
                 workingDir: baseConfig.workingDir
             )
-            
+
             let container = try await runtime.createContainer(
                 name: payload.name,
                 image: payload.image,
@@ -90,7 +90,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 throw HTTPError(.conflict)
             }
             let updated = try await runtime.startContainer(id: id)
-            
+
             // Persist to store if provided
             if let store {
                 var all = store.fetchAll()
@@ -101,7 +101,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 }
                 store.replaceAll(with: all)
             }
-            
+
             return updated
         }
 
@@ -115,7 +115,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 throw HTTPError(.conflict)
             }
             let updated = try await runtime.stopContainer(id: id)
-            
+
             // Persist to store if provided
             if let store {
                 var all = store.fetchAll()
@@ -126,7 +126,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 }
                 store.replaceAll(with: all)
             }
-            
+
             return updated
         }
 
@@ -136,7 +136,7 @@ struct ContainersRoutes: @unchecked Sendable {
             _ = try await runtime.stopContainer(id: id)
             try? await Task.sleep(nanoseconds: 500_000_000) // Brief delay
             let updated = try await runtime.startContainer(id: id)
-            
+
             // Persist to store if provided
             if let store {
                 var all = store.fetchAll()
@@ -147,7 +147,7 @@ struct ContainersRoutes: @unchecked Sendable {
                 }
                 store.replaceAll(with: all)
             }
-            
+
             return updated
         }
 
@@ -165,7 +165,7 @@ struct ContainersRoutes: @unchecked Sendable {
 
             // Remove container
             try await runtime.removeContainer(id: id)
-            
+
             // Remove from store if provided
             if let store {
                 var all = store.fetchAll()

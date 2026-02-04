@@ -1,8 +1,8 @@
-import Foundation
 import Dependencies
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
+import Foundation
 import Shared
 
 @MainActor
@@ -16,14 +16,14 @@ final class SidebarViewModel {
     var error: String?
     var highlightSidebar: Bool = false
 
-    init() {
-    }
+    init() {}
 
     func load() async {
         error = nil
         do {
             stacks = try await EngineClient.listStacks()
-            selectedStack = selectedStack.flatMap { existing in stacks.first(where: { $0.id == existing.id }) } ?? stacks.first
+            selectedStack = selectedStack
+                .flatMap { existing in stacks.first(where: { $0.id == existing.id }) } ?? stacks.first
         } catch {
             stacks = SeedData.sampleStacks
             selectedStack = stacks.first
@@ -43,5 +43,7 @@ final class SidebarViewModel {
         }
     }
 
-    var isEmpty: Bool { stacks.isEmpty }
+    var isEmpty: Bool {
+        stacks.isEmpty
+    }
 }

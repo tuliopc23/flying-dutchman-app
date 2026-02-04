@@ -1,8 +1,8 @@
-import Shared
-import FlyingDutchmanPersistence
-import FlyingDutchmanNetworking
-import SwiftUI
 import DesignSystem
+import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
+import Shared
+import SwiftUI
 import UIComponents
 
 @MainActor
@@ -13,11 +13,11 @@ final class ContainerDetailViewModel {
     var isLoadingLogs: Bool = false
     var isPerformingAction: Bool = false
     var error: String?
-    
+
     init(container: ContainerSummary) {
         self.container = container
     }
-    
+
     func loadLogs() async {
         isLoadingLogs = true
         defer { isLoadingLogs = false }
@@ -27,7 +27,7 @@ final class ContainerDetailViewModel {
             self.error = "Failed to load logs: \(error.localizedDescription)"
         }
     }
-    
+
     func start() async {
         await performAction { [self] in
             let updated = try await EngineClient.startContainer(id: container.id)
@@ -35,7 +35,7 @@ final class ContainerDetailViewModel {
             return updated
         }
     }
-    
+
     func stop() async {
         await performAction { [self] in
             let updated = try await EngineClient.stopContainer(id: container.id)
@@ -43,7 +43,7 @@ final class ContainerDetailViewModel {
             return updated
         }
     }
-    
+
     func restart() async {
         await performAction { [self] in
             let updated = try await EngineClient.restartContainer(id: container.id)
@@ -51,7 +51,7 @@ final class ContainerDetailViewModel {
             return updated
         }
     }
-    
+
     private func performAction(_ action: @MainActor () async throws -> ContainerSummary) async {
         isPerformingAction = true
         error = nil
@@ -67,24 +67,24 @@ final class ContainerDetailViewModel {
 struct ContainerDetailView: View {
     @Bindable var viewModel: ContainerDetailViewModel
     @Environment(\.colorScheme) private var colorScheme
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 // Header Card
                 headerCard
-                
+
                 // Metadata Card
                 metadataCard
-                
+
                 // Ports Card
                 if !viewModel.container.ports.isEmpty {
                     portsCard
                 }
-                
+
                 // Logs Card
                 logsCard
-                
+
                 // Error Display
                 if let error = viewModel.error {
                     errorCard(error)
@@ -97,9 +97,9 @@ struct ContainerDetailView: View {
             await viewModel.loadLogs()
         }
     }
-    
+
     // MARK: - Header Card
-    
+
     private var headerCard: some View {
         GlassCard {
             HStack(spacing: 16) {
@@ -110,24 +110,24 @@ struct ContainerDetailView: View {
                 )
                 .foregroundStyle(DesignTokens.containerStatusColor(for: viewModel.container.status))
                 .symbolEffect(.variableColor.iterative, isActive: viewModel.container.status == .running)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(viewModel.container.name)
                         .font(DesignSystem.Typography.title2)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     Text(statusText)
                         .font(DesignSystem.Typography.subheadline)
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
-                    
+
                     Text("ID: \(viewModel.container.id.uuidString.prefix(12))")
                         .font(DesignSystem.Typography.caption2)
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .monospaced()
                 }
-                
+
                 Spacer()
-                
+
                 // Action Buttons
                 VStack(spacing: 8) {
                     actionButtons
@@ -136,7 +136,7 @@ struct ContainerDetailView: View {
             .padding(DesignSystem.Inset.md)
         }
     }
-    
+
     @ViewBuilder
     private var actionButtons: some View {
         if viewModel.isPerformingAction {
@@ -152,7 +152,7 @@ struct ContainerDetailView: View {
                         .frame(minWidth: 100)
                 }
                 .buttonStyle(.bordered)
-                
+
                 Button {
                     Task { await viewModel.restart() }
                 } label: {
@@ -160,7 +160,7 @@ struct ContainerDetailView: View {
                         .frame(minWidth: 100)
                 }
                 .buttonStyle(.bordered)
-                
+
             case .stopped, .created:
                 Button {
                     Task { await viewModel.start() }
@@ -169,26 +169,26 @@ struct ContainerDetailView: View {
                         .frame(minWidth: 100)
                 }
                 .buttonStyle(.borderedProminent)
-                
+
             case .starting, .stopping, .removing, .removed:
                 EmptyView()
             }
         }
     }
-    
+
     private var statusText: String {
         viewModel.container.status.displayName
     }
-    
+
     // MARK: - Metadata Card
-    
+
     private var metadataCard: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
                 SectionHeader(title: "Container Information", icon: "info.circle")
-                
+
                 Divider()
-                
+
                 VStack(spacing: 10) {
                     metadataRow(label: "Image", value: viewModel.container.image, icon: "cube.box")
                     metadataRow(label: "Created", value: formatDate(viewModel.container.createdAt), icon: "clock")
@@ -198,34 +198,34 @@ struct ContainerDetailView: View {
             .padding()
         }
     }
-    
+
     private func metadataRow(label: String, value: String, icon: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundStyle(.secondary)
                 .frame(width: 20)
-            
+
             Text(label)
                 .foregroundStyle(.secondary)
                 .frame(width: 80, alignment: .leading)
-            
+
             Text(value)
                 .fontWeight(.medium)
-            
+
             Spacer()
         }
         .padding(.vertical, 4)
     }
-    
+
     // MARK: - Ports Card
-    
+
     private var portsCard: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
                 SectionHeader(title: "Exposed Ports", icon: "network")
-                
+
                 Divider()
-                
+
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(viewModel.container.ports, id: \.self) { port in
                         HStack {
@@ -242,17 +242,17 @@ struct ContainerDetailView: View {
             .padding()
         }
     }
-    
+
     // MARK: - Logs Card
-    
+
     private var logsCard: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     SectionHeader(title: "Logs", icon: "doc.text")
-                    
+
                     Spacer()
-                    
+
                     if viewModel.isLoadingLogs {
                         ProgressView()
                             .controlSize(.small)
@@ -265,9 +265,9 @@ struct ContainerDetailView: View {
                         .buttonStyle(.borderless)
                     }
                 }
-                
+
                 Divider()
-                
+
                 if viewModel.logs.isEmpty {
                     EmptyStateCard(
                         title: "No logs available",
@@ -295,9 +295,9 @@ struct ContainerDetailView: View {
             .padding()
         }
     }
-    
+
     // MARK: - Error Card
-    
+
     private func errorCard(_ message: String) -> some View {
         GlassCard {
             HStack(spacing: 12) {
@@ -310,9 +310,9 @@ struct ContainerDetailView: View {
             .padding()
         }
     }
-    
+
     // MARK: - Helpers
-    
+
     private func formatDate(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full

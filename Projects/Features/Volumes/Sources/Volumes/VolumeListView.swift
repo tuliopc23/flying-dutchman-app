@@ -1,9 +1,9 @@
-import Shared
-import FlyingDutchmanPersistence
+import DesignSystem
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
+import Shared
 import SwiftUI
-import DesignSystem
 import UIComponents
 
 @MainActor
@@ -13,9 +13,9 @@ public final class VolumeListViewModel {
     public var error: String?
     public var isLoading: Bool = false
     public var searchQuery: String = ""
-    
+
     private let store: VolumeStore
-    
+
     public init(store: VolumeStore = VolumeStore()) {
         self.store = store
     }
@@ -49,9 +49,9 @@ public struct VolumeListView: View {
                 Text("Volumes")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Spacer()
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load() }
                 } label: {
@@ -65,9 +65,9 @@ public struct VolumeListView: View {
 
             if let error = viewModel.error {
                 DiagnosticsBanner(
-                    title: "Error", 
-                    message: error, 
-                    icon: "exclamationmark.triangle", 
+                    title: "Error",
+                    message: error,
+                    icon: "exclamationmark.triangle",
                     tone: .warning
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
@@ -76,8 +76,8 @@ public struct VolumeListView: View {
             if viewModel.filtered.isEmpty {
                 EmptyStateCard(
                     title: "No volumes found",
-                    message: viewModel.searchQuery.isEmpty 
-                        ? "Create a volume to persist data." 
+                    message: viewModel.searchQuery.isEmpty
+                        ? "Create a volume to persist data."
                         : "No volumes match your search.",
                     systemImage: "internaldrive"
                 )
@@ -104,27 +104,27 @@ public struct VolumeListView: View {
 
 struct VolumeRow: View {
     let volume: VolumeSummary
-    
+
     var body: some View {
         GlassCard {
             HStack(spacing: DesignSystem.Spacing.md) {
                 Image.systemIcon("internaldrive", size: DesignSystem.Size.iconLarge)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(volume.name)
                         .font(DesignSystem.Typography.headline)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     Text(volume.mountPath)
                         .font(DesignSystem.Typography.caption2)
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
-                
+
                 Spacer()
-                
+
                 if let size = volume.sizeBytes {
                     Text(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
                         .font(DesignSystem.Typography.caption1)

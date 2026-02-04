@@ -1,5 +1,5 @@
-import SwiftUI
 import DesignSystem
+import SwiftUI
 
 public struct DiagnosticsBanner: View {
     public enum Tone: Sendable {
@@ -28,7 +28,7 @@ public struct DiagnosticsBanner: View {
                 Text(title)
                     .font(DesignSystem.Typography.headline)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Text(message)
                     .font(DesignSystem.Typography.subheadline)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
@@ -52,9 +52,9 @@ public struct DiagnosticsBanner: View {
     private var toneColor: Color {
         switch tone {
         case .warning:
-            return DesignSystem.Colors.warning
+            DesignSystem.Colors.warning
         case .info:
-            return DesignSystem.Colors.info
+            DesignSystem.Colors.info
         }
     }
 }

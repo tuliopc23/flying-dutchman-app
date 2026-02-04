@@ -27,7 +27,7 @@ public struct ContainerLogStore: ContainerLogStoring {
                 .limit(limit)
                 .fetchAll(db)
                 .reversed()
-                .map { $0.line }
+                .map(\.line)
         }) ?? []
     }
 

@@ -16,8 +16,8 @@ let project = Project(
                 .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
                 .project(target: "FlyingDutchmanContainers", path: "../../Domain/ContainerKit"),
                 .project(target: "FlyingDutchmanNetworking", path: "../../Domain/NetworkKit"),
-                .external(name: "ArgumentParser")
+                .external(name: "ArgumentParser"),
             ]
-        )
+        ),
     ]
 )

@@ -26,7 +26,7 @@ public struct SettingsView: View {
                         state.enginePort = newValue
                         persist()
                     }
-                ), in: 1...65_535) {
+                ), in: 1 ... 65535) {
                     Text("Port: \(state.enginePort)")
                 }
             }
@@ -46,7 +46,7 @@ public struct SettingsView: View {
                         state.logsPollIntervalSeconds = Double(newValue)
                         persist()
                     }
-                ), in: 1...60) {
+                ), in: 1 ... 60) {
                     Text("Logs poll: \(Int(state.logsPollIntervalSeconds))s")
                 }
 
@@ -56,7 +56,7 @@ public struct SettingsView: View {
                         state.eventsPollIntervalSeconds = Double(newValue)
                         persist()
                     }
-                ), in: 1...60) {
+                ), in: 1 ... 60) {
                     Text("Events poll: \(Int(state.eventsPollIntervalSeconds))s")
                 }
 
@@ -66,7 +66,7 @@ public struct SettingsView: View {
                         state.eventsLimit = newValue
                         persist()
                     }
-                ), in: 10...500, step: 10) {
+                ), in: 10 ... 500, step: 10) {
                     Text("Events limit: \(state.eventsLimit)")
                 }
             }

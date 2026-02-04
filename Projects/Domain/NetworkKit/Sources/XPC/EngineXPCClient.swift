@@ -12,7 +12,11 @@ public enum EngineXPCClient {
                 continuation.resume(throwing: error)
             }) as? EngineXPCProtocol else {
                 connection.invalidate()
-                continuation.resume(throwing: NSError(domain: "EngineXPC", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid XPC proxy"]))
+                continuation.resume(throwing: NSError(
+                    domain: "EngineXPC",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Invalid XPC proxy"]
+                ))
                 return
             }
 

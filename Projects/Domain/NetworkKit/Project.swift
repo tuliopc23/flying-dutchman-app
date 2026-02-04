@@ -15,8 +15,8 @@ let project = Project(
                 .external(name: "HummingbirdTLS"),
                 .external(name: "AsyncHTTPClient"),
                 .external(name: "DNSClient"),
-                .external(name: "X509")
+                .external(name: "X509"),
             ]
-        )
+        ),
     ]
 )

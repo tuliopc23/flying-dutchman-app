@@ -1,5 +1,5 @@
-import SwiftUI
 import Settings
+import SwiftUI
 
 @main
 struct SettingsExampleApp: App {

@@ -1,9 +1,9 @@
+import Darwin
+import DNSClient
 import Foundation
+import Logging
 import NIOCore
 import NIOPosix
-import DNSClient
-import Logging
-import Darwin
 import Shared
 
 public actor DNSServer {
@@ -14,7 +14,12 @@ public actor DNSServer {
     private let routingTable: DomainRoutingTable
     private let logger = Logger(label: "com.flyingdutchman.dns")
 
-    public init(host: String = "127.0.0.1", port: Int = 5353, routingTable: DomainRoutingTable, group: EventLoopGroup? = nil) {
+    public init(
+        host: String = "127.0.0.1",
+        port: Int = 5353,
+        routingTable: DomainRoutingTable,
+        group: EventLoopGroup? = nil
+    ) {
         self.host = host
         self.port = port
         self.routingTable = routingTable
@@ -32,7 +37,7 @@ public actor DNSServer {
         self.channel = channel
         logger.info("DNS Server listening on \(host):\(port)")
     }
-    
+
     public var boundPort: Int? {
         channel?.localAddress?.port
     }
@@ -62,21 +67,21 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
         let remoteAddress = envelope.remoteAddress
         let allocator = context.channel.allocator
         let promise = context.eventLoop.makePromise(of: AddressedEnvelope<ByteBuffer>.self)
-        
+
         promise.futureResult.whenSuccess { responseEnvelope in
             context.writeAndFlush(self.wrapOutboundOut(responseEnvelope), promise: nil)
         }
-        
+
         promise.futureResult.whenFailure { error in
             self.logger.error("Failed to handle DNS request: \(error)")
         }
-        
+
         do {
             let request = try DNSMessageDecoder.parse(inboundData)
-            
+
             Task {
                 var answers: [Record] = []
-                
+
                 for question in request.questions {
                     if question.type == .a {
                         let hostname = question.labels.string
@@ -95,12 +100,11 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
                         }
                     }
                 }
-                
-                let responseOptions: MessageOptions
-                if answers.isEmpty {
-                     responseOptions = [.answer, .authorativeAnswer, .resultCodeNameError]
+
+                let responseOptions: MessageOptions = if answers.isEmpty {
+                    [.answer, .authorativeAnswer, .resultCodeNameError]
                 } else {
-                     responseOptions = [.answer, .authorativeAnswer, .resultCodeSuccess]
+                    [.answer, .authorativeAnswer, .resultCodeSuccess]
                 }
 
                 let header = DNSMessageHeader(
@@ -111,7 +115,7 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
                     authorityCount: 0,
                     additionalRecordCount: 0
                 )
-                
+
                 let response = Message(
                     header: header,
                     questions: request.questions,
@@ -119,7 +123,7 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
                     authorities: [],
                     additionalData: []
                 )
-                
+
                 do {
                     var labelIndices: [String: UInt16] = [:]
                     let responseBuffer = try DNSMessageEncoder.encodeMessage(
@@ -127,7 +131,7 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
                         allocator: allocator,
                         labelIndices: &labelIndices
                     )
-                    
+
                     let responseEnvelope = AddressedEnvelope(remoteAddress: remoteAddress, data: responseBuffer)
                     promise.succeed(responseEnvelope)
                 } catch {

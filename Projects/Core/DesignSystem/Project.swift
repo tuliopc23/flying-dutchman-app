@@ -7,8 +7,8 @@ let project = Project(
         .core(
             name: "DesignSystem",
             dependencies: [
-                .project(target: "Shared", path: "../Shared")
+                .project(target: "Shared", path: "../Shared"),
             ]
-        )
+        ),
     ]
 )

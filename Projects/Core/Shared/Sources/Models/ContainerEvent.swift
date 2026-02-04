@@ -22,7 +22,7 @@ public struct ContainerEvent: Identifiable, Sendable {
         public let cpuPercent: Double
         public let memoryBytes: Int
         public let memoryPercent: Double
-        
+
         public init(cpuPercent: Double, memoryBytes: Int, memoryPercent: Double) {
             self.cpuPercent = cpuPercent
             self.memoryBytes = memoryBytes

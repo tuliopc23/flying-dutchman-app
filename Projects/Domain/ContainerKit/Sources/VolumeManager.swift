@@ -1,8 +1,8 @@
+import FlyingDutchmanPersistence
 import Foundation
 import Logging
 import Shared
 import SystemPackage
-import FlyingDutchmanPersistence
 
 /// Manages named volumes for container storage
 public actor VolumeManager {
@@ -138,7 +138,8 @@ public actor VolumeManager {
         if let enumerator = FileManager.default.enumerator(at: volumeURL, includingPropertiesForKeys: [.fileSizeKey]) {
             for case let fileURL as URL in enumerator {
                 if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
-                   let fileSize = resourceValues.fileSize {
+                   let fileSize = resourceValues.fileSize
+                {
                     totalSize += Int64(fileSize)
                 }
             }
@@ -242,14 +243,14 @@ public actor VolumeManager {
 // MARK: - Supporting Types
 
 public struct Mount: Sendable {
-    public let source: String       // Host path or volume name
-    public let destination: String  // Container path
-    public let mode: String          // ro, rw, etc.
+    public let source: String // Host path or volume name
+    public let destination: String // Container path
+    public let mode: String // ro, rw, etc.
     public let type: MountType
 
     public enum MountType: Sendable {
-        case bind    // Bind mount from host path
-        case volume  // Named volume
+        case bind // Bind mount from host path
+        case volume // Named volume
     }
 }
 
@@ -280,15 +281,15 @@ public enum VolumeError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .notFound(name):
-            return "Volume '\(name)' not found"
+            "Volume '\(name)' not found"
         case let .invalidMount(reason):
-            return "Invalid mount: \(reason)"
+            "Invalid mount: \(reason)"
         case let .mountPathNotFound(path):
-            return "Mount path not found: \(path)"
+            "Mount path not found: \(path)"
         case let .creationFailed(reason):
-            return "Failed to create volume: \(reason)"
+            "Failed to create volume: \(reason)"
         case let .removalFailed(reason):
-            return "Failed to remove volume: \(reason)"
+            "Failed to remove volume: \(reason)"
         }
     }
 }

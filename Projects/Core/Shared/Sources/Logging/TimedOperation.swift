@@ -2,7 +2,7 @@ import Foundation
 import Logging
 
 /// Extension for timing and logging operations.
-extension Loggers {
+public extension Loggers {
     /// Executes an async operation and logs its duration.
     ///
     /// Logs the start of the operation, then logs either success or failure with the elapsed time.
@@ -14,7 +14,7 @@ extension Loggers {
     ///   - work: The async throwing closure to execute
     /// - Returns: The result of the work closure
     /// - Throws: Rethrows any error from the work closure
-    public static func timed<T: Sendable>(
+    static func timed<T: Sendable>(
         category: LogCategory,
         operation: String,
         level: Logger.Level = .debug,
@@ -29,14 +29,14 @@ extension Loggers {
             let result = try await work()
             let duration = startTime.duration(to: .now)
             logger.log(level: level, "Completed: \(operation)", metadata: [
-                "duration_ms": "\(duration.components.seconds * 1000 + duration.components.attoseconds / 1_000_000_000_000_000)"
+                "duration_ms": "\(duration.components.seconds * 1000 + duration.components.attoseconds / 1_000_000_000_000_000)",
             ])
             return result
         } catch {
             let duration = startTime.duration(to: .now)
             logger.error("Failed: \(operation)", metadata: [
                 "duration_ms": "\(duration.components.seconds * 1000 + duration.components.attoseconds / 1_000_000_000_000_000)",
-                "error": "\(error)"
+                "error": "\(error)",
             ])
             throw error
         }
@@ -51,7 +51,7 @@ extension Loggers {
     ///   - work: The throwing closure to execute
     /// - Returns: The result of the work closure
     /// - Throws: Rethrows any error from the work closure
-    public static func timed<T>(
+    static func timed<T>(
         category: LogCategory,
         operation: String,
         level: Logger.Level = .debug,
@@ -66,14 +66,14 @@ extension Loggers {
             let result = try work()
             let duration = startTime.duration(to: .now)
             logger.log(level: level, "Completed: \(operation)", metadata: [
-                "duration_ms": "\(duration.components.seconds * 1000 + duration.components.attoseconds / 1_000_000_000_000_000)"
+                "duration_ms": "\(duration.components.seconds * 1000 + duration.components.attoseconds / 1_000_000_000_000_000)",
             ])
             return result
         } catch {
             let duration = startTime.duration(to: .now)
             logger.error("Failed: \(operation)", metadata: [
                 "duration_ms": "\(duration.components.seconds * 1000 + duration.components.attoseconds / 1_000_000_000_000_000)",
-                "error": "\(error)"
+                "error": "\(error)",
             ])
             throw error
         }

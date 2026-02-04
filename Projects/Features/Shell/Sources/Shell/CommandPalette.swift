@@ -1,6 +1,6 @@
+import DesignSystem
 import Shared
 import SwiftUI
-import DesignSystem
 
 public struct CommandPaletteView: View {
     @Bindable var registry: CommandRegistry
@@ -19,7 +19,7 @@ public struct CommandPaletteView: View {
                 .font(DesignSystem.Typography.body)
                 .background(DesignSystem.Colors.surfaceSecondary)
                 .clipShape(DesignSystem.Shapes.input)
-            
+
             if registry.filtered().isEmpty {
                 Text("No commands")
                     .font(DesignSystem.Typography.body)
@@ -30,12 +30,12 @@ public struct CommandPaletteView: View {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         Image.systemIcon(action.icon, size: DesignSystem.Size.iconRegular)
                             .foregroundStyle(DesignSystem.Colors.accent)
-                        
+
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
                             Text(action.title)
                                 .font(DesignSystem.Typography.body)
                                 .foregroundStyle(DesignSystem.Colors.textPrimary)
-                            
+
                             if let subtitle = action.subtitle {
                                 Text(subtitle)
                                     .font(DesignSystem.Typography.caption1)

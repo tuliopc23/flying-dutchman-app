@@ -1,7 +1,7 @@
 import Foundation
 import Logging
-import SystemPackage
 import Shared
+import SystemPackage
 
 /// Manages exposure of image layers as browsable directories
 public actor ImageFilesystemManager {
@@ -9,7 +9,7 @@ public actor ImageFilesystemManager {
 
     /// Base directory for images
     private let imagesBaseDir: FilePath
-    
+
     /// Base directory for containers
     private let containersBaseDir: FilePath
 
@@ -22,7 +22,7 @@ public actor ImageFilesystemManager {
             atPath: imagesBaseDir.string,
             withIntermediateDirectories: true
         )
-        
+
         try? FileManager.default.createDirectory(
             atPath: containersBaseDir.string,
             withIntermediateDirectories: true
@@ -190,7 +190,7 @@ public actor ImageFilesystemManager {
 
         return FilePath(imagesDir.path)
     }
-    
+
     private static func containersDirectory() -> FilePath {
         let homeDir = FileManager.default.homeDirectoryForCurrentUser
         let containersDir = homeDir
@@ -199,49 +199,49 @@ public actor ImageFilesystemManager {
 
         return FilePath(containersDir.path)
     }
-    
+
     public func exposeContainer(id: UUID, name: String) throws -> FilePath {
         let containerDir = containersBaseDir.appending(name)
-        
+
         logger.info("Exposing container \(name) (\(id)) at \(containerDir.string)")
-        
+
         if FileManager.default.fileExists(atPath: containerDir.string) {
             logger.debug("Container directory already exists: \(containerDir.string)")
             return containerDir
         }
-        
+
         try FileManager.default.createDirectory(atPath: containerDir.string, withIntermediateDirectories: true)
-        
+
         let metadataDir = containerDir.appending("metadata")
         try FileManager.default.createDirectory(atPath: metadataDir.string, withIntermediateDirectories: true)
-        
+
         let containerMetadata = ContainerFilesystemMetadata(
             id: id,
             name: name,
             exposedAt: Date()
         )
         try writeContainerMetadata(containerMetadata, to: containerDir)
-        
+
         logger.info("Container \(name) exposed successfully")
         return containerDir
     }
-    
+
     public func removeExposedContainer(name: String) throws {
         let containerDir = containersBaseDir.appending(name)
-        
+
         guard FileManager.default.fileExists(atPath: containerDir.string) else {
             throw FilesystemError.notFound("Container not exposed: \(name)")
         }
-        
+
         try FileManager.default.removeItem(atPath: containerDir.string)
         logger.info("Removed exposed container: \(name)")
     }
-    
+
     private func writeContainerMetadata(_ metadata: ContainerFilesystemMetadata, to directory: FilePath) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(metadata)
-        
+
         let metadataPath = directory.appending("metadata").appending("container.json")
         try data.write(to: URL(fileURLWithPath: metadataPath.string))
     }
@@ -293,11 +293,11 @@ public enum FilesystemError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .notFound(message):
-            return "Not found: \(message)"
+            "Not found: \(message)"
         case let .creationFailed(reason):
-            return "Failed to create directory: \(reason)"
+            "Failed to create directory: \(reason)"
         case let .removalFailed(reason):
-            return "Failed to remove directory: \(reason)"
+            "Failed to remove directory: \(reason)"
         }
     }
 }

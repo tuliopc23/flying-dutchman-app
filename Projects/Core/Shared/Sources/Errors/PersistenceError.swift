@@ -19,58 +19,58 @@ public enum PersistenceError: FlyingDutchmanError {
     public var userMessage: String {
         switch self {
         case .databaseUnavailable:
-            return "Database is not available"
+            "Database is not available"
 
         case .migrationFailed:
-            return "Failed to update the database"
+            "Failed to update the database"
 
         case let .recordNotFound(type, _):
-            return "\(type) not found"
+            "\(type) not found"
 
         case let .saveFailed(type, _):
-            return "Could not save \(type.lowercased())"
+            "Could not save \(type.lowercased())"
         }
     }
 
     public var technicalMessage: String {
         switch self {
         case .databaseUnavailable:
-            return "SQLite database connection unavailable or failed to open"
+            "SQLite database connection unavailable or failed to open"
 
         case let .migrationFailed(version, reason):
-            return "Database migration to version '\(version)' failed: \(reason)"
+            "Database migration to version '\(version)' failed: \(reason)"
 
         case let .recordNotFound(type, id):
-            return "Record of type '\(type)' with id '\(id)' not found in database"
+            "Record of type '\(type)' with id '\(id)' not found in database"
 
         case let .saveFailed(type, reason):
-            return "Failed to save '\(type)' to database: \(reason)"
+            "Failed to save '\(type)' to database: \(reason)"
         }
     }
 
     public var isRecoverable: Bool {
         switch self {
         case .databaseUnavailable:
-            return true // May become available
+            true // May become available
         case .migrationFailed:
-            return false // Usually requires intervention
+            false // Usually requires intervention
         case .recordNotFound:
-            return false // Record doesn't exist
+            false // Record doesn't exist
         case .saveFailed:
-            return true // Can retry
+            true // Can retry
         }
     }
 
     public var suggestedAction: String? {
         switch self {
         case .databaseUnavailable:
-            return "Check disk space and restart the application"
+            "Check disk space and restart the application"
         case .migrationFailed:
-            return "Try reinstalling the application or contact support"
+            "Try reinstalling the application or contact support"
         case .recordNotFound:
-            return nil
+            nil
         case .saveFailed:
-            return "Check available disk space and try again"
+            "Check available disk space and try again"
         }
     }
 }

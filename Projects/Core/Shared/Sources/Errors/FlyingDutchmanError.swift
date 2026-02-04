@@ -20,14 +20,14 @@ public protocol FlyingDutchmanError: LocalizedError, Sendable {
 
 // MARK: - Default Implementations
 
-extension FlyingDutchmanError {
+public extension FlyingDutchmanError {
     /// Default implementation uses userMessage as the error description
-    public var errorDescription: String? {
+    var errorDescription: String? {
         userMessage
     }
 
     /// Default implementation returns nil (no specific suggested action)
-    public var suggestedAction: String? {
+    var suggestedAction: String? {
         nil
     }
 }

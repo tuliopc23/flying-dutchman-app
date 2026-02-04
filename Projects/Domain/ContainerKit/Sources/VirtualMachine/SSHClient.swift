@@ -1,6 +1,6 @@
-import Foundation
 import Citadel
 import CryptoKit
+import Foundation
 import Logging
 import NIOCore
 import NIOPosix
@@ -11,21 +11,21 @@ public actor SSHClient {
     private let username: String
     private let privateKey: String
     private let logger = Logger(label: "com.flyingdutchman.ssh")
-    
+
     public init(host: String, port: Int = 22, username: String, privateKey: String) {
         self.host = host
         self.port = port
         self.username = username
         self.privateKey = privateKey
     }
-    
+
     public func execute(_ command: String) async throws -> String {
         logger.debug("Connecting to \(username)@\(host):\(port)")
-        
-        // Create a dedicated event loop group for this connection if needed, 
+
+        // Create a dedicated event loop group for this connection if needed,
         // or rely on Citadel's internal management if it accepts one.
         // Citadel 0.7 usually takes an EventLoopGroup or uses global.
-        
+
         let ed25519Key = try Self.decodeEd25519PrivateKey(privateKey)
         let client = try await Citadel.SSHClient.connect(
             host: host,
@@ -34,12 +34,12 @@ public actor SSHClient {
             hostKeyValidator: .acceptAnything(), // Safe for local ephemeral VMs
             reconnect: .never
         )
-        
+
         logger.debug("Connected. Executing: \(command)")
-        
+
         let outputBuffer = try await client.executeCommand(command)
         let output = String(buffer: outputBuffer)
-        
+
         try await client.close()
         return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }

@@ -26,7 +26,11 @@ public struct StackStore {
     }
 
     public func create(_ request: StackCreateRequest) throws -> StackSummary {
-        let summary = StackSummary(name: request.name, description: request.description, containerNames: request.containerNames)
+        let summary = StackSummary(
+            name: request.name,
+            description: request.description,
+            containerNames: request.containerNames
+        )
         try dbQueue.write { db in
             try StackRecord(from: summary).insert(db)
         }
@@ -57,7 +61,8 @@ private struct StackRecord: Codable, FetchableRecord, PersistableRecord {
         name = summary.name
         description = summary.description
         createdAt = summary.createdAt
-        containerNames = (try? JSONEncoder().encode(summary.containerNames)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+        containerNames = (try? JSONEncoder().encode(summary.containerNames))
+            .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
     }
 
     func toSummary() -> StackSummary {

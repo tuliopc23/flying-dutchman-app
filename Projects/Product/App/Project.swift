@@ -20,8 +20,8 @@ let project = Project(
                 .project(target: "Volumes", path: "../../Features/Volumes"),
                 .project(target: "Networks", path: "../../Features/Networks"),
                 .project(target: "Diagnostics", path: "../../Features/Diagnostics"),
-                .project(target: "Stacks", path: "../../Features/Stacks")
+                .project(target: "Stacks", path: "../../Features/Stacks"),
             ]
-        )
+        ),
     ]
 )

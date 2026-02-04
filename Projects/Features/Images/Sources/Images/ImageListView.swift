@@ -1,9 +1,9 @@
-import Shared
-import FlyingDutchmanPersistence
+import DesignSystem
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
+import Shared
 import SwiftUI
-import DesignSystem
 import UIComponents
 
 @MainActor
@@ -16,9 +16,9 @@ public final class ImageListViewModel {
     public var pullReference: String = ""
     public var pullMessage: String?
     public var isPulling: Bool = false
-    
+
     private let store = ImageStore()
-    
+
     public init() {}
 
     var filtered: [ImageSummary] {
@@ -65,9 +65,9 @@ public struct ImageListView: View {
                 Text("Images")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Spacer()
-                
+
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     TextField("Pull image...", text: $viewModel.pullReference)
                         .textFieldStyle(.plain)
@@ -76,7 +76,7 @@ public struct ImageListView: View {
                         .background(DesignTokens.glassFieldBackground(for: colorScheme))
                         .clipShape(DesignSystem.Shapes.input)
                         .onSubmit { Task { await viewModel.pull() } }
-                    
+
                     Button {
                         Task { @MainActor in await viewModel.pull() }
                     } label: {
@@ -91,7 +91,7 @@ public struct ImageListView: View {
                     .disabled(viewModel.isPulling || viewModel.pullReference.isEmpty)
                     .help("Pull Image from Registry")
                 }
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load() }
                 } label: {
@@ -105,9 +105,9 @@ public struct ImageListView: View {
 
             if let error = viewModel.error {
                 DiagnosticsBanner(
-                    title: "Error", 
-                    message: error, 
-                    icon: "exclamationmark.triangle", 
+                    title: "Error",
+                    message: error,
+                    icon: "exclamationmark.triangle",
                     tone: .warning
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
@@ -116,8 +116,8 @@ public struct ImageListView: View {
             if viewModel.filtered.isEmpty {
                 EmptyStateCard(
                     title: "No images found",
-                    message: viewModel.searchQuery.isEmpty 
-                        ? "Pull or build an image to get started." 
+                    message: viewModel.searchQuery.isEmpty
+                        ? "Pull or build an image to get started."
                         : "No images match your search.",
                     systemImage: "shippingbox.fill"
                 )
@@ -144,13 +144,13 @@ public struct ImageListView: View {
 
 struct ImageRow: View {
     let image: ImageSummary
-    
+
     var body: some View {
         GlassCard {
             HStack(spacing: DesignSystem.Spacing.md) {
                 Image.systemIcon("shippingbox.fill", size: DesignSystem.Size.iconLarge)
                     .foregroundStyle(DesignSystem.Colors.accent)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline) {
                         Text(image.name)
@@ -163,15 +163,15 @@ struct ImageRow: View {
                             .background(DesignSystem.Colors.surfaceTertiary)
                             .clipShape(DesignSystem.Shapes.chip)
                     }
-                    
+
                     Text(image.digest ?? "No digest")
                         .font(DesignSystem.Typography.caption2)
                         .foregroundStyle(DesignSystem.Colors.textTertiary)
                         .monospaced()
                 }
-                
+
                 Spacer()
-                
+
                 if let size = image.sizeBytes {
                     Text(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
                         .font(DesignSystem.Typography.caption1)

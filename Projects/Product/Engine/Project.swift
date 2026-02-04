@@ -7,7 +7,8 @@ let project = Project(
         Target.target(
             name: "FlyingDutchmanEngine",
             destinations: .macOS,
-            product: .commandLineTool, // Engine is a daemon/tool, not .app usually? Original project said .app. I'll stick to .app or .commandLineTool. 
+            product: .commandLineTool, // Engine is a daemon/tool, not .app usually? Original project said .app. I'll
+            // stick to .app or .commandLineTool.
             // Original: product: .app
             // Logic: It's a background service. .app allows Resources easily. I'll use .commandLineTool for now as it's a daemon.
             // Wait, original was .app. I should check why. Maybe for Info.plist entitlements?
@@ -22,8 +23,8 @@ let project = Project(
                 .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
                 .project(target: "FlyingDutchmanContainers", path: "../../Domain/ContainerKit"),
                 .project(target: "FlyingDutchmanNetworking", path: "../../Domain/NetworkKit"),
-                .external(name: "ServiceLifecycle")
+                .external(name: "ServiceLifecycle"),
             ]
-        )
+        ),
     ]
 )

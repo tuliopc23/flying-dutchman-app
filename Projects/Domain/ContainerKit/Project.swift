@@ -16,8 +16,8 @@ let project = Project(
                 .external(name: "Containerization"),
                 .external(name: "ContainerizationOCI"),
                 .external(name: "ContainerizationExtras"),
-                .external(name: "SystemPackage")
+                .external(name: "SystemPackage"),
             ]
-        )
+        ),
     ]
 )

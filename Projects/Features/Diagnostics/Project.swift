@@ -15,6 +15,6 @@ let project = Project(
         ],
         interfaceDependencies: [
             .project(target: "Shared", path: "../../Core/Shared"),
-        ],
+        ]
     )
 )

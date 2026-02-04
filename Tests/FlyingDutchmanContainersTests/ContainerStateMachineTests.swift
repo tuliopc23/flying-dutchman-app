@@ -1,6 +1,6 @@
-import XCTest
 @testable import FlyingDutchmanContainers
 @testable import Shared
+import XCTest
 
 final class ContainerStateMachineTests: XCTestCase {
     var stateMachine: ContainerStateMachine!
@@ -12,36 +12,36 @@ final class ContainerStateMachineTests: XCTestCase {
 
     // MARK: - Valid State Transitions
 
-    func testTransitionFromCreatedToStarting() async throws {
+    func testTransitionFromCreatedToStarting() throws {
         try stateMachine.transition(to: .starting)
         XCTAssertEqual(stateMachine.currentState, .starting)
     }
 
-    func testTransitionFromCreatedToRemoving() async throws {
+    func testTransitionFromCreatedToRemoving() throws {
         try stateMachine.transition(to: .removing)
         XCTAssertEqual(stateMachine.currentState, .removing)
     }
 
-    func testTransitionFromStartingToRunning() async throws {
+    func testTransitionFromStartingToRunning() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .running)
         XCTAssertEqual(stateMachine.currentState, .running)
     }
 
-    func testTransitionFromStartingToStopped() async throws {
+    func testTransitionFromStartingToStopped() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .stopped)
         XCTAssertEqual(stateMachine.currentState, .stopped)
     }
 
-    func testTransitionFromRunningToStopping() async throws {
+    func testTransitionFromRunningToStopping() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .running)
         try stateMachine.transition(to: .stopping)
         XCTAssertEqual(stateMachine.currentState, .stopping)
     }
 
-    func testTransitionFromStoppingToStopped() async throws {
+    func testTransitionFromStoppingToStopped() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .running)
         try stateMachine.transition(to: .stopping)
@@ -49,7 +49,7 @@ final class ContainerStateMachineTests: XCTestCase {
         XCTAssertEqual(stateMachine.currentState, .stopped)
     }
 
-    func testTransitionFromStoppingToRunning() async throws {
+    func testTransitionFromStoppingToRunning() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .running)
         try stateMachine.transition(to: .stopping)
@@ -57,21 +57,21 @@ final class ContainerStateMachineTests: XCTestCase {
         XCTAssertEqual(stateMachine.currentState, .running)
     }
 
-    func testTransitionFromStoppedToStarting() async throws {
+    func testTransitionFromStoppedToStarting() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .stopped)
         try stateMachine.transition(to: .starting)
         XCTAssertEqual(stateMachine.currentState, .starting)
     }
 
-    func testTransitionFromStoppedToRemoving() async throws {
+    func testTransitionFromStoppedToRemoving() throws {
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .stopped)
         try stateMachine.transition(to: .removing)
         XCTAssertEqual(stateMachine.currentState, .removing)
     }
 
-    func testTransitionFromRemovingToRemoved() async throws {
+    func testTransitionFromRemovingToRemoved() throws {
         try stateMachine.transition(to: .removing)
         try stateMachine.transition(to: .removed)
         XCTAssertEqual(stateMachine.currentState, .removed)
@@ -79,67 +79,67 @@ final class ContainerStateMachineTests: XCTestCase {
 
     // MARK: - Invalid State Transitions
 
-    func testTransitionFromRemovedToAnyStateThrows() async {
-        try! stateMachine.transition(to: .removing)
-        try! stateMachine.transition(to: .removed)
+    func testTransitionFromRemovedToAnyStateThrows() async throws {
+        try stateMachine.transition(to: .removing)
+        try stateMachine.transition(to: .removed)
 
         // Removed is a terminal state - no transitions allowed
-        await assertAsyncThrows(
-            try stateMachine.transition(to: .created)
+        try await assertAsyncThrows(
+            stateMachine.transition(to: .created)
         )
-        await assertAsyncThrows(
-            try stateMachine.transition(to: .starting)
+        try await assertAsyncThrows(
+            stateMachine.transition(to: .starting)
         )
-        await assertAsyncThrows(
-            try stateMachine.transition(to: .running)
+        try await assertAsyncThrows(
+            stateMachine.transition(to: .running)
         )
     }
 
     func testTransitionFromCreatedToRunningThrows() async {
         // Must go through starting first
-        await assertAsyncThrows(
-            try stateMachine.transition(to: .running)
+        try await assertAsyncThrows(
+            stateMachine.transition(to: .running)
         )
         XCTAssertEqual(stateMachine.currentState, .created) // State unchanged
     }
 
-    func testTransitionFromRunningToStartingThrows() async {
-        try! stateMachine.transition(to: .starting)
-        try! stateMachine.transition(to: .running)
+    func testTransitionFromRunningToStartingThrows() async throws {
+        try stateMachine.transition(to: .starting)
+        try stateMachine.transition(to: .running)
 
         // Cannot go back to starting from running
-        await assertAsyncThrows(
-            try stateMachine.transition(to: .starting)
+        try await assertAsyncThrows(
+            stateMachine.transition(to: .starting)
         )
     }
 
-    func testTransitionFromStoppingToStartingThrows() async {
-        try! stateMachine.transition(to: .starting)
-        try! stateMachine.transition(to: .running)
-        try! stateMachine.transition(to: .stopping)
+    func testTransitionFromStoppingToStartingThrows() async throws {
+        try stateMachine.transition(to: .starting)
+        try stateMachine.transition(to: .running)
+        try stateMachine.transition(to: .stopping)
 
         // Cannot skip stopped
-        await assertAsyncThrows(
-            try stateMachine.transition(to: .starting)
+        try await assertAsyncThrows(
+            stateMachine.transition(to: .starting)
         )
     }
 
     // MARK: - Can Transition Check
 
-    func testCanTransitionReturnsTrueForValidTransitions() async {
+    func testCanTransitionReturnsTrueForValidTransitions() {
         XCTAssertTrue(stateMachine.canTransition(to: .starting))
         XCTAssertTrue(stateMachine.canTransition(to: .removing))
         XCTAssertFalse(stateMachine.canTransition(to: .running))
     }
 
-    func testCanTransitionDoesNotMutateState() async {
+    func testCanTransitionDoesNotMutateState() {
         XCTAssertTrue(stateMachine.canTransition(to: .starting))
         XCTAssertEqual(stateMachine.currentState, .created) // Unchanged
     }
 
     // MARK: - Force Set
 
-    func testForceSetAllowsInvalidTransitions() async {
+    func testForceSetAllowsInvalidTransitions() {
         try? stateMachine.transition(to: .removing)
         try? stateMachine.transition(to: .removed)
 
@@ -150,7 +150,7 @@ final class ContainerStateMachineTests: XCTestCase {
 
     // MARK: - State Change Callback
 
-    func testStateChangeCallbackInvoked() async throws {
+    func testStateChangeCallbackInvoked() throws {
         var callbackInvocations: [(ContainerSummary.Status, ContainerSummary.Status)] = []
 
         stateMachine.onStateChange = { from, to in
@@ -164,7 +164,7 @@ final class ContainerStateMachineTests: XCTestCase {
         XCTAssertEqual(callbackInvocations[0].1, .starting)
     }
 
-    func testStateChangeCallbackInvokedForForceSet() async {
+    func testStateChangeCallbackInvokedForForceSet() {
         var callbackInvocations: [(ContainerSummary.Status, ContainerSummary.Status)] = []
 
         stateMachine.onStateChange = { from, to in
@@ -178,7 +178,7 @@ final class ContainerStateMachineTests: XCTestCase {
         XCTAssertEqual(callbackInvocations[0].1, .running)
     }
 
-    func testStateChangeCallbackNotInvokedForInvalidTransition() async {
+    func testStateChangeCallbackNotInvokedForInvalidTransition() {
         var callbackInvoked = false
 
         stateMachine.onStateChange = { _, _ in
@@ -193,10 +193,10 @@ final class ContainerStateMachineTests: XCTestCase {
 
     // MARK: - Full Lifecycle
 
-    func testFullContainerLifecycle() async throws {
+    func testFullContainerLifecycle() throws {
         var stateChanges: [ContainerSummary.Status] = []
 
-        stateMachine.onStateChange = { from, to in
+        stateMachine.onStateChange = { _, to in
             stateChanges.append(to)
         }
 
@@ -211,7 +211,7 @@ final class ContainerStateMachineTests: XCTestCase {
         XCTAssertEqual(stateChanges, [.starting, .running, .stopping, .stopped, .removing, .removed])
     }
 
-    func testRestartCycle() async throws {
+    func testRestartCycle() throws {
         // Simulate a container restart
         try stateMachine.transition(to: .starting)
         try stateMachine.transition(to: .running)

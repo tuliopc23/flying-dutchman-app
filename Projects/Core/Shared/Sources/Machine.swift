@@ -16,7 +16,7 @@ public struct Machine: Codable, Sendable, Identifiable {
     public var kubernetesVersion: String?
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     public init(
         id: String = UUID().uuidString,
         name: String,
@@ -70,7 +70,7 @@ public struct MachineConfig: Codable, Sendable {
     public var cloudInitData: String?
     public var sshPublicKey: String?
     public var installK3s: Bool
-    
+
     public init(
         distro: String,
         version: String,
@@ -98,24 +98,24 @@ public enum MachineDistro: String, Codable, Sendable, CaseIterable {
     case fedora
     case alpine
     case arch
-    
+
     public var displayName: String {
         switch self {
-        case .ubuntu: return "Ubuntu"
-        case .debian: return "Debian"
-        case .fedora: return "Fedora"
-        case .alpine: return "Alpine Linux"
-        case .arch: return "Arch Linux"
+        case .ubuntu: "Ubuntu"
+        case .debian: "Debian"
+        case .fedora: "Fedora"
+        case .alpine: "Alpine Linux"
+        case .arch: "Arch Linux"
         }
     }
-    
+
     public var defaultVersions: [String] {
         switch self {
-        case .ubuntu: return ["24.04", "22.04", "20.04"]
-        case .debian: return ["12", "11", "10"]
-        case .fedora: return ["39", "38", "37"]
-        case .alpine: return ["3.19", "3.18", "3.17"]
-        case .arch: return ["latest"]
+        case .ubuntu: ["24.04", "22.04", "20.04"]
+        case .debian: ["12", "11", "10"]
+        case .fedora: ["39", "38", "37"]
+        case .alpine: ["3.19", "3.18", "3.17"]
+        case .arch: ["latest"]
         }
     }
 }

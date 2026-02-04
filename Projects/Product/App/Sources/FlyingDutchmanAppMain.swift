@@ -1,23 +1,23 @@
-import SwiftUI
-import Settings
-import Shell
 import Containers
 import ContainersInterface
-import Images
-import ImagesInterface
-import Volumes
-import VolumesInterface
-import Networks
-import NetworksInterface
 import Diagnostics
 import DiagnosticsInterface
+import Images
+import ImagesInterface
+import Networks
+import NetworksInterface
+import Settings
+import Shell
 import Stacks
 import StacksInterface
+import SwiftUI
+import Volumes
+import VolumesInterface
 
 @main
 @MainActor
 struct FlyingDutchmanApp: App {
-    // Single source of truth for the entire app state (macOS 26+ Observation)
+    /// Single source of truth for the entire app state (macOS 26+ Observation)
     @State private var state = AppState(
         features: ShellFeatureRegistry(
             containers: .live,
@@ -48,7 +48,7 @@ struct FlyingDutchmanApp: App {
         Settings {
             SettingsView()
         }
-        
+
         MenuBarExtra("Flying Dutchman", systemImage: "ship.wheel.fill") {
             MenuBarView()
                 .environment(state)

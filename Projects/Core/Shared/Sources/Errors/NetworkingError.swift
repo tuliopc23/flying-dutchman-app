@@ -13,7 +13,7 @@ public enum NetworkingError: FlyingDutchmanError {
 
     /// A certificate validation error occurred
     case certificateError(String)
-    
+
     /// Failed to bind to a local port
     case portBindingFailed(port: Int)
 
@@ -22,19 +22,19 @@ public enum NetworkingError: FlyingDutchmanError {
     public var userMessage: String {
         switch self {
         case let .connectionFailed(host, port, _):
-            return "Unable to connect to \(host):\(port)"
+            "Unable to connect to \(host):\(port)"
 
         case let .timeout(operation):
-            return "The \(operation) operation timed out"
+            "The \(operation) operation timed out"
 
         case let .dnsResolutionFailed(domain):
-            return "Could not resolve '\(domain)'"
+            "Could not resolve '\(domain)'"
 
         case .certificateError:
-            return "Security certificate error"
-            
+            "Security certificate error"
+
         case let .portBindingFailed(port):
-            return "Failed to bind to local port \(port)"
+            "Failed to bind to local port \(port)"
         }
     }
 
@@ -55,7 +55,7 @@ public enum NetworkingError: FlyingDutchmanError {
 
         case let .certificateError(details):
             return "TLS certificate validation failed: \(details)"
-            
+
         case let .portBindingFailed(port):
             return "Failed to bind listener to port \(port). The port may be in use or requires privileges."
         }
@@ -64,30 +64,30 @@ public enum NetworkingError: FlyingDutchmanError {
     public var isRecoverable: Bool {
         switch self {
         case .connectionFailed:
-            return true // Can retry when network is available
+            true // Can retry when network is available
         case .timeout:
-            return true // Can retry
+            true // Can retry
         case .dnsResolutionFailed:
-            return true // DNS may become available
+            true // DNS may become available
         case .certificateError:
-            return false // Usually requires config change
+            false // Usually requires config change
         case .portBindingFailed:
-            return false // Usually requires picking a different port or killing the process using it
+            false // Usually requires picking a different port or killing the process using it
         }
     }
 
     public var suggestedAction: String? {
         switch self {
         case .connectionFailed:
-            return "Check your network connection and try again"
+            "Check your network connection and try again"
         case .timeout:
-            return "Check network connectivity or try again later"
+            "Check network connectivity or try again later"
         case .dnsResolutionFailed:
-            return "Check the hostname and your DNS settings"
+            "Check the hostname and your DNS settings"
         case .certificateError:
-            return "Verify the server's SSL certificate is valid and trusted"
+            "Verify the server's SSL certificate is valid and trusted"
         case .portBindingFailed:
-            return "Try using a different port or check if another application is using it"
+            "Try using a different port or check if another application is using it"
         }
     }
 }

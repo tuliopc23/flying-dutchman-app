@@ -1,9 +1,9 @@
-import Foundation
 import ArgumentParser
-import Shared
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
+import Foundation
+import Shared
 
 @main
 struct FlyingDutchmanCLI: AsyncParsableCommand {
@@ -29,7 +29,7 @@ struct FlyingDutchmanCLI: AsyncParsableCommand {
             Completion.self,
             Login.self,
             Logout.self,
-            TrustCA.self
+            TrustCA.self,
         ]
     )
 }
@@ -65,9 +65,15 @@ struct Doctor: AsyncParsableCommand {
                 CLIOutput.warn("Compatibility", report.platform.message)
             }
             if report.containerization.status == "ok" {
-                CLIOutput.line("Containerization", "\(report.containerization.status) – \(report.containerization.message)")
+                CLIOutput.line(
+                    "Containerization",
+                    "\(report.containerization.status) – \(report.containerization.message)"
+                )
             } else {
-                CLIOutput.warn("Containerization", "\(report.containerization.status) – \(report.containerization.message)")
+                CLIOutput.warn(
+                    "Containerization",
+                    "\(report.containerization.status) – \(report.containerization.message)"
+                )
             }
             CLIOutput.line("container CLI", "\(report.containerTool.status) – \(report.containerTool.message)")
 
@@ -80,7 +86,11 @@ struct Doctor: AsyncParsableCommand {
 
             if let detail = report.detail {
                 CLIOutput.line("Uptime", "\(detail.uptimeSeconds)s")
-                CLIOutput.line("Workers", detail.workers.isEmpty ? "unknown" : detail.workers.map { "\($0.key)=\($0.value)" }.joined(separator: ", "))
+                CLIOutput.line(
+                    "Workers",
+                    detail.workers.isEmpty ? "unknown" : detail.workers.map { "\($0.key)=\($0.value)" }
+                        .joined(separator: ", ")
+                )
                 if let mode = detail.mode {
                     CLIOutput.line("Runtime", "containerization=\(mode)")
                 }
@@ -131,7 +141,7 @@ extension Containers {
                             container.name,
                             container.image,
                             container.status.rawValue,
-                            ports.isEmpty ? "—" : ports
+                            ports.isEmpty ? "—" : ports,
                         ]
                     }
                 )
@@ -298,7 +308,7 @@ struct Images: AsyncParsableCommand {
                             img.name,
                             img.tag,
                             img.digest ?? "—",
-                            img.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—"
+                            img.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—",
                         ]
                     })
                 }
@@ -313,7 +323,7 @@ struct Images: AsyncParsableCommand {
                             img.name,
                             img.tag,
                             img.digest ?? "—",
-                            img.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—"
+                            img.sizeBytes.map { "\($0 / 1_000_000)MB" } ?? "—",
                         ]
                     })
                 }
@@ -361,7 +371,7 @@ struct Stacks: AsyncParsableCommand {
                         [
                             stack.name,
                             stack.description ?? "—",
-                            stack.containerNames.isEmpty ? "—" : stack.containerNames.joined(separator: ", ")
+                            stack.containerNames.isEmpty ? "—" : stack.containerNames.joined(separator: ", "),
                         ]
                     })
                 }
@@ -375,7 +385,7 @@ struct Stacks: AsyncParsableCommand {
                         [
                             stack.name,
                             stack.description ?? "—",
-                            stack.containerNames.isEmpty ? "—" : stack.containerNames.joined(separator: ", ")
+                            stack.containerNames.isEmpty ? "—" : stack.containerNames.joined(separator: ", "),
                         ]
                     })
                 }
@@ -464,7 +474,11 @@ struct Networks: AsyncParsableCommand {
                     CLIOutput.table(
                         headers: ["Name", "Subnet", "Containers"],
                         rows: fallback.map { network in
-                            [network.name, network.subnet ?? "—", network.connectedContainerIDs.isEmpty ? "—" : "\(network.connectedContainerIDs.count)"]
+                            [
+                                network.name,
+                                network.subnet ?? "—",
+                                network.connectedContainerIDs.isEmpty ? "—" : "\(network.connectedContainerIDs.count)",
+                            ]
                         }
                     )
                 }
@@ -535,11 +549,11 @@ struct Events: AsyncParsableCommand {
         let timestamp = Self.timestampFormatter.string(from: event.timestamp)
         let detail: String
         switch event.type {
-        case .stateChanged(let from, let to):
+        case let .stateChanged(from, to):
             detail = "state \(from.displayName) -> \(to.displayName)"
-        case .logOutput(let message):
+        case let .logOutput(message):
             detail = "log \(truncate(message, limit: 160))"
-        case .resourceUpdate(let info):
+        case let .resourceUpdate(info):
             let memoryMB = Double(info.memoryBytes) / 1024 / 1024
             detail = String(format: "cpu %.1f%% mem %.0fMB (%.1f%%)", info.cpuPercent, memoryMB, info.memoryPercent)
         }
@@ -552,14 +566,12 @@ struct Events: AsyncParsableCommand {
         return String(value[..<index]) + "..."
     }
 
-    nonisolated(unsafe) private static let timestampFormatter: ISO8601DateFormatter = {
+    private nonisolated(unsafe) static let timestampFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
         return formatter
     }()
 }
-
-
 
 private struct DoctorReport: Encodable {
     let platform: RuntimeChecks.PlatformStatus
@@ -607,8 +619,18 @@ private struct DoctorReport: Encodable {
         )
 
         try container.encode(platformPayload, forKey: .platform)
-        try container.encode(ToolPayload(name: containerTool.name, status: containerTool.status, message: containerTool.message), forKey: .containerTool)
-        try container.encode(ToolPayload(name: containerization.name, status: containerization.status, message: containerization.message), forKey: .containerization)
+        try container.encode(
+            ToolPayload(name: containerTool.name, status: containerTool.status, message: containerTool.message),
+            forKey: .containerTool
+        )
+        try container.encode(
+            ToolPayload(
+                name: containerization.name,
+                status: containerization.status,
+                message: containerization.message
+            ),
+            forKey: .containerization
+        )
 
         try container.encodeIfPresent(http, forKey: .http)
         try container.encodeIfPresent(detail, forKey: .detail)
@@ -627,19 +649,19 @@ private struct DoctorReport: Encodable {
         let xpcResult: Result<EngineXPCStatus, Error>
 
         do {
-            httpResult = .success(try await EngineClient.fetchHealth())
+            httpResult = try await .success(EngineClient.fetchHealth())
         } catch {
             httpResult = .failure(error)
         }
 
         do {
-            httpDetailResult = .success(try await EngineClient.fetchStatus())
+            httpDetailResult = try await .success(EngineClient.fetchStatus())
         } catch {
             httpDetailResult = .failure(error)
         }
 
         do {
-            xpcResult = .success(try await EngineXPCClient.fetchStatus())
+            xpcResult = try await .success(EngineXPCClient.fetchStatus())
         } catch {
             xpcResult = .failure(error)
         }

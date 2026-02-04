@@ -1,6 +1,6 @@
 import Foundation
-import Security
 import Logging
+import Security
 
 /// Manages authentication for OCI container registries
 ///
@@ -21,18 +21,18 @@ import Logging
 public actor RegistryAuthManager {
     private let logger = Logger(label: "com.flyingdutchman.registry.auth")
     private let keychainService = "com.flyingdutchman.registry"
-    
+
     /// Cache of active authentication tokens (registry -> token)
     /// Tokens are cached to avoid hitting auth endpoints repeatedly
     private var tokenCache: [String: CachedToken] = [:]
-    
+
     /// Initialize the registry authentication manager
     public init() {
         logger.debug("RegistryAuthManager initialized")
     }
-    
+
     // MARK: - Public API
-    
+
     /// Login to a container registry with username and password
     ///
     /// - Parameters:
@@ -43,21 +43,26 @@ public actor RegistryAuthManager {
     public func login(registry: String, username: String, password: String) async throws {
         logger.info("Logging in to registry", metadata: [
             "registry": .string(registry),
-            "username": .string(username)
+            "username": .string(username),
         ])
-        
+
         // Validate credentials by attempting to get a token
-        _ = try await authenticate(registry: registry, username: username, password: password, scope: "registry:catalog:*")
-        
+        _ = try await authenticate(
+            registry: registry,
+            username: username,
+            password: password,
+            scope: "registry:catalog:*"
+        )
+
         // Store credentials in Keychain
         try storeInKeychain(registry: registry, username: username, password: password)
-        
+
         logger.info("Successfully logged in to registry", metadata: [
             "registry": .string(registry),
-            "username": .string(username)
+            "username": .string(username),
         ])
     }
-    
+
     /// Logout from a container registry
     ///
     /// Removes credentials from Keychain and clears cached tokens.
@@ -66,20 +71,20 @@ public actor RegistryAuthManager {
     /// - Throws: If Keychain removal fails
     public func logout(registry: String) async throws {
         logger.info("Logging out from registry", metadata: [
-            "registry": .string(registry)
+            "registry": .string(registry),
         ])
-        
+
         // Remove from Keychain
         try deleteFromKeychain(registry: registry)
-        
+
         // Clear cached token
         tokenCache.removeValue(forKey: registry)
-        
+
         logger.info("Successfully logged out from registry", metadata: [
-            "registry": .string(registry)
+            "registry": .string(registry),
         ])
     }
-    
+
     /// Get authentication token for a registry and scope
     ///
     /// Returns a Bearer token suitable for Authorization headers.
@@ -94,28 +99,28 @@ public actor RegistryAuthManager {
         // Check cache first
         if let cached = tokenCache[registry], !cached.isExpired {
             logger.debug("Using cached token", metadata: [
-                "registry": .string(registry)
+                "registry": .string(registry),
             ])
             return cached.token
         }
-        
+
         // Retrieve credentials from Keychain
         guard let (username, password) = try retrieveFromKeychain(registry: registry) else {
             logger.debug("No credentials found for registry", metadata: [
-                "registry": .string(registry)
+                "registry": .string(registry),
             ])
             return nil
         }
-        
+
         // Authenticate and cache token
         let token = try await authenticate(registry: registry, username: username, password: password, scope: scope)
-        
+
         // Cache for future use (expires in 30 minutes)
         tokenCache[registry] = CachedToken(token: token, expiresAt: Date().addingTimeInterval(1800))
-        
+
         return token
     }
-    
+
     /// Refresh an expired token
     ///
     /// Clears cache and forces re-authentication.
@@ -124,23 +129,28 @@ public actor RegistryAuthManager {
     /// - Throws: If authentication fails
     public func refreshToken(registry: String) async throws {
         logger.info("Refreshing token for registry", metadata: [
-            "registry": .string(registry)
+            "registry": .string(registry),
         ])
-        
+
         // Clear cached token
         tokenCache.removeValue(forKey: registry)
-        
+
         // Next getAuthToken() call will re-authenticate
     }
-    
+
     // MARK: - Authentication Flows
-    
+
     /// Authenticate with a registry and return a Bearer token
     ///
     /// Handles different authentication mechanisms based on registry:
     /// - Docker Hub: OAuth token endpoint
     /// - Others: Basic auth (username:password in Authorization header)
-    private func authenticate(registry: String, username: String, password: String, scope: String) async throws -> String {
+    private func authenticate(
+        registry: String,
+        username: String,
+        password: String,
+        scope: String
+    ) async throws -> String {
         if registry == "docker.io" || registry == "registry-1.docker.io" {
             return try await getDockerHubToken(username: username, password: password, scope: scope)
         } else if registry == "ghcr.io" {
@@ -155,7 +165,7 @@ public actor RegistryAuthManager {
             return credentialsData.base64EncodedString()
         }
     }
-    
+
     /// Get Docker Hub OAuth token
     ///
     /// Docker Hub uses a two-step OAuth flow:
@@ -164,16 +174,16 @@ public actor RegistryAuthManager {
     private func getDockerHubToken(username: String, password: String, scope: String) async throws -> String {
         let authURL = URL(string: "https://auth.docker.io/token")!
         var components = URLComponents(url: authURL, resolvingAgainstBaseURL: false)!
-        
+
         // Docker Hub auth parameters
         components.queryItems = [
             URLQueryItem(name: "service", value: "registry.docker.io"),
-            URLQueryItem(name: "scope", value: scope)
+            URLQueryItem(name: "scope", value: scope),
         ]
-        
+
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
-        
+
         // Add Basic auth header
         let credentials = "\(username):\(password)"
         guard let credentialsData = credentials.data(using: .utf8) else {
@@ -181,74 +191,74 @@ public actor RegistryAuthManager {
         }
         let base64Credentials = credentialsData.base64EncodedString()
         request.setValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
-        
+
         logger.debug("Requesting Docker Hub token", metadata: [
-            "scope": .string(scope)
+            "scope": .string(scope),
         ])
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let httpResponse = response as? HTTPURLResponse else {
             throw RegistryAuthError.invalidResponse
         }
-        
+
         guard httpResponse.statusCode == 200 else {
             logger.error("Docker Hub auth failed", metadata: [
-                "statusCode": .stringConvertible(httpResponse.statusCode)
+                "statusCode": .stringConvertible(httpResponse.statusCode),
             ])
             throw RegistryAuthError.authenticationFailed(statusCode: httpResponse.statusCode)
         }
-        
+
         // Parse token response
         struct TokenResponse: Codable {
             let token: String
             let access_token: String?
         }
-        
+
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
         let token = tokenResponse.access_token ?? tokenResponse.token
-        
+
         logger.debug("Successfully obtained Docker Hub token")
-        
+
         return token
     }
-    
+
     // MARK: - Keychain Integration
-    
+
     /// Store credentials in macOS Keychain
     ///
     /// Uses kSecClassGenericPassword with registry as service name.
     private func storeInKeychain(registry: String, username: String, password: String) throws {
         // Delete existing entry first
         try? deleteFromKeychain(registry: registry)
-        
+
         guard let passwordData = password.data(using: .utf8) else {
             throw RegistryAuthError.invalidCredentials
         }
-        
+
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: keychainService,
             kSecAttrAccount as String: "\(registry):\(username)",
             kSecValueData as String: passwordData,
-            kSecAttrLabel as String: "Flying Dutchman - \(registry)"
+            kSecAttrLabel as String: "Flying Dutchman - \(registry)",
         ]
-        
+
         let status = SecItemAdd(query as CFDictionary, nil)
-        
+
         guard status == errSecSuccess else {
             logger.error("Failed to store credentials in Keychain", metadata: [
                 "registry": .string(registry),
-                "status": .stringConvertible(status)
+                "status": .stringConvertible(status),
             ])
             throw RegistryAuthError.keychainError(status: status)
         }
-        
+
         logger.debug("Stored credentials in Keychain", metadata: [
-            "registry": .string(registry)
+            "registry": .string(registry),
         ])
     }
-    
+
     /// Retrieve credentials from macOS Keychain
     ///
     /// - Parameter registry: Registry hostname
@@ -259,23 +269,23 @@ public actor RegistryAuthManager {
             kSecAttrService as String: keychainService,
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecReturnAttributes as String: true,
-            kSecReturnData as String: true
+            kSecReturnData as String: true,
         ]
-        
+
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        
+
         guard status == errSecSuccess else {
             if status == errSecItemNotFound {
                 return nil
             }
             logger.error("Failed to retrieve credentials from Keychain", metadata: [
                 "registry": .string(registry),
-                "status": .stringConvertible(status)
+                "status": .stringConvertible(status),
             ])
             throw RegistryAuthError.keychainError(status: status)
         }
-        
+
         // Result can be a single item or array
         let items: [[String: Any]]
         if let array = result as? [[String: Any]] {
@@ -285,33 +295,34 @@ public actor RegistryAuthManager {
         } else {
             return nil
         }
-        
+
         // Find matching registry
         for item in items {
             guard let accountString = item[kSecAttrAccount as String] as? String,
                   accountString.hasPrefix(registry),
                   let passwordData = item[kSecValueData as String] as? Data,
-                  let password = String(data: passwordData, encoding: .utf8) else {
+                  let password = String(data: passwordData, encoding: .utf8)
+            else {
                 continue
             }
-            
+
             // Extract username from "registry:username" format
             let components = accountString.split(separator: ":")
             guard components.count >= 2 else { continue }
-            
+
             let username = String(components[1])
-            
+
             logger.debug("Retrieved credentials from Keychain", metadata: [
                 "registry": .string(registry),
-                "username": .string(username)
+                "username": .string(username),
             ])
-            
+
             return (username: username, password: password)
         }
-        
+
         return nil
     }
-    
+
     /// Delete credentials from macOS Keychain
     ///
     /// - Parameter registry: Registry hostname
@@ -320,19 +331,19 @@ public actor RegistryAuthManager {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: keychainService,
             kSecMatchLimit as String: kSecMatchLimitAll,
-            kSecReturnAttributes as String: true
+            kSecReturnAttributes as String: true,
         ]
-        
+
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        
+
         guard status == errSecSuccess else {
             if status == errSecItemNotFound {
                 return // Nothing to delete
             }
             throw RegistryAuthError.keychainError(status: status)
         }
-        
+
         // Result can be a single item or array
         let items: [[String: Any]]
         if let array = result as? [[String: Any]] {
@@ -342,25 +353,26 @@ public actor RegistryAuthManager {
         } else {
             return
         }
-        
+
         // Delete matching entries
         for item in items {
             guard let accountString = item[kSecAttrAccount as String] as? String,
-                  accountString.hasPrefix(registry) else {
+                  accountString.hasPrefix(registry)
+            else {
                 continue
             }
-            
+
             let deleteQuery: [String: Any] = [
                 kSecClass as String: kSecClassGenericPassword,
                 kSecAttrService as String: keychainService,
-                kSecAttrAccount as String: accountString
+                kSecAttrAccount as String: accountString,
             ]
-            
+
             let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
-            
+
             if deleteStatus == errSecSuccess {
                 logger.debug("Deleted credentials from Keychain", metadata: [
-                    "account": .string(accountString)
+                    "account": .string(accountString),
                 ])
             }
         }
@@ -373,7 +385,7 @@ public actor RegistryAuthManager {
 private struct CachedToken {
     let token: String
     let expiresAt: Date
-    
+
     var isExpired: Bool {
         Date() >= expiresAt
     }
@@ -385,17 +397,17 @@ public enum RegistryAuthError: Error, LocalizedError {
     case invalidResponse
     case authenticationFailed(statusCode: Int)
     case keychainError(status: OSStatus)
-    
+
     public var errorDescription: String? {
         switch self {
         case .invalidCredentials:
-            return "Invalid credentials format"
+            "Invalid credentials format"
         case .invalidResponse:
-            return "Invalid response from authentication server"
-        case .authenticationFailed(let statusCode):
-            return "Authentication failed with status code \(statusCode)"
-        case .keychainError(let status):
-            return "Keychain error: \(status)"
+            "Invalid response from authentication server"
+        case let .authenticationFailed(statusCode):
+            "Authentication failed with status code \(statusCode)"
+        case let .keychainError(status):
+            "Keychain error: \(status)"
         }
     }
 }

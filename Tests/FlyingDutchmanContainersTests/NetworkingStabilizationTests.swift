@@ -1,17 +1,16 @@
-import XCTest
 @testable import FlyingDutchmanContainers
+import XCTest
 
 final class NetworkingStabilizationTests: XCTestCase {
-    
-    func testComponentsInstantiate() async throws {
+    func testComponentsInstantiate() throws {
         // Ensure we can create the network manager
         let networkManager = NetworkManager()
         XCTAssertNotNil(networkManager)
-        
+
         // Ensure we can create the port forward manager
         let portForwardManager = PortForwardManager()
         XCTAssertNotNil(portForwardManager)
-        
+
         // Ensure IPAllocator handles renamed error correctly
         var allocator = try IPAllocator(subnet: "172.16.0.0/16")
         do {
@@ -20,7 +19,7 @@ final class NetworkingStabilizationTests: XCTestCase {
             // Should not throw on first allocation
             XCTFail("Allocation failed: \(error)")
         }
-        
+
         // Verify we can catch the correct error type
         do {
             // Force an invalid subnet error

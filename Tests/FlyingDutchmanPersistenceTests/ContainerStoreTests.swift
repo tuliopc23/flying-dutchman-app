@@ -1,7 +1,7 @@
-import XCTest
-import GRDB
 @testable import FlyingDutchmanPersistence
+import GRDB
 @testable import Shared
+import XCTest
 
 final class ContainerStoreTests: XCTestCase {
     var dbQueue: DatabaseQueue!
@@ -114,10 +114,10 @@ final class ContainerStoreTests: XCTestCase {
         XCTAssertEqual(count, 1)
     }
 
-    func testReplaceAll() async {
+    func testReplaceAll() {
         let containers = [
             ContainerSummary(name: "c1", image: "nginx", status: .running, ports: []),
-            ContainerSummary(name: "c2", image: "redis", status: .stopped, ports: [])
+            ContainerSummary(name: "c2", image: "redis", status: .stopped, ports: []),
         ]
 
         store.replaceAll(with: containers)
@@ -127,7 +127,7 @@ final class ContainerStoreTests: XCTestCase {
 
     func testSeedIfEmptyOnlyWorksOnce() async {
         let containers = [
-            ContainerSummary(name: "seed1", image: "nginx", status: .running, ports: [])
+            ContainerSummary(name: "seed1", image: "nginx", status: .running, ports: []),
         ]
 
         await store.seedIfEmpty(with: containers)

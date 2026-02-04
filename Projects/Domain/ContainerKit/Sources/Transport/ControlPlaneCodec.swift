@@ -1,5 +1,5 @@
-import NIOCore
 import Foundation
+import NIOCore
 import Shared
 
 /// Groups the encoder and decoder into a single handler for convenience
@@ -50,23 +50,23 @@ final class ControlPlaneRequestEncoder: Sendable {
 /// Decodes length-prefixed JSON bytes to Events
 final class ControlPlaneResponseDecoder: ByteToMessageDecoder, Sendable {
     typealias InboundOut = ControlPlaneEvent
-    
+
     func decode(context: ChannelHandlerContext, buffer: inout ByteBuffer) throws -> DecodingState {
         // Wait for length header
         guard buffer.readableBytes >= 4 else { return .needMoreData }
-        
+
         // Peek length without moving reader index yet
         guard let length = buffer.getInteger(at: buffer.readerIndex, as: UInt32.self) else { return .needMoreData }
-        
+
         // Wait for full body
         guard buffer.readableBytes >= 4 + Int(length) else { return .needMoreData }
-        
+
         // Commit to reading: Move reader past length
         buffer.moveReaderIndex(forwardBy: 4)
-        
+
         // Read JSON body
         guard let data = buffer.readData(length: Int(length)) else { return .needMoreData }
-        
+
         let event = try JSONDecoder().decode(ControlPlaneEvent.self, from: data)
         context.fireChannelRead(wrapInboundOut(event))
         return .continue

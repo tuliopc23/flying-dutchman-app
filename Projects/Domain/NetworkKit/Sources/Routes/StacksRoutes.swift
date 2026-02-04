@@ -1,8 +1,8 @@
+import FlyingDutchmanContainers
+import FlyingDutchmanPersistence
 import Foundation
 import Hummingbird
 import Shared
-import FlyingDutchmanPersistence
-import FlyingDutchmanContainers
 
 struct StacksRoutes: @unchecked Sendable {
     let runtime: ContainerRuntimeProtocol
@@ -63,11 +63,10 @@ struct StacksRoutes: @unchecked Sendable {
         var updated: [ContainerSummary] = []
         var errors: [String] = []
 
-        let orderedNames: [String]
-        if action == "stop" {
-            orderedNames = stack.containerNames.reversed()
+        let orderedNames: [String] = if action == "stop" {
+            stack.containerNames.reversed()
         } else {
-            orderedNames = stack.containerNames
+            stack.containerNames
         }
 
         for name in orderedNames {
@@ -76,12 +75,11 @@ struct StacksRoutes: @unchecked Sendable {
                 continue
             }
             do {
-                let result: ContainerSummary
-                switch action {
+                let result: ContainerSummary = switch action {
                 case "stop":
-                    result = try await runtime.stopContainer(id: existing.id)
+                    try await runtime.stopContainer(id: existing.id)
                 default:
-                    result = try await runtime.startContainer(id: existing.id)
+                    try await runtime.startContainer(id: existing.id)
                 }
                 updated.append(result)
             } catch {

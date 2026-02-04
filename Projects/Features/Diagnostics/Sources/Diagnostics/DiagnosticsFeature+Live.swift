@@ -1,5 +1,5 @@
-import SwiftUI
 import DiagnosticsInterface
+import SwiftUI
 
 public extension DiagnosticsFeature {
     @MainActor static var live: DiagnosticsFeature {

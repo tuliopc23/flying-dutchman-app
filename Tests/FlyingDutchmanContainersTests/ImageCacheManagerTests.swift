@@ -1,8 +1,8 @@
-import XCTest
 @testable import FlyingDutchmanContainers
 @testable import FlyingDutchmanPersistence
 @testable import GRDB
 @testable import Shared
+import XCTest
 
 final class ImageCacheManagerTests: XCTestCase {
     var cacheManager: ImageCacheManager!
@@ -22,7 +22,7 @@ final class ImageCacheManagerTests: XCTestCase {
 
         // Create cache manager with small size limit for testing
         cacheManager = ImageCacheManager(
-            maxCacheSizeBytes: 1024 * 1024,  // 1 MB
+            maxCacheSizeBytes: 1024 * 1024, // 1 MB
             dbQueue: dbQueue,
             cacheDirectory: URL(fileURLWithPath: tempDir)
         )
@@ -30,7 +30,7 @@ final class ImageCacheManagerTests: XCTestCase {
 
     override func tearDown() async throws {
         // Cleanup temp directory
-        if let tempDir = tempDir {
+        if let tempDir {
             try? FileManager.default.removeItem(atPath: tempDir)
         }
         try await super.tearDown()
@@ -50,7 +50,7 @@ final class ImageCacheManagerTests: XCTestCase {
 
     func testStoreBlobWithLargeData() async throws {
         let digest = "sha256:large"
-        let data = Data(repeating: 0xFF, count: 100_000)  // 100 KB
+        let data = Data(repeating: 0xFF, count: 100_000) // 100 KB
 
         try await cacheManager.storeBlob(digest: digest, data: data)
 
@@ -243,8 +243,8 @@ final class ImageCacheManagerTests: XCTestCase {
         let digest1 = "sha256:evict1"
         let digest2 = "sha256:evict2"
 
-        let data1 = Data(repeating: 0x01, count: 600_000)  // ~600 KB
-        let data2 = Data(repeating: 0x02, count: 600_000)  // ~600 KB
+        let data1 = Data(repeating: 0x01, count: 600_000) // ~600 KB
+        let data2 = Data(repeating: 0x02, count: 600_000) // ~600 KB
 
         try await cacheManager.storeBlob(digest: digest1, data: data1)
         try await cacheManager.storeBlob(digest: digest2, data: data2)
@@ -260,7 +260,7 @@ final class ImageCacheManagerTests: XCTestCase {
         let digest2 = "sha256:lru2"
         let digest3 = "sha256:lru3"
 
-        let data = Data(repeating: 0x01, count: 270_000)  // ~270 KB each to avoid early eviction
+        let data = Data(repeating: 0x01, count: 270_000) // ~270 KB each to avoid early eviction
 
         // Store all three
         try await cacheManager.storeBlob(digest: digest1, data: data)
@@ -288,8 +288,8 @@ final class ImageCacheManagerTests: XCTestCase {
         let digest1 = "sha256:size1"
         let digest2 = "sha256:size2"
 
-        let data1 = Data(repeating: 0x01, count: 10_000)
-        let data2 = Data(repeating: 0x02, count: 20_000)
+        let data1 = Data(repeating: 0x01, count: 10000)
+        let data2 = Data(repeating: 0x02, count: 20000)
 
         try await cacheManager.storeBlob(digest: digest1, data: data1)
         try await cacheManager.storeBlob(digest: digest2, data: data2)

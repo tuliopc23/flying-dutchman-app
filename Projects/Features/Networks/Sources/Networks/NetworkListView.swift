@@ -1,9 +1,9 @@
-import Shared
-import FlyingDutchmanPersistence
+import DesignSystem
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
+import Shared
 import SwiftUI
-import DesignSystem
 import UIComponents
 
 @MainActor
@@ -13,9 +13,9 @@ public final class NetworkListViewModel {
     public var error: String?
     public var isLoading: Bool = false
     public var searchQuery: String = ""
-    
+
     private let store = NetworkStore()
-    
+
     public init() {}
 
     public func load() async {
@@ -47,9 +47,9 @@ public struct NetworkListView: View {
                 Text("Networks")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Spacer()
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load() }
                 } label: {
@@ -63,9 +63,9 @@ public struct NetworkListView: View {
 
             if let error = viewModel.error {
                 DiagnosticsBanner(
-                    title: "Error", 
-                    message: error, 
-                    icon: "exclamationmark.triangle", 
+                    title: "Error",
+                    message: error,
+                    icon: "exclamationmark.triangle",
                     tone: .warning
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
@@ -74,8 +74,8 @@ public struct NetworkListView: View {
             if viewModel.filtered.isEmpty {
                 EmptyStateCard(
                     title: "No networks found",
-                    message: viewModel.searchQuery.isEmpty 
-                        ? "Create a network to connect containers." 
+                    message: viewModel.searchQuery.isEmpty
+                        ? "Create a network to connect containers."
                         : "No networks match your search.",
                     systemImage: "network"
                 )
@@ -102,27 +102,27 @@ public struct NetworkListView: View {
 
 struct NetworkRow: View {
     let network: NetworkSummary
-    
+
     var body: some View {
         GlassCard {
             HStack(spacing: DesignSystem.Spacing.md) {
                 Image.systemIcon("network", size: DesignSystem.Size.iconLarge)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(network.name)
                         .font(DesignSystem.Typography.headline)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     if let subnet = network.subnet {
                         Text(subnet)
                             .font(DesignSystem.Typography.codeSmall)
                             .foregroundStyle(DesignSystem.Colors.textTertiary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Text("\(network.connectedContainerIDs.count) containers")
                     .font(DesignSystem.Typography.caption1)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)

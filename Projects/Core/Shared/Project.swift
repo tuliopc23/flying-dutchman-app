@@ -8,8 +8,8 @@ let project = Project(
             name: "Shared",
             dependencies: [
                 .external(name: "Logging"),
-                .external(name: "Dependencies")
+                .external(name: "Dependencies"),
             ]
-        )
+        ),
     ]
 )

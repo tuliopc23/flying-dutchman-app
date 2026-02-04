@@ -11,6 +11,6 @@ let project = Project(
             .project(target: "UIComponents", path: "../../Core/UIComponents"),
             .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
             .project(target: "FlyingDutchmanNetworking", path: "../../Domain/NetworkKit"),
-        ],
+        ]
     )
 )

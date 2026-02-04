@@ -1,5 +1,5 @@
-import SwiftUI
 import NetworksInterface
+import SwiftUI
 
 public extension NetworksFeature {
     @MainActor static var live: NetworksFeature {

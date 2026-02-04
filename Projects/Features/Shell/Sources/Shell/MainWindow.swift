@@ -1,6 +1,6 @@
-import SwiftUI
-import Shared
 import DesignSystem
+import Shared
+import SwiftUI
 import UIComponents
 
 public struct MainWindow: View {
@@ -107,17 +107,17 @@ struct EngineStatusHero: View {
 
     private func statusSymbol(for status: String) -> String {
         switch status.lowercased() {
-        case "running", "ok", "ready", "healthy": return "checkmark.circle.fill"
-        case "stopped", "offline", "disabled": return "xmark.circle.fill"
-        default: return "questionmark.circle.fill"
+        case "running", "ok", "ready", "healthy": "checkmark.circle.fill"
+        case "stopped", "offline", "disabled": "xmark.circle.fill"
+        default: "questionmark.circle.fill"
         }
     }
 
     private func statusColor(for status: String) -> Color {
         switch status.lowercased() {
-        case "running", "ok", "ready", "healthy": return DesignSystem.Colors.success
-        case "stopped", "offline", "disabled": return DesignSystem.Colors.textTertiary
-        default: return DesignSystem.Colors.textTertiary
+        case "running", "ok", "ready", "healthy": DesignSystem.Colors.success
+        case "stopped", "offline", "disabled": DesignSystem.Colors.textTertiary
+        default: DesignSystem.Colors.textTertiary
         }
     }
 }

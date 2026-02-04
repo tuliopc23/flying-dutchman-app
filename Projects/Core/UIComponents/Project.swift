@@ -7,8 +7,8 @@ let project = Project(
         .core(
             name: "UIComponents",
             dependencies: [
-                .project(target: "DesignSystem", path: "../DesignSystem")
+                .project(target: "DesignSystem", path: "../DesignSystem"),
             ]
-        )
+        ),
     ]
 )

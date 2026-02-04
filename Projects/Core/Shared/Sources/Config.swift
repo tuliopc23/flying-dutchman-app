@@ -1,23 +1,25 @@
 import Foundation
 import Logging
 
-public struct AppConfig {
+public enum AppConfig {
     public static let appName = "FlyingDutchman"
     public static let version = "0.1.0"
 
-    public struct Engine {
+    public enum Engine {
         public static let host = "127.0.0.1"
         public static let port: Int = 8080
-        public static var healthURL: URL { URL(string: "http://\(host):\(port)/health")! }
+        public static var healthURL: URL {
+            URL(string: "http://\(host):\(port)/health")!
+        }
     }
-    
-    public struct Database {
+
+    public enum Database {
         private static var appSupportDir: String {
             let fm = FileManager.default
             let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
             return base.appendingPathComponent("flyingdutchman").path
         }
-        
+
         public static var machinesPath: String {
             "\(appSupportDir)/machines.db"
         }

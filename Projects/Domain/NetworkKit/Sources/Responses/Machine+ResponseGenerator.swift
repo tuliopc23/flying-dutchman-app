@@ -4,7 +4,7 @@ import NIOCore
 import Shared
 
 extension Machine: ResponseGenerator {
-    public func response(from request: Request, context: some RequestContext) throws -> Response {
+    public func response(from _: Request, context _: some RequestContext) throws -> Response {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(self)
@@ -19,7 +19,7 @@ extension Machine: ResponseGenerator {
 }
 
 extension MachineConfig: ResponseGenerator {
-    public func response(from request: Request, context: some RequestContext) throws -> Response {
+    public func response(from _: Request, context _: some RequestContext) throws -> Response {
         let data = try JSONEncoder().encode(self)
         return Response(
             status: .ok,

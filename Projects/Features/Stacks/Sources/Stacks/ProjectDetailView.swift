@@ -1,6 +1,6 @@
-import SwiftUI
-import Shared
 import DesignSystem
+import Shared
+import SwiftUI
 import UIComponents
 
 public struct StackDetailView: View {

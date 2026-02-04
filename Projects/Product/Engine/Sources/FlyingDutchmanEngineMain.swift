@@ -1,7 +1,7 @@
-import Foundation
+import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import FlyingDutchmanPersistence
-import FlyingDutchmanContainers
+import Foundation
 import Shared
 
 @main
@@ -30,17 +30,17 @@ struct FlyingDutchmanEngineMain {
         let logStore = ContainerLogStore()
         let eventStore = ShimEventStore()
         let machineStore = MachineStore()
-        
+
         // Create routing table for DNS/HTTPS proxy
         let routingTable = DomainRoutingTable()
 
         let runtime = RuntimeFactory.makeRuntime(
-            store: containerStore, 
-            logStore: logStore, 
+            store: containerStore,
+            logStore: logStore,
             eventStore: eventStore,
             routingTable: routingTable
         )
-        
+
         // Create machine runtime for Linux VMs
         let machineRuntime = VirtualizationRuntime(machineStore: machineStore)
 
@@ -49,7 +49,7 @@ struct FlyingDutchmanEngineMain {
         logger.info("Starting FlyingDutchmanEngine", metadata: [
             "runtime_mode": "\(runtimeName)",
             "grdb_initialized": "true",
-            "xpc_enabled": "true"
+            "xpc_enabled": "true",
         ])
 
         // Reconcile state on startup (if runtime supports it)

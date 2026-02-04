@@ -1,9 +1,9 @@
+import FlyingDutchmanPersistence
 import Foundation
 import GRDB
 import Logging
 import Shared
 import SystemPackage
-import FlyingDutchmanPersistence
 
 /// Manages OCI image layer caching with deduplication and eviction policies
 public actor ImageCacheManager {
@@ -16,13 +16,13 @@ public actor ImageCacheManager {
 
     /// Cache eviction settings
     private let maxCacheSizeBytes: Int64
-    private let maxLayerAge: TimeInterval = 30 * 24 * 60 * 60  // 30 days
+    private let maxLayerAge: TimeInterval = 30 * 24 * 60 * 60 // 30 days
 
     /// Cache statistics
     private var stats: CacheStats
 
     public init(
-        maxCacheSizeBytes: Int64 = 10 * 1024 * 1024 * 1024,  // 10 GB default
+        maxCacheSizeBytes: Int64 = 10 * 1024 * 1024 * 1024, // 10 GB default
         dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue,
         cacheDirectory: URL? = nil
     ) {
@@ -41,7 +41,7 @@ public actor ImageCacheManager {
         }
         self.blobsDir = blobsPath
         self.cacheMetadataPath = metadataPath
-        
+
         // Load stats from disk (must be done before other inits because we need cacheMetadataPath)
         self.stats = Self.loadStatsFromPath(metadataPath)
 
@@ -175,7 +175,7 @@ public actor ImageCacheManager {
     /// Get cache statistics
     /// - Returns: Current cache statistics
     public func getStats() -> CacheStats {
-        return stats
+        stats
     }
 
     /// List all cached blobs
@@ -207,7 +207,7 @@ public actor ImageCacheManager {
         // Check size limit
         if currentSize > maxCacheSizeBytes {
             logger.info("Cache size \(currentSize) exceeds limit \(maxCacheSizeBytes), evicting...")
-            try evictByLRU(targetSize: maxCacheSizeBytes * 80 / 100)  // Evict to 80% of limit
+            try evictByLRU(targetSize: maxCacheSizeBytes * 80 / 100) // Evict to 80% of limit
         }
 
         // Check age limit
@@ -277,7 +277,8 @@ public actor ImageCacheManager {
 
     private static func loadStatsFromPath(_ path: FilePath) -> CacheStats {
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: path.string)),
-              let loadedStats = try? JSONDecoder().decode(CacheStats.self, from: data) else {
+              let loadedStats = try? JSONDecoder().decode(CacheStats.self, from: data)
+        else {
             return CacheStats()
         }
         return loadedStats
@@ -414,11 +415,11 @@ public enum CacheError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .notFound(digest):
-            return "Blob not found in cache: \(digest)"
+            "Blob not found in cache: \(digest)"
         case let .storageFailed(reason):
-            return "Failed to store blob: \(reason)"
+            "Failed to store blob: \(reason)"
         case let .retrievalFailed(reason):
-            return "Failed to retrieve blob: \(reason)"
+            "Failed to retrieve blob: \(reason)"
         }
     }
 }

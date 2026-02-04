@@ -4,9 +4,9 @@ import Shared
 
 public actor KubernetesClusterManager {
     private let logger = Loggers.make(category: "flyingdutchman.kubernetes")
-    
+
     public init() {}
-    
+
     public func createK3sCloudInit(
         machineName: String,
         sshPublicKey: String,
@@ -16,7 +16,7 @@ public actor KubernetesClusterManager {
         """
         #cloud-config
         hostname: \(machineName)
-        
+
         users:
           - name: root
             ssh_authorized_keys:
@@ -27,13 +27,13 @@ public actor KubernetesClusterManager {
             shell: /bin/bash
             ssh_authorized_keys:
               - \(sshPublicKey)
-        
+
         ssh_pwauth: false
         disable_root: false
-        
+
         package_update: true
         package_upgrade: true
-        
+
         packages:
           - curl
           - wget
@@ -42,7 +42,7 @@ public actor KubernetesClusterManager {
           - ca-certificates
           - gnupg
           - lsb-release
-        
+
         write_files:
           - path: /etc/rancher/k3s/config.yaml
             content: |
@@ -54,7 +54,7 @@ public actor KubernetesClusterManager {
               disable:
                 - traefik
               cluster-init: true
-        
+
         runcmd:
           - systemctl enable ssh
           - systemctl start ssh
@@ -67,39 +67,45 @@ public actor KubernetesClusterManager {
           # Wait for k3s to be ready
           - until kubectl get nodes; do sleep 2; done
           # Install Traefik ingress controller if enabled
-          \(enableIngress ? "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml" : "")
-          \(enableIngress ? "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml" : "")
+          \(enableIngress ?
+            "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml" :
+            "")
+          \(enableIngress ?
+            "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml" :
+            "")
           # Install MetalLB for LoadBalancer support if enabled
-          \(enableLoadBalancer ? "- kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml" : "")
+          \(enableLoadBalancer ?
+            "- kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml" :
+            "")
           - echo "k3s installation complete"
-        
+
         final_message: "k3s cluster is ready!"
         """
     }
-    
+
     public func extractKubeconfig(from machineDirectory: URL) throws -> String? {
         let kubeconfigPath = machineDirectory.appendingPathComponent("kubeconfig")
-        
+
         guard FileManager.default.fileExists(atPath: kubeconfigPath.path) else {
             return nil
         }
-        
+
         return try String(contentsOf: kubeconfigPath, encoding: .utf8)
     }
-    
+
     public func saveKubeconfig(_ kubeconfig: String, to machineDirectory: URL) throws {
         let kubeconfigPath = machineDirectory.appendingPathComponent("kubeconfig")
         try kubeconfig.write(to: kubeconfigPath, atomically: true, encoding: .utf8)
-        
+
         // Set proper permissions
         try FileManager.default.setAttributes(
             [.posixPermissions: 0o600],
             ofItemAtPath: kubeconfigPath.path
         )
-        
+
         logger.info("Saved kubeconfig to \(kubeconfigPath.path)")
     }
-    
+
     public func configureKubectlContext(
         machineName: String,
         machineIP: String,
@@ -109,30 +115,28 @@ public actor KubernetesClusterManager {
         guard let k3sConfig = try? String(contentsOf: kubeconfigPath, encoding: .utf8) else {
             throw KubernetesError.kubeconfigNotFound
         }
-        
+
         // Replace localhost with actual machine IP
-        let updatedConfig = k3sConfig
+        return k3sConfig
             .replacingOccurrences(of: "https://127.0.0.1:6443", with: "https://\(machineIP):6443")
             .replacingOccurrences(of: "default", with: machineName)
-        
-        return updatedConfig
     }
-    
+
     public func mergeKubeconfigToHost(
         machineName: String,
         kubeconfig: String
     ) throws {
         let homeDir = FileManager.default.homeDirectoryForCurrentUser
         let hostKubeconfigPath = homeDir.appendingPathComponent(".kube/config")
-        
+
         // Create .kube directory if it doesn't exist
         let kubeDir = homeDir.appendingPathComponent(".kube")
         try? FileManager.default.createDirectory(at: kubeDir, withIntermediateDirectories: true)
-        
+
         // For now, save as separate context file
         let contextPath = kubeDir.appendingPathComponent("config-\(machineName)")
         try kubeconfig.write(to: contextPath, atomically: true, encoding: .utf8)
-        
+
         logger.info("Saved kubectl context to \(contextPath.path)")
         logger.info("Use: export KUBECONFIG=\(contextPath.path)")
     }

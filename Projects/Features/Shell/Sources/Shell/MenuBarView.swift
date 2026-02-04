@@ -1,7 +1,7 @@
-import SwiftUI
 import Shared
+import SwiftUI
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 public struct MenuBarView: View {
@@ -17,19 +17,19 @@ public struct MenuBarView: View {
                 Circle()
                     .fill(state.isEngineHealthy ? Color.green : Color.red)
                     .frame(width: 8, height: 8)
-                
+
                 Text(state.isEngineHealthy ? "Flying Dutchman: Running" : "Engine Stopped")
                     .font(.caption)
                     .fontWeight(.medium)
-                
+
                 Spacer()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(Color(nsColor: .controlBackgroundColor))
-            
+
             Divider()
-            
+
             // Running Containers
             if !state.containers.isEmpty {
                 let running = state.containers.filter { $0.status == .running }
@@ -40,7 +40,7 @@ public struct MenuBarView: View {
                         .padding(.horizontal, 12)
                         .padding(.top, 8)
                         .padding(.bottom, 4)
-                    
+
                     ForEach(running.prefix(5)) { container in
                         HStack {
                             Image(systemName: "cube.fill")
@@ -57,7 +57,7 @@ public struct MenuBarView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
                     }
-                    
+
                     if running.count > 5 {
                         Text("+ \(running.count - 5) more")
                             .font(.caption2)
@@ -65,7 +65,7 @@ public struct MenuBarView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
                     }
-                    
+
                     Divider()
                         .padding(.top, 4)
                 } else {
@@ -82,7 +82,7 @@ public struct MenuBarView: View {
                     .padding(12)
                 Divider()
             }
-            
+
             // Actions
             VStack(spacing: 4) {
                 Button("Open Dashboard") {
@@ -93,7 +93,7 @@ public struct MenuBarView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                
+
                 Button("Quit Flying Dutchman") {
                     NSApplication.shared.terminate(nil)
                 }

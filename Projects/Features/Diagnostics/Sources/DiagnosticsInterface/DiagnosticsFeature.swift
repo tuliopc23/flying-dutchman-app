@@ -1,5 +1,5 @@
-import SwiftUI
 import Shared
+import SwiftUI
 
 public struct DiagnosticsFeature {
     public var logsView: @MainActor (_ containers: [ContainerSummary]) -> AnyView

@@ -1,9 +1,9 @@
-import Shared
-import FlyingDutchmanPersistence
+import DesignSystem
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
+import Shared
 import SwiftUI
-import DesignSystem
 import UIComponents
 
 @MainActor
@@ -14,9 +14,9 @@ public final class ContainerListViewModel {
     public var isLoading: Bool = false
     public var searchQuery: String = ""
     public var showRunningOnly: Bool = false
-    
+
     private let store = ContainerStore()
-    
+
     public init() {}
 
     public var filtered: [ContainerSummary] {
@@ -26,7 +26,8 @@ public final class ContainerListViewModel {
                 matchesQuery = true
             } else {
                 let needle = searchQuery.lowercased()
-                matchesQuery = container.name.lowercased().contains(needle) || container.image.lowercased().contains(needle)
+                matchesQuery = container.name.lowercased().contains(needle) || container.image.lowercased()
+                    .contains(needle)
             }
             let matchesStatus = !showRunningOnly || container.status == .running
             return matchesQuery && matchesStatus
@@ -82,14 +83,14 @@ public struct ContainerListView: View {
                 Text("Containers")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Spacer()
-                
+
                 if viewModel.isLoading {
                     ProgressView()
                         .controlSize(.small)
                 }
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load() }
                 } label: {
@@ -107,9 +108,9 @@ public struct ContainerListView: View {
 
             if let error = viewModel.error {
                 DiagnosticsBanner(
-                    title: "Error", 
-                    message: error, 
-                    icon: "exclamationmark.triangle", 
+                    title: "Error",
+                    message: error,
+                    icon: "exclamationmark.triangle",
                     tone: .warning
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
@@ -118,8 +119,8 @@ public struct ContainerListView: View {
             if viewModel.filtered.isEmpty {
                 EmptyStateCard(
                     title: "No containers found",
-                    message: viewModel.searchQuery.isEmpty 
-                        ? "Start the engine or create a container." 
+                    message: viewModel.searchQuery.isEmpty
+                        ? "Start the engine or create a container."
                         : "Try adjusting your search filters.",
                     systemImage: "shippingbox"
                 )
@@ -160,7 +161,7 @@ public struct ContainerListView: View {
 struct ContainerRow: View {
     let container: ContainerSummary
     var viewModel: ContainerListViewModel
-    
+
     var body: some View {
         GlassCard {
             HStack(spacing: DesignSystem.Spacing.md) {
@@ -171,20 +172,20 @@ struct ContainerRow: View {
                 )
                 .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
                 .symbolEffect(.variableColor.iterative, isActive: container.status == .running)
-                
+
                 // Info
                 VStack(alignment: .leading, spacing: 2) {
                     Text(container.name)
                         .font(DesignSystem.Typography.headline)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     Text(container.image)
                         .font(DesignSystem.Typography.caption1)
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
                 }
-                
+
                 Spacer()
-                
+
                 // Ports Badge
                 if !container.ports.isEmpty {
                     Text(container.ports.first ?? "")
@@ -194,15 +195,14 @@ struct ContainerRow: View {
                         .background(DesignSystem.Colors.surfaceTertiary)
                         .clipShape(DesignSystem.Shapes.chip)
                 }
-                
+
                 // Actions (Hover-only in a real app, always visible for touch/accessibility)
                 actionButtons(for: container)
             }
             .padding(DesignSystem.Inset.sm)
         }
     }
-    
-    @ViewBuilder
+
     private func actionButtons(for container: ContainerSummary) -> some View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             switch container.status {
@@ -215,7 +215,7 @@ struct ContainerRow: View {
                 }
                 .buttonStyle(.glass)
                 .help("Stop Container")
-                
+
                 Button {
                     Task { @MainActor in await viewModel.restart(container) }
                 } label: {
@@ -224,7 +224,7 @@ struct ContainerRow: View {
                 }
                 .buttonStyle(.glass)
                 .help("Restart Container")
-                
+
             case .stopped, .created, .removed:
                 Button {
                     Task { @MainActor in await viewModel.start(container) }
@@ -235,12 +235,11 @@ struct ContainerRow: View {
                 .buttonStyle(.glassProminent)
                 .tint(DesignSystem.Colors.success)
                 .help("Start Container")
-            
+
             case .starting, .stopping, .removing:
                 ProgressView()
                     .controlSize(.small)
             }
         }
     }
-    
 }

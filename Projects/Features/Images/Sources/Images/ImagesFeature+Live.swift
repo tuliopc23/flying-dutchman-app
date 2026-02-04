@@ -1,5 +1,5 @@
-import SwiftUI
 import ImagesInterface
+import SwiftUI
 
 public extension ImagesFeature {
     @MainActor static var live: ImagesFeature {

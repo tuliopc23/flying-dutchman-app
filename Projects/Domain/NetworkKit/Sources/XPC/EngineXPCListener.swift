@@ -1,6 +1,6 @@
+import FlyingDutchmanContainers
 import Foundation
 import Shared
-import FlyingDutchmanContainers
 
 public actor EngineXPCListener {
     public static let serviceName = "com.flyingdutchman.engine.xpc"
@@ -35,7 +35,7 @@ private final class XPCDelegate: NSObject, NSXPCListenerDelegate {
         super.init()
     }
 
-    func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
+    func listener(_: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
         newConnection.exportedInterface = NSXPCInterface(with: EngineXPCProtocol.self)
         newConnection.exportedObject = EngineXPCService(runtime: runtime)
         newConnection.resume()

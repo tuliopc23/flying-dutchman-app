@@ -8,8 +8,8 @@ let project = Project(
             name: "FlyingDutchmanPersistence",
             dependencies: [
                 .project(target: "Shared", path: "../Shared"),
-                .external(name: "GRDB")
+                .external(name: "GRDB"),
             ]
-        )
+        ),
     ]
 )

@@ -1,6 +1,6 @@
-import SwiftUI
-import Shared
 import DesignSystem
+import Shared
+import SwiftUI
 
 public struct SidebarView: View {
     @Binding var selection: AppSection
@@ -17,17 +17,17 @@ public struct SidebarView: View {
                 SidebarRow(section: .stacks)
                 SidebarRow(section: .images)
             }
-            
+
             Section("Infrastructure") {
                 SidebarRow(section: .volumes)
                 SidebarRow(section: .networks)
             }
-            
+
             Section("Monitoring") {
                 SidebarRow(section: .logs)
                 SidebarRow(section: .events)
             }
-            
+
             if !state.sidebar.stacks.isEmpty {
                 Section("Project Stacks") {
                     ForEach(state.sidebar.stacks) { stack in
@@ -43,7 +43,7 @@ public struct SidebarView: View {
 
 struct SidebarRow: View {
     let section: AppSection
-    
+
     var body: some View {
         Label(section.title, systemImage: section.systemImage)
             .tag(section)

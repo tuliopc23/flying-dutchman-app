@@ -1,12 +1,12 @@
-import Shared
+import Dependencies
+import DesignSystem
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import Shared
 import SwiftUI
-import DesignSystem
-import Dependencies
 
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 @MainActor
@@ -121,13 +121,13 @@ public struct LogsView: View {
                 }
                 .buttonStyle(.glass)
                 .frame(width: 200)
-                
+
                 Spacer()
-                
+
                 Toggle("Follow", isOn: $viewModel.follow)
                     .toggleStyle(.switch)
                     .controlSize(.mini)
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load(containers: containers) }
                 } label: {
@@ -145,7 +145,7 @@ public struct LogsView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 2) {
-                        if viewModel.isLoading && viewModel.filteredLines.isEmpty {
+                        if viewModel.isLoading, viewModel.filteredLines.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 200)
                         } else if let error = viewModel.error {
@@ -167,7 +167,7 @@ public struct LogsView: View {
                 }
                 .background(DesignTokens.glassFieldBackground(for: colorScheme))
                 .onChange(of: viewModel.lines.count) { _, count in
-                    if viewModel.follow && count > 0 {
+                    if viewModel.follow, count > 0 {
                         withAnimation {
                             proxy.scrollTo(count - 1, anchor: .bottom)
                         }
@@ -206,26 +206,26 @@ struct LogLineRow: View {
     let line: String
     let index: Int
     @State private var isHovering = false
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Text("\(index + 1)")
                 .font(DesignSystem.Typography.caption2)
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
                 .frame(width: 30, alignment: .trailing)
-            
+
             Text(line)
                 .font(DesignSystem.Typography.codeSmall)
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .textSelection(.enabled)
-            
+
             Spacer()
-            
+
             if isHovering {
                 Button {
                     #if canImport(AppKit)
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(line, forType: .string)
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(line, forType: .string)
                     #endif
                 } label: {
                     Image(systemName: "doc.on.doc")

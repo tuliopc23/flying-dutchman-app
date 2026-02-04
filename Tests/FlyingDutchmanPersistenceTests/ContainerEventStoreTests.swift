@@ -1,7 +1,7 @@
-import XCTest
-import GRDB
 @testable import FlyingDutchmanPersistence
+import GRDB
 @testable import Shared
+import XCTest
 
 final class ContainerEventStoreTests: XCTestCase {
     var eventStore: ContainerEventStore!
@@ -44,7 +44,7 @@ final class ContainerEventStoreTests: XCTestCase {
         let retrieved = await eventStore.events(for: event.containerID)
         XCTAssertEqual(retrieved.count, 1)
 
-        if case .logOutput(let message) = retrieved[0].type {
+        if case let .logOutput(message) = retrieved[0].type {
             XCTAssertEqual(message, "Test log message")
         } else {
             XCTFail("Expected logOutput event type")
@@ -68,7 +68,7 @@ final class ContainerEventStoreTests: XCTestCase {
         let retrieved = await eventStore.events(for: event.containerID)
         XCTAssertEqual(retrieved.count, 1)
 
-        if case .resourceUpdate(let info) = retrieved[0].type {
+        if case let .resourceUpdate(info) = retrieved[0].type {
             XCTAssertEqual(info.cpuPercent, 50.0)
             XCTAssertEqual(info.memoryBytes, 512 * 1024 * 1024)
             XCTAssertEqual(info.memoryPercent, 25.0)
@@ -80,7 +80,7 @@ final class ContainerEventStoreTests: XCTestCase {
     func testRecordMultipleEvents() async {
         let containerID = UUID()
 
-        for i in 0..<5 {
+        for i in 0 ..< 5 {
             let event = ContainerEvent(
                 containerID: containerID,
                 type: .stateChanged(from: .stopped, to: .running)
@@ -102,7 +102,7 @@ final class ContainerEventStoreTests: XCTestCase {
             type: .logOutput("Log 1")
         )
         let event2 = ContainerEvent(
-            containerID: UUID(),  // Different container
+            containerID: UUID(), // Different container
             type: .logOutput("Log 2")
         )
 
@@ -117,7 +117,7 @@ final class ContainerEventStoreTests: XCTestCase {
     func testFetchEventsWithLimit() async {
         let containerID = UUID()
 
-        for i in 0..<10 {
+        for i in 0 ..< 10 {
             let event = ContainerEvent(
                 containerID: containerID,
                 type: .logOutput("Log \(i)")
@@ -134,8 +134,8 @@ final class ContainerEventStoreTests: XCTestCase {
         XCTAssertTrue(events.isEmpty)
     }
 
-    func testRecentEventsReturnsChronological() async throws {
-        let events = (0..<3).map { i -> ContainerEvent in
+    func testRecentEventsReturnsChronological() async {
+        let events = (0 ..< 3).map { i -> ContainerEvent in
             ContainerEvent(
                 containerID: UUID(),
                 type: .logOutput("Log \(i)")
@@ -193,7 +193,7 @@ final class ContainerEventStoreTests: XCTestCase {
 
         // Verify event type round-trips correctly
         switch retrieved?.type {
-        case .stateChanged(let from, let to):
+        case let .stateChanged(from, to):
             XCTAssertEqual(from, .created)
             XCTAssertEqual(to, .starting)
         default:
@@ -232,14 +232,14 @@ final class ContainerEventStoreTests: XCTestCase {
         XCTAssertEqual(retrieved.count, 3)
 
         // Verify log output with special characters
-        if case .logOutput(let message) = retrieved[1].type {
+        if case let .logOutput(message) = retrieved[1].type {
             XCTAssertEqual(message, "Complex log message with special chars: !@#$%")
         } else {
             XCTFail("Expected logOutput with special characters")
         }
 
         // Verify resource info
-        if case .resourceUpdate(let info) = retrieved[2].type {
+        if case let .resourceUpdate(info) = retrieved[2].type {
             XCTAssertEqual(info.cpuPercent, 75.5, accuracy: 0.01)
             XCTAssertEqual(info.memoryBytes, 1024 * 1024 * 1024)
             XCTAssertEqual(info.memoryPercent, 50.0, accuracy: 0.01)
@@ -248,8 +248,8 @@ final class ContainerEventStoreTests: XCTestCase {
         }
     }
 
-    func testEventTimestampIsPreserved() async {
-        let timestamp = Date().addingTimeInterval(-3600)  // 1 hour ago
+    func testEventTimestampIsPreserved() async throws {
+        let timestamp = Date().addingTimeInterval(-3600) // 1 hour ago
 
         let event = ContainerEvent(
             containerID: UUID(),
@@ -263,8 +263,8 @@ final class ContainerEventStoreTests: XCTestCase {
         XCTAssertNotNil(retrieved)
 
         // Timestamps should match within a reasonable tolerance
-        let timeDifference = abs(retrieved!.timestamp.timeIntervalSince(timestamp))
-        XCTAssertLessThan(timeDifference, 1.0)  // Within 1 second
+        let timeDifference = try abs(XCTUnwrap(retrieved?.timestamp.timeIntervalSince(timestamp)))
+        XCTAssertLessThan(timeDifference, 1.0) // Within 1 second
     }
 
     // MARK: - Multiple Containers
@@ -274,7 +274,7 @@ final class ContainerEventStoreTests: XCTestCase {
         let container2 = UUID()
         let container3 = UUID()
 
-        for i in 0..<5 {
+        for i in 0 ..< 5 {
             await eventStore.record(ContainerEvent(containerID: container1, type: .logOutput("C1: \(i)")))
             await eventStore.record(ContainerEvent(containerID: container2, type: .logOutput("C2: \(i)")))
             await eventStore.record(ContainerEvent(containerID: container3, type: .logOutput("C3: \(i)")))
@@ -296,7 +296,7 @@ final class ContainerEventStoreTests: XCTestCase {
         let containerID = UUID()
         let eventCount = 100
 
-        for i in 0..<eventCount {
+        for i in 0 ..< eventCount {
             let event = ContainerEvent(
                 containerID: containerID,
                 type: .logOutput("Log line \(i)")

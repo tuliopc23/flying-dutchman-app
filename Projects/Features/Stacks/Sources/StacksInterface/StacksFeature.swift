@@ -1,5 +1,5 @@
-import SwiftUI
 import Shared
+import SwiftUI
 
 public struct StacksFeature {
     public var listView: @MainActor () -> AnyView

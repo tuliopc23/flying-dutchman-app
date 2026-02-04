@@ -7,8 +7,8 @@ let project = Project(
         .domain(
             name: "AIKit",
             dependencies: [
-                .project(target: "Shared", path: "../../Core/Shared")
+                .project(target: "Shared", path: "../../Core/Shared"),
             ]
-        )
+        ),
     ]
 )

@@ -1,15 +1,15 @@
+import FlyingDutchmanContainers
 import Foundation
 import Shared
-import FlyingDutchmanContainers
 
-// ContainerError is defined in ContainerizationRuntime, but we need it here
-// For now, we'll use a generic error approach
+/// ContainerError is defined in ContainerizationRuntime, but we need it here
+/// For now, we'll use a generic error approach
 private enum XPCContainerError: Error {
     case notFound
     case invalidState(String)
 }
 
-// Wrapper to make reply closures Sendable for Task.detached
+/// Wrapper to make reply closures Sendable for Task.detached
 private final class SendableReply<T>: @unchecked Sendable {
     let value: T
     init(_ value: T) {
@@ -36,7 +36,7 @@ public final class EngineXPCService: NSObject, EngineXPCProtocol {
                 workers: [
                     "http": "ready",
                     "xpc": "ready",
-                    "containerization": ContainerizationClient.shared.workerStatus
+                    "containerization": ContainerizationClient.shared.workerStatus,
                 ],
                 runtimeMode: runtimeName
             )
@@ -106,15 +106,18 @@ public final class EngineXPCService: NSObject, EngineXPCProtocol {
             } catch {
                 // Map error to appropriate HTTP status code
                 let errorDescription = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-                let errorCode: Int
-                if errorDescription.contains("not found") || errorDescription.contains("NotFound") {
-                    errorCode = 404
-                } else if errorDescription.contains("Invalid state") || errorDescription.contains("invalidState") || errorDescription.contains("already") {
-                    errorCode = 409
+                let errorCode: Int = if errorDescription.contains("not found") || errorDescription
+                    .contains("NotFound")
+                {
+                    404
+                } else if errorDescription.contains("Invalid state") || errorDescription
+                    .contains("invalidState") || errorDescription.contains("already")
+                {
+                    409
                 } else {
-                    errorCode = 500
+                    500
                 }
-                
+
                 let nsError = NSError(
                     domain: "com.flyingdutchman.xpc",
                     code: errorCode,
@@ -156,15 +159,18 @@ public final class EngineXPCService: NSObject, EngineXPCProtocol {
             } catch {
                 // Map error to appropriate HTTP status code
                 let errorDescription = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-                let errorCode: Int
-                if errorDescription.contains("not found") || errorDescription.contains("NotFound") {
-                    errorCode = 404
-                } else if errorDescription.contains("Invalid state") || errorDescription.contains("invalidState") || errorDescription.contains("already") {
-                    errorCode = 409
+                let errorCode: Int = if errorDescription.contains("not found") || errorDescription
+                    .contains("NotFound")
+                {
+                    404
+                } else if errorDescription.contains("Invalid state") || errorDescription
+                    .contains("invalidState") || errorDescription.contains("already")
+                {
+                    409
                 } else {
-                    errorCode = 500
+                    500
                 }
-                
+
                 let nsError = NSError(
                     domain: "com.flyingdutchman.xpc",
                     code: errorCode,

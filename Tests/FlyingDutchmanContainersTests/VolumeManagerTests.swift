@@ -1,8 +1,8 @@
-import XCTest
 @testable import FlyingDutchmanContainers
 @testable import FlyingDutchmanPersistence
-@testable import Shared
 import GRDB
+@testable import Shared
+import XCTest
 
 final class VolumeManagerTests: XCTestCase {
     var volumeManager: VolumeManager!
@@ -27,7 +27,7 @@ final class VolumeManagerTests: XCTestCase {
 
     override func tearDown() async throws {
         // Cleanup temp directory
-        if let tempDir = tempDir {
+        if let tempDir {
             try? FileManager.default.removeItem(atPath: tempDir)
         }
         try await super.tearDown()

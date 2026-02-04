@@ -8,8 +8,8 @@ let project = Project(
             name: "KubeKit",
             dependencies: [
                 .project(target: "Shared", path: "../../Core/Shared"),
-                .external(name: "SwiftkubeClient")
+                .external(name: "SwiftkubeClient"),
             ]
-        )
+        ),
     ]
 )

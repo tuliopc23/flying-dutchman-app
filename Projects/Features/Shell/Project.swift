@@ -17,6 +17,6 @@ let project = Project(
             .project(target: "DiagnosticsInterface", path: "../Diagnostics"),
             .project(target: "StacksInterface", path: "../Stacks"),
             .external(name: "Dependencies"),
-        ],
+        ]
     )
 )
