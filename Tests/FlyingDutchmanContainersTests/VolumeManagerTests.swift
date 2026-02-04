@@ -145,7 +145,10 @@ final class VolumeManagerTests: XCTestCase {
     }
 
     func testValidateMountWithReadOnlyMode() async throws {
-        let mount = try await volumeManager.validateMount("/host:/container:ro")
+        let tempFile = tempDir + "/readonly.txt"
+        try "test".write(to: URL(fileURLWithPath: tempFile), atomically: true, encoding: .utf8)
+
+        let mount = try await volumeManager.validateMount("\(tempFile):/container:ro")
 
         XCTAssertEqual(mount.mode, "ro")
     }

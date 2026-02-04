@@ -23,7 +23,8 @@ final class ImageCacheManagerTests: XCTestCase {
         // Create cache manager with small size limit for testing
         cacheManager = ImageCacheManager(
             maxCacheSizeBytes: 1024 * 1024,  // 1 MB
-            dbQueue: dbQueue
+            dbQueue: dbQueue,
+            cacheDirectory: URL(fileURLWithPath: tempDir)
         )
     }
 
@@ -259,7 +260,7 @@ final class ImageCacheManagerTests: XCTestCase {
         let digest2 = "sha256:lru2"
         let digest3 = "sha256:lru3"
 
-        let data = Data(repeating: 0x01, count: 400_000)  // ~400 KB each
+        let data = Data(repeating: 0x01, count: 270_000)  // ~270 KB each to avoid early eviction
 
         // Store all three
         try await cacheManager.storeBlob(digest: digest1, data: data)

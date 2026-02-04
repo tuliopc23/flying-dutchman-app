@@ -23,12 +23,22 @@ public actor ImageCacheManager {
 
     public init(
         maxCacheSizeBytes: Int64 = 10 * 1024 * 1024 * 1024,  // 10 GB default
-        dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue
+        dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue,
+        cacheDirectory: URL? = nil
     ) {
         self.maxCacheSizeBytes = maxCacheSizeBytes
         self.dbQueue = dbQueue
-        let blobsPath = Self.blobsPath()
-        let metadataPath = Self.cacheMetadataPath()
+        let blobsPath: FilePath
+        let metadataPath: FilePath
+        if let cacheDirectory {
+            let blobsURL = cacheDirectory.appendingPathComponent("blobs")
+            let statsURL = cacheDirectory.appendingPathComponent("cache_stats.json")
+            blobsPath = FilePath(blobsURL.path)
+            metadataPath = FilePath(statsURL.path)
+        } else {
+            blobsPath = Self.blobsPath()
+            metadataPath = Self.cacheMetadataPath()
+        }
         self.blobsDir = blobsPath
         self.cacheMetadataPath = metadataPath
         
