@@ -41,7 +41,10 @@ struct TrustCA: AsyncParsableCommand {
 
             if process.terminationStatus == 0 {
                 CLIOutput.line("Status", "✓ Certificate trusted successfully")
-                CLIOutput.hint("You can now access containers via https://<container-name>.fd.local")
+                CLIOutput
+                    .hint(
+                        "You can now access containers via https://<container-name>.flyingdutchman.local:\(AppConfig.Networking.httpsProxyPort)"
+                    )
             } else {
                 CLIOutput.warn("Failed", "security command returned status \(process.terminationStatus)")
                 CLIOutput.hint("You may need to run this command with sudo privileges")

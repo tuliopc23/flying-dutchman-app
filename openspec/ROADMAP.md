@@ -16,7 +16,7 @@
 - **Containers**: Apple Containerization framework integrated, lifecycle, logs, events.
 - **Images**: Pull + caching + registry auth.
 - **Storage**: Bind mounts + named volumes.
-- **Networking**: DNS resolver, `*.fd.local`, HTTPS proxy + CA, port forwarding.
+- **Networking**: DNS resolver, `*.flyingdutchman.local` (legacy `*.fd.local`), HTTPS proxy + CA, port forwarding.
 - **Linux Machines (VMs)**: **Implemented** via Virtualization.framework.
 - **Kubernetes (k3s)**: Provisioning on VMs implemented; domain routing pending.
 
@@ -71,7 +71,7 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 
 ### P1 — Networking Enhancements
 1. `*.k8s.fd.local` routing
-2. Compose service domains (`service.project.fd.local`)
+2. Compose service domains (`service.project.flyingdutchman.local`)
 
 ### P2 — Image & Build Workflow
 1. BuildKit integration

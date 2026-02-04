@@ -1,20 +1,24 @@
 import Foundation
+import Shared
 
 public enum ResolverInstaller {
-    public static func resolverFileContent(port: Int) -> String {
+    public static func resolverFileContent(port: Int = AppConfig.Networking.dnsPort) -> String {
         """
         nameserver 127.0.0.1
         port \(port)
         """
     }
 
-    public static func installInstruction(port: Int = 5353) -> String {
+    public static func installInstruction(port: Int = AppConfig.Networking.dnsPort) -> String {
         let content = resolverFileContent(port: port)
+        let domains = AppConfig.Networking.allDomainSuffixes
         return """
-        To enable .fd.local resolution, run:
+        To enable Flying Dutchman auto domains, run:
 
         sudo mkdir -p /etc/resolver
-        echo "\(content.replacingOccurrences(of: "\n", with: "\\n"))" | sudo tee /etc/resolver/fd.local
+        \(domains
+            .map { "echo \"\(content.replacingOccurrences(of: "\n", with: "\\n"))\" | sudo tee /etc/resolver/\($0)" }
+            .joined(separator: "\n"))
         """
     }
 }

@@ -5,23 +5,23 @@ import Shared
 struct InstallResolver: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "install-resolver",
-        abstract: "Install DNS resolver configuration for .fd.local domains"
+        abstract: "Install DNS resolver configuration for Flying Dutchman domains"
     )
 
     func run() async throws {
         let resolverDir = "/etc/resolver"
-        let resolverFile = "\(resolverDir)/fd.local"
+        let domains = AppConfig.Networking.allDomainSuffixes
         let resolverContent = """
         # Flying Dutchman DNS Resolver
-        # Resolves *.fd.local domains to the local DNS server
+        # Resolves *.flyingdutchman.local (and legacy *.fd.local) domains
         nameserver 127.0.0.1
-        port 5353
+        port \(AppConfig.Networking.dnsPort)
 
         """
 
         CLIOutput.section("Install DNS Resolver")
-        CLIOutput.line("Target", resolverFile)
-        CLIOutput.line("Action", "Creating resolver configuration (requires sudo)")
+        CLIOutput.line("Targets", domains.map { "\(resolverDir)/\($0)" }.joined(separator: ", "))
+        CLIOutput.line("Action", "Creating resolver configurations (requires sudo)")
 
         let createDirProcess = Process()
         createDirProcess.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
@@ -36,26 +36,32 @@ struct InstallResolver: AsyncParsableCommand {
                 throw ExitCode.failure
             }
 
-            let tempFile = NSTemporaryDirectory() + "fd.local.resolver"
+            let tempFile = NSTemporaryDirectory() + "flyingdutchman.local.resolver"
             try resolverContent.write(toFile: tempFile, atomically: true, encoding: .utf8)
 
-            let copyProcess = Process()
-            copyProcess.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-            copyProcess.arguments = ["cp", tempFile, resolverFile]
+            for domain in domains {
+                let resolverFile = "\(resolverDir)/\(domain)"
+                let copyProcess = Process()
+                copyProcess.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+                copyProcess.arguments = ["cp", tempFile, resolverFile]
 
-            try copyProcess.run()
-            copyProcess.waitUntilExit()
+                try copyProcess.run()
+                copyProcess.waitUntilExit()
+
+                guard copyProcess.terminationStatus == 0 else {
+                    CLIOutput.warn("Failed", "Could not write resolver file for \(domain)")
+                    throw ExitCode.failure
+                }
+            }
 
             try? FileManager.default.removeItem(atPath: tempFile)
 
-            if copyProcess.terminationStatus == 0 {
-                CLIOutput.line("Status", "✓ Resolver installed successfully")
-                CLIOutput.hint("DNS queries for *.fd.local will now resolve via 127.0.0.1:5353")
-                CLIOutput.hint("Test with: dig nginx.fd.local")
-            } else {
-                CLIOutput.warn("Failed", "Could not write resolver file")
-                throw ExitCode.failure
-            }
+            CLIOutput.line("Status", "✓ Resolver installed successfully")
+            CLIOutput
+                .hint(
+                    "DNS queries for *.flyingdutchman.local will resolve via 127.0.0.1:\(AppConfig.Networking.dnsPort)"
+                )
+            CLIOutput.hint("Test with: dig nginx.flyingdutchman.local")
         } catch {
             CLIOutput.warn("Error", error.localizedDescription)
             CLIOutput.hint("Ensure you have sudo privileges")

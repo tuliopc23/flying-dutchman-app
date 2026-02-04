@@ -23,6 +23,10 @@ public final class CertificateAuthority: @unchecked Sendable {
     }
 
     public func generateLeafCert(hostname: String) throws -> (Certificate, P256.Signing.PrivateKey) {
+        try generateLeafCert(hostnames: [hostname])
+    }
+
+    public func generateLeafCert(hostnames: [String]) throws -> (Certificate, P256.Signing.PrivateKey) {
         let (caCert, caKey) = try getOrCreateRootCA()
 
         let key = P256.Signing.PrivateKey()
@@ -31,7 +35,7 @@ public final class CertificateAuthority: @unchecked Sendable {
         let expiry = now.addingTimeInterval(60 * 60 * 24 * 365) // 1 year
 
         let subjectName = try DistinguishedName {
-            CommonName(hostname)
+            CommonName(hostnames.first ?? AppConfig.Networking.primaryDomainSuffix)
             OrganizationName("Flying Dutchman Container")
         }
 
@@ -57,7 +61,7 @@ public final class CertificateAuthority: @unchecked Sendable {
                     KeyUsage(digitalSignature: true, keyEncipherment: true)
                 )
                 try ExtendedKeyUsage([.serverAuth, .clientAuth])
-                SubjectAlternativeNames([.dnsName(hostname)])
+                SubjectAlternativeNames(hostnames.map { .dnsName($0) })
                 // Authority Key Identifier: Hash of Issuer's Public Key
                 AuthorityKeyIdentifier(keyIdentifier: authorityKeyID)
                 // Subject Key Identifier: Hash of Subject's Public Key

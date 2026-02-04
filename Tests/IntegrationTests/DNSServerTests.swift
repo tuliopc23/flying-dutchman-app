@@ -51,7 +51,8 @@ final class DNSServerTests: XCTestCase {
 
         // 3. Query
         // We expect 127.0.0.1 because routingTable.resolveIPv4 returns "127.0.0.1" for known routes.
-        let results = try await client.sendQuery(forHost: "test-container.fd.local", type: .a).get()
+        let primaryHost = "test-container.\(AppConfig.Networking.primaryDomainSuffix)"
+        let results = try await client.sendQuery(forHost: primaryHost, type: .a).get()
 
         // 4. Verify
         XCTAssertEqual(results.answers.count, 1)
@@ -62,8 +63,16 @@ final class DNSServerTests: XCTestCase {
             XCTFail("Expected A record answer, got \(results.answers)")
         }
 
+        // Legacy alias should resolve too
+        let legacyHost = "test-container.\(AppConfig.Networking.legacyDomainSuffix)"
+        let legacyResults = try await client.sendQuery(forHost: legacyHost, type: .a).get()
+        XCTAssertEqual(legacyResults.answers.count, 1)
+
         // Test NXDOMAIN
-        let nxResults = try await client.sendQuery(forHost: "unknown.fd.local", type: .a).get()
+        let nxResults = try await client.sendQuery(
+            forHost: "unknown.\(AppConfig.Networking.primaryDomainSuffix)",
+            type: .a
+        ).get()
         XCTAssertEqual(nxResults.answers.count, 0)
         XCTAssertTrue(nxResults.header.options.contains(.resultCodeNameError))
     }

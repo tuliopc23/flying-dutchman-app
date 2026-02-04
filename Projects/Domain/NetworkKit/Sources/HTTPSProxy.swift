@@ -20,7 +20,7 @@ public struct HTTPSProxy: Service {
 
     public init(
         host: String = "127.0.0.1",
-        port: Int = 8443,
+        port: Int = AppConfig.Networking.httpsProxyPort,
         routingTable: DomainRoutingTable,
         ca: CertificateAuthority
     ) {
@@ -32,8 +32,9 @@ public struct HTTPSProxy: Service {
     }
 
     public func run() async throws {
-        // Generate wildcard cert for *.fd.local
-        let (cert, key) = try ca.generateLeafCert(hostname: "*.fd.local")
+        // Generate wildcard cert for all supported domains
+        let wildcards = AppConfig.Networking.allDomainSuffixes.map { "*.\($0)" }
+        let (cert, key) = try ca.generateLeafCert(hostnames: wildcards)
 
         let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
             certificateChain: [.certificate(cert.toNIOSSL())],
@@ -83,8 +84,11 @@ struct ProxyMiddleware: RouterMiddleware {
             return try await next(request, context)
         }
 
-        // Only proxy .fd.local domains
-        guard hostname.hasSuffix(".fd.local") else {
+        // Only proxy supported domains
+        let isSupported = AppConfig.Networking.allDomainSuffixes.contains { suffix in
+            hostname.hasSuffix(".\(suffix)")
+        }
+        guard isSupported else {
             return try await next(request, context)
         }
 

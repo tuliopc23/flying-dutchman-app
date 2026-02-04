@@ -373,7 +373,7 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             // Register with routing table for DNS/HTTPS proxy
             if let routingTable = self.routingTable {
                 await routingTable.register(container: updated, config: config)
-                logger.info("Registered \(updated.name).fd.local in routing table")
+                logger.info("Registered \(AppConfig.Networking.hostname(for: updated.name)) in routing table")
             }
 
             logger.info("Container \(container.id) started successfully")

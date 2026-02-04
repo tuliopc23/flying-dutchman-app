@@ -149,7 +149,7 @@ None - **PHASE COMPLETE**
 **Phase 2: Networking** (Ready to begin)
 - Port forwarding (`-p` flag)
 - Bridge networks
-- Local DNS resolver (`.fd.local` domains)
+- Local DNS resolver (`.flyingdutchman.local` domains, legacy `.fd.local`)
 - HTTPS with local CA
 
 ---

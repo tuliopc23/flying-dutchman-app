@@ -21,14 +21,14 @@ public actor DomainRoutingTable {
     public init() {}
 
     public func register(container: ContainerSummary, config: ContainerConfig) {
-        let hostname = container.name + ".fd.local"
-
         // Find upstream
         if let upstream = determineUpstream(from: config, legacyPorts: container.ports) {
-            routes[hostname] = upstream
-
             var hosts = containerHostnames[container.id] ?? []
-            hosts.insert(hostname)
+            for suffix in AppConfig.Networking.allDomainSuffixes {
+                let hostname = AppConfig.Networking.hostname(for: container.name, suffix: suffix)
+                routes[hostname] = upstream
+                hosts.insert(hostname)
+            }
             containerHostnames[container.id] = hosts
         }
     }

@@ -113,7 +113,7 @@ When adding a dependency:
 Suggested order:
 1. Align roadmap/status docs for Phase 2 (currently inconsistent naming).
 2. Stabilize port forwarding + IP allocation boundaries.
-3. Implement `.fd.local` DNS server on UDP 5353 + `/etc/resolver/fd.local` installer.
+3. Implement `.flyingdutchman.local` DNS server on UDP 5353 + `/etc/resolver/flyingdutchman.local` installer (keep legacy `.fd.local`).
 4. Add HTTPS (local CA + cert issuance + proxy) only after DNS is stable.
 
 ### Phase 4.3: Debug shell

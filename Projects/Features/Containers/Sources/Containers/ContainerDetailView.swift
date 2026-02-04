@@ -193,6 +193,9 @@ struct ContainerDetailView: View {
                     metadataRow(label: "Image", value: viewModel.container.image, icon: "cube.box")
                     metadataRow(label: "Created", value: formatDate(viewModel.container.createdAt), icon: "clock")
                     metadataRow(label: "Status", value: statusText, icon: "tag")
+                    if let url = AppConfig.Networking.url(for: viewModel.container.name) {
+                        metadataLinkRow(label: "URL", url: url, icon: "globe")
+                    }
                 }
             }
             .padding()
@@ -211,6 +214,31 @@ struct ContainerDetailView: View {
 
             Text(value)
                 .fontWeight(.medium)
+
+            Spacer()
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func metadataLinkRow(label: String, url: URL, icon: String) -> some View {
+        let host = url.host ?? url.absoluteString
+        let portSuffix = url.port.map { ":\($0)" } ?? ""
+        let displayText = host + portSuffix
+
+        return HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(.secondary)
+                .frame(width: 20)
+
+            Text(label)
+                .foregroundStyle(.secondary)
+                .frame(width: 80, alignment: .leading)
+
+            Link(displayText, destination: url)
+                .font(DesignSystem.Typography.caption1)
+                .foregroundStyle(DesignSystem.Colors.accent)
+                .lineLimit(1)
+                .truncationMode(.middle)
 
             Spacer()
         }

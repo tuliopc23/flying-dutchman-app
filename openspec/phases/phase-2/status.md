@@ -20,12 +20,12 @@ Phase 2 (Networking) has been successfully completed with full DNS, HTTPS, and c
 - [x] Local DNS resolver (UDP 5353) ✅
 - [x] Resolver file installer (`fd networking install-resolver`) ✅
 - [x] Resolver file uninstaller (`fd networking uninstall-resolver`) ✅
-- [x] Zero-config domains (*.fd.local) ✅
+- [x] Zero-config domains (*.flyingdutchman.local, legacy *.fd.local) ✅
 - [x] DNSServer actor with routing table integration ✅
 
 ### 2.3 HTTPS ✅
 - [x] Local CA generation (CertificateAuthority) ✅
-- [x] Automatic certificate provisioning (wildcard *.fd.local) ✅
+- [x] Automatic certificate provisioning (wildcard *.flyingdutchman.local + *.fd.local) ✅
 - [x] Reverse proxy for HTTPS termination (HTTPSProxy on port 8443) ✅
 - [x] Trust CA command (`fd trust-ca`) ✅
 - [x] ProxyMiddleware with AsyncHTTPClient streaming ✅
@@ -67,7 +67,7 @@ Phase 2 (Networking) has been successfully completed with full DNS, HTTPS, and c
 - `Sources/FlyingDutchmanEngine/FlyingDutchmanEngineMain.swift` - Wired routing table
 
 ### CLI Commands Added
-- `fd networking install-resolver` - Install /etc/resolver/fd.local
+- `fd networking install-resolver` - Install /etc/resolver/flyingdutchman.local and /etc/resolver/fd.local
 - `fd networking uninstall-resolver` - Remove resolver configuration
 - `fd trust-ca` - Trust the Root CA certificate
 

@@ -24,22 +24,22 @@ The system SHALL support Docker host networking mode (`--net host`).
 - **THEN** services in the container are accessible from the host on `localhost` without explicit port forwards
 
 ### Requirement: Zero-config container domains
-The system SHALL provide zero-config container domains in the form `container-name.fd.local` and `service.project.fd.local` for Compose services.
+The system SHALL provide zero-config container domains in the form `container-name.flyingdutchman.local` (primary) and `container-name.fd.local` (legacy), plus `service.project.flyingdutchman.local` for Compose services.
 
 **Constraints & Notes:**
 - DNS server MUST be bound to `127.0.0.1:5353`.
-- System MUST install a resolver file at `/etc/resolver/fd.local` pointing to `127.0.0.1:5353`.
+- System MUST install resolver files at `/etc/resolver/flyingdutchman.local` and `/etc/resolver/fd.local` pointing to `127.0.0.1:5353`.
 - Usage of `.local` via resolver file is a specific deviation from mDNS; ensure fallback allows suffix configuration if conflicts arise.
 
 #### Scenario: Access a service by domain
-- **WHEN** a user opens `service.project.fd.local`
+- **WHEN** a user opens `service.project.flyingdutchman.local`
 - **THEN** the service responds without manual port mapping
 
 ### Requirement: Local HTTPS for container domains
 The system SHALL provide automatic HTTPS for container domains using a local CA and reverse proxy.
 
 #### Scenario: First HTTPS access
-- **WHEN** a user visits `https://fd.local` or `https://container.fd.local` for the first time
+- **WHEN** a user visits `https://container.flyingdutchman.local:8443` for the first time
 - **THEN** the system prompts to install a local certificate and HTTPS works for container domains
 
 ---
@@ -49,7 +49,7 @@ The system SHALL provide automatic HTTPS for container domains using a local CA 
 ### Architecture
 - **DNS Server**: Embedded SwiftNIO UDP server listening on `127.0.0.1:5353`.
   - Library: `orlandos-nl/DNSClient` for message coding.
-  - Logic: Resolves `*.fd.local` A records to `127.0.0.1`.
+  - Logic: Resolves `*.flyingdutchman.local` and legacy `*.fd.local` A records to `127.0.0.1`.
 - **Domain Routing Table**: In-memory actor (`DomainRoutingTable`) that maps hostnames to container ports.
   - Updated by `ContainerizationRuntime` on container lifecycle events.
 - **HTTPS Proxy**: Embedded SwiftNIO TCP server (likely port 8443 or dynamic).

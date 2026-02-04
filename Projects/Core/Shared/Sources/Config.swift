@@ -24,6 +24,23 @@ public enum AppConfig {
             "\(appSupportDir)/machines.db"
         }
     }
+
+    public enum Networking {
+        public static let dnsPort: Int = 5353
+        public static let httpsProxyPort: Int = 8443
+        public static let primaryDomainSuffix = "flyingdutchman.local"
+        public static let legacyDomainSuffix = "fd.local"
+        public static let allDomainSuffixes = [primaryDomainSuffix, legacyDomainSuffix]
+
+        public static func hostname(for containerName: String, suffix: String = primaryDomainSuffix) -> String {
+            "\(containerName).\(suffix)"
+        }
+
+        public static func url(for containerName: String, scheme: String = "https") -> URL? {
+            let host = hostname(for: containerName)
+            return URL(string: "\(scheme)://\(host):\(httpsProxyPort)")
+        }
+    }
 }
 
 public enum Loggers {

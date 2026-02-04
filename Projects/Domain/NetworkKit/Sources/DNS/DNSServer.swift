@@ -16,7 +16,7 @@ public actor DNSServer {
 
     public init(
         host: String = "127.0.0.1",
-        port: Int = 5353,
+        port: Int = AppConfig.Networking.dnsPort,
         routingTable: DomainRoutingTable,
         group: EventLoopGroup? = nil
     ) {
