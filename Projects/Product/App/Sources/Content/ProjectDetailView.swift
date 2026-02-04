@@ -1,5 +1,6 @@
 import SwiftUI
 import Shared
+import UIComponents
 
 struct StackDetailView: View {
     var stack: StackSummary?

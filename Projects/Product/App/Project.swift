@@ -14,10 +14,12 @@ let project = Project(
             sources: ["Sources/**"],
             dependencies: [
                 .project(target: "Shared", path: "../../Core/Shared"),
-                .project(target: "Persistence", path: "../../Core/Persistence"),
+                .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
                 .project(target: "DesignSystem", path: "../../Core/DesignSystem"),
                 .project(target: "UIComponents", path: "../../Core/UIComponents"),
-                .project(target: "NetworkKit", path: "../../Domain/NetworkKit"),
+                .project(target: "FlyingDutchmanContainers", path: "../../Domain/ContainerKit"),
+                .project(target: "FlyingDutchmanNetworking", path: "../../Domain/NetworkKit"),
+                .project(target: "Settings", path: "../../Features/Settings"),
                 .external(name: "SwiftNavigation"),
                 .external(name: "SwiftUINavigation"),
                 .external(name: "Dependencies")

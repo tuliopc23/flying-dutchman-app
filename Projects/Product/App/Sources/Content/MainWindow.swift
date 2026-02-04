@@ -1,5 +1,7 @@
 import Shared
 import SwiftUI
+import DesignSystem
+import UIComponents
 
 struct MainWindow: View {
     @Environment(AppState.self) private var state

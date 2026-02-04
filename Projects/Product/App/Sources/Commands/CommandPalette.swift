@@ -1,5 +1,6 @@
 import Shared
 import SwiftUI
+import DesignSystem
 
 struct CommandPaletteView: View {
     @Bindable var registry: CommandRegistry

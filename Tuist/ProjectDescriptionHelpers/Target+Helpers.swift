@@ -1,5 +1,12 @@
 import ProjectDescription
 
+private enum SwiftBuildSettings {
+    static let strictSwift62: [String: SettingValue] = [
+        "SWIFT_VERSION": "6.2",
+        "SWIFT_STRICT_CONCURRENCY": "complete"
+    ]
+}
+
 public extension Target {
     static func feature(
         name: String,
@@ -15,7 +22,8 @@ public extension Target {
             infoPlist: .default,
             sources: ["Sources/**"],
             resources: resources,
-            dependencies: dependencies
+            dependencies: dependencies,
+            settings: .settings(base: SwiftBuildSettings.strictSwift62)
         )
     }
     
@@ -31,7 +39,8 @@ public extension Target {
             deploymentTargets: .macOS("26.0"),
             infoPlist: .default,
             sources: ["Sources/**"],
-            dependencies: dependencies
+            dependencies: dependencies,
+            settings: .settings(base: SwiftBuildSettings.strictSwift62)
         )
     }
     
@@ -47,7 +56,8 @@ public extension Target {
             deploymentTargets: .macOS("26.0"),
             infoPlist: .default,
             sources: ["Sources/**"],
-            dependencies: dependencies
+            dependencies: dependencies,
+            settings: .settings(base: SwiftBuildSettings.strictSwift62)
         )
     }
 }

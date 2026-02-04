@@ -5,7 +5,7 @@ let project = Project(
     name: "Persistence",
     targets: [
         .core(
-            name: "Persistence",
+            name: "FlyingDutchmanPersistence",
             dependencies: [
                 .project(target: "Shared", path: "../Shared"),
                 .external(name: "GRDB")

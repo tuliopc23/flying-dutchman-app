@@ -6,7 +6,9 @@ let project = Project(
     targets: [
         .core(
             name: "DesignSystem",
-            dependencies: []
+            dependencies: [
+                .project(target: "Shared", path: "../Shared")
+            ]
         )
     ]
 )

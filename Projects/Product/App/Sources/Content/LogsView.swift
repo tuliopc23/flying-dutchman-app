@@ -2,6 +2,8 @@ import Shared
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import SwiftUI
+import DesignSystem
+import Dependencies
 
 #if canImport(AppKit)
 import AppKit
@@ -10,6 +12,12 @@ import AppKit
 @MainActor
 @Observable
 final class LogsViewModel {
+    @ObservationIgnored
+    @Dependency(\.continuousClock) private var clock
+
+    @ObservationIgnored
+    @Dependency(\.date.now) private var now
+
     var lines: [String] = []
     var error: String?
     var isLoading: Bool = false
@@ -38,7 +46,7 @@ final class LogsViewModel {
             self.error = "Engine unreachable; showing stub log."
         }
         isLoading = false
-        lastLoaded = Date()
+        lastLoaded = now
     }
 
     var filteredLines: [String] {
@@ -52,9 +60,9 @@ final class LogsViewModel {
         followTask?.cancel()
         followTask = Task { @MainActor [pollInterval] in
             while !Task.isCancelled {
-                let elapsed = Date().timeIntervalSince(lastLoaded)
+                let elapsed = now.timeIntervalSince(lastLoaded)
                 let delay = max(1, pollInterval - elapsed)
-                try? await Task.sleep(for: .seconds(delay))
+                try? await clock.sleep(for: .seconds(delay))
                 await load(containers: containers)
             }
         }
@@ -72,7 +80,7 @@ final class LogsViewModel {
         keepAliveTask?.cancel()
         keepAliveTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(max(10, pollInterval * 2)))
+                try? await clock.sleep(for: .seconds(max(10, pollInterval * 2)))
             }
         }
     }

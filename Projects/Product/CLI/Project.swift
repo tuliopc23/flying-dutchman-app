@@ -13,9 +13,9 @@ let project = Project(
             sources: ["Sources/**"],
             dependencies: [
                 .project(target: "Shared", path: "../../Core/Shared"),
-                .project(target: "Persistence", path: "../../Core/Persistence"),
-                .project(target: "ContainerKit", path: "../../Domain/ContainerKit"),
-                .project(target: "NetworkKit", path: "../../Domain/NetworkKit"),
+                .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
+                .project(target: "FlyingDutchmanContainers", path: "../../Domain/ContainerKit"),
+                .project(target: "FlyingDutchmanNetworking", path: "../../Domain/NetworkKit"),
                 .external(name: "ArgumentParser")
             ]
         )

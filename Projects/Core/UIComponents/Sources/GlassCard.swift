@@ -13,6 +13,5 @@ public struct GlassCard<Content: View>: View {
             .padding(DesignSystem.Inset.card)
             .frame(maxWidth: .infinity, alignment: .leading)
             .glassCard()
-            .shadowCard()
     }
 }

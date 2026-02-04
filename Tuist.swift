@@ -3,7 +3,7 @@ import ProjectDescription
 let config = Config(
     swiftVersion: "6.2",
     plugins: [],
-    generationOptions: .options()
+    generationOptions: .options(enableCaching: true)
     // Uncomment to enable Tuist Cloud caching
     // cloud: .cloud(
     //     projectId: "your-project-id",

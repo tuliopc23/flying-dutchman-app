@@ -1,12 +1,15 @@
+import DesignSystem
+import FlyingDutchmanPersistence
 import Shared
 import SwiftUI
-import FlyingDutchmanPersistence
 
-struct SettingsView: View {
+public struct SettingsView: View {
     @State private var state: UIState = UIState()
     private let store = UIStateStore()
-    
-    var body: some View {
+
+    public init() {}
+
+    public var body: some View {
         Form {
             Section("Engine") {
                 TextField("Host", text: Binding(

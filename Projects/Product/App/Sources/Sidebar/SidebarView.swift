@@ -1,5 +1,6 @@
 import SwiftUI
 import Shared
+import DesignSystem
 
 struct SidebarView: View {
     @Binding var selection: AppSection

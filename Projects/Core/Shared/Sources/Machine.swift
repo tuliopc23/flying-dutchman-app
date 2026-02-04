@@ -1,9 +1,5 @@
 import Foundation
 
-#if canImport(Hummingbird)
-import Hummingbird
-#endif
-
 public struct Machine: Codable, Sendable, Identifiable {
     public let id: String
     public var name: String
@@ -123,35 +119,3 @@ public enum MachineDistro: String, Codable, Sendable, CaseIterable {
         }
     }
 }
-
-#if canImport(Hummingbird)
-import NIOCore
-
-extension Machine: ResponseGenerator {
-    public func response(from request: Request, context: some RequestContext) throws -> Response {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        let data = try encoder.encode(self)
-        return Response(
-            status: .ok,
-            headers: [.contentType: "application/json"],
-            body: .init(contentLength: data.count) { writer in
-                try await writer.write(ByteBuffer(data: data))
-            }
-        )
-    }
-}
-
-extension MachineConfig: ResponseGenerator {
-    public func response(from request: Request, context: some RequestContext) throws -> Response {
-        let data = try JSONEncoder().encode(self)
-        return Response(
-            status: .ok,
-            headers: [.contentType: "application/json"],
-            body: .init(contentLength: data.count) { writer in
-                try await writer.write(ByteBuffer(data: data))
-            }
-        )
-    }
-}
-#endif

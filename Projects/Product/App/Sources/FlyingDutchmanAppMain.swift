@@ -1,6 +1,7 @@
 import SwiftUI
 import Shared
 import FlyingDutchmanPersistence
+import Settings
 
 @main
 struct FlyingDutchmanApp: App {

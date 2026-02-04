@@ -9,26 +9,27 @@ extension View {
     
     /// Apply Liquid Glass effect to this view
     /// Uses official `.glassEffect()` modifier from macOS Tahoe 26+
+    @ViewBuilder
     public func glassSurface(
-        in shape: some Shape = RoundedRectangle(
-            cornerRadius: 12,
-            style: .continuous
-        ),
+        _ glass: Glass = .regular,
+        in shape: some Shape = DesignSystem.Shapes.card,
         isEnabled: Bool = true
     ) -> some View {
-        self
-            .background(.ultraThinMaterial, in: shape)
-            .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+        if isEnabled {
+            self.glassEffect(glass, in: shape)
+        } else {
+            self
+        }
     }
     
     /// Apply Liquid Glass effect with card shape (12pt rounded rect)
     public func glassCard() -> some View {
-        self.glassSurface(in: .rect(cornerRadius: 12))
+        self.glassSurface(.regular, in: DesignSystem.Shapes.card)
     }
     
     /// Apply Liquid Glass effect with container shape (16pt rounded rect)
     public func glassContainer() -> some View {
-        self.glassSurface(in: .rect(cornerRadius: 16))
+        self.glassSurface(.regular, in: DesignSystem.Shapes.container)
     }
     
     // MARK: - Toolbar Glass Styling
@@ -37,11 +38,7 @@ extension View {
     /// Applies Tahoe-native toolbar glass with automatic scroll edge blur
     /// - Returns: View with glass toolbar configuration
     public func glassToolbar() -> some View {
-        self
-            .toolbarBackground(.hidden, for: .windowToolbar)  // Hide default background
-            .toolbar {
-                // Toolbar items automatically get glass treatment in Tahoe
-            }
+        self.toolbarBackground(.automatic, for: .windowToolbar)
     }
     
     /// Apply unified window chrome (no title bar separation)
@@ -200,5 +197,4 @@ extension View {
      }
  }
  */
-
 

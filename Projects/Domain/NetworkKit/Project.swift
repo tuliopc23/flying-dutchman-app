@@ -5,11 +5,11 @@ let project = Project(
     name: "NetworkKit",
     targets: [
         .domain(
-            name: "NetworkKit",
+            name: "FlyingDutchmanNetworking",
             dependencies: [
                 .project(target: "Shared", path: "../../Core/Shared"),
-                .project(target: "Persistence", path: "../../Core/Persistence"),
-                .project(target: "ContainerKit", path: "../ContainerKit"),
+                .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
+                .project(target: "FlyingDutchmanContainers", path: "../ContainerKit"),
                 .external(name: "Hummingbird"),
                 .external(name: "HummingbirdHTTP2"),
                 .external(name: "HummingbirdTLS"),

@@ -3,6 +3,8 @@ import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import SwiftUI
+import DesignSystem
+import UIComponents
 
 @MainActor
 @Observable
@@ -170,10 +172,10 @@ struct ContainerRow: View {
             HStack(spacing: DesignSystem.Spacing.md) {
                 // Status Icon
                 Image.systemIcon(
-                    containerStatusSymbol(for: container.status),
+                    DesignTokens.containerStatusSymbol(for: container.status),
                     size: DesignSystem.Size.iconLarge
                 )
-                .foregroundStyle(containerStatusColor(for: container.status))
+                .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
                 .symbolEffect(.variableColor.iterative, isActive: container.status == .running)
                 
                 // Info
@@ -247,19 +249,4 @@ struct ContainerRow: View {
         }
     }
     
-    private func containerStatusSymbol(for status: ContainerSummary.Status) -> String {
-        switch status {
-        case .running: return "play.circle.fill"
-        case .stopped, .created, .removed: return "stop.circle.fill"
-        case .starting, .stopping, .removing: return "arrow.triangle.2.circlepath.circle.fill"
-        }
-    }
-    
-    private func containerStatusColor(for status: ContainerSummary.Status) -> Color {
-        switch status {
-        case .running: return DesignSystem.Colors.success
-        case .stopped, .created, .removed: return DesignSystem.Colors.textTertiary
-        case .starting, .stopping, .removing: return DesignSystem.Colors.warning
-        }
-    }
 }

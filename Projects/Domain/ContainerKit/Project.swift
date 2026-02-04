@@ -5,7 +5,7 @@ let project = Project(
     name: "ContainerKit",
     targets: [
         .domain(
-            name: "ContainerKit",
+            name: "FlyingDutchmanContainers",
             dependencies: [
                 .project(target: "Shared", path: "../../Core/Shared"),
                 .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
