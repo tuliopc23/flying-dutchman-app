@@ -1,243 +1,118 @@
-# Flying Dutchman Roadmap
+# Flying Dutchman Roadmap (Reality-Based)
 
-> **Current Phase**: 3 (Platform)
-> **Last Updated**: 2026-01-29
-> **Status**: ⚪ Not Started
-
----
-
-## Quick Navigation
-
-| Phase | Name | Status | Progress |
-|-------|------|--------|----------|
-| 0 | Foundation | ✅ Complete | 100% |
-| 1 | Container Core | ✅ Complete | 100% |
-| 2 | Networking | ✅ Complete | 100% |
-| 3 | Platform | ✅ Complete | 100% |
-| 4 | UX Polish | ⚪ Not Started | 0% |
+> **Last Updated**: 2026-02-04
+> **Purpose**: Single-page, reality-first roadmap. This document prioritizes clarity over phase ceremony.
 
 ---
 
-## Phase 0: Foundation ✅
+## 1) Current Reality Snapshot
 
-**Goal**: Core infrastructure that all other phases depend on.
-**Status**: Complete (2025-12-27)
+### Architecture & Tooling
+- **Tuist is source of truth** for project generation.
+- **Modularization complete**: Core → Domain → Features → Product (App/Engine/CLI).
+- **Swift 6.2 + macOS 26+** enforced across targets.
 
-### 0.1 Project Structure ✅
-- [x] Multi-target Package.swift setup
-- [x] Module boundaries defined
-- [x] Shared utilities module
-- [x] OpenSpec system initialized
+### Runtime & Platform (Backend)
+- **Containers**: Apple Containerization framework integrated, lifecycle, logs, events.
+- **Images**: Pull + caching + registry auth.
+- **Storage**: Bind mounts + named volumes.
+- **Networking**: DNS resolver, `*.fd.local`, HTTPS proxy + CA, port forwarding.
+- **Linux Machines (VMs)**: **Implemented** via Virtualization.framework.
+- **Kubernetes (k3s)**: Provisioning on VMs implemented; domain routing pending.
 
-### 0.2 Persistence Layer ✅
-- [x] GRDB integration
-- [x] Database schema foundation
-- [x] Migration system (basic)
-- [x] SQLiteData selected for UI (Point-Free, built on GRDB)
-- [ ] SQLiteData integration (deferred to Phase 2-3)
+### CLI / Daemon
+- **CLI (`fd`)**: covers containers, images, volumes, networks, machines, k8s, config.
+- **Engine**: daemon mode supported; HTTP APIs for machines & container operations.
 
-### 0.3 Container Runtime Abstraction ✅
-- [x] `ContainerRuntime` protocol defined
-- [x] `ContainerCLIRuntime` implementation (Docker CLI wrapper)
-- [x] Apple `Containerization` framework integration
-- [x] Runtime factory with environment detection
-- [x] Container state models (Sendable)
-- [x] Lifecycle management (start/stop/restart/delete)
+### macOS App UI (What Exists)
+- **Shell**: Main window + sidebar + toolbar + menu bar extra.
+- **Screens**: Containers (list + detail), Stacks (list + detail), Images (list + pull), Volumes (list), Networks (list), Logs, Events, Settings.
+- **Command Palette**: placeholder only.
+- **Diagnostics banners**: platform + containerization checks.
 
-### 0.4 Logging & Observability ✅
-- [x] Structured logging (swift-log)
-- [x] Log persistence and rotation
-- [x] Performance metrics collection
-
-### 0.5 Error Handling ✅
-- [x] Domain error types per module
-- [x] Error recovery strategies
-- [x] User-facing error messages
+### macOS App UI (Missing)
+- **Linux Machines UI**: not implemented.
+- **Kubernetes UI**: not implemented.
+- **Debug Shell UI**: not implemented.
+- **Command Palette UX**: not implemented (placeholder only).
 
 ---
 
-## Phase 1: Container Core ✅
+## 2) Feature Matrix (Backend / CLI / UI)
 
-**Goal**: Docker-compatible container engine with full lifecycle support.
-**Capabilities**: `container-engine`, `container-storage`, `image-management`
-**Primary Module**: `FlyingDutchmanContainers`
-**Status**: Complete (2026-01-10)
+| Feature Area | Backend | CLI | macOS UI | Notes |
+| --- | --- | --- | --- | --- |
+| Containers | ✅ | ✅ | ✅ | List + detail, actions, logs via VSOCK |
+| Images | ✅ | ✅ | ✅ | Pull + list; no build UI |
+| Volumes | ✅ | ✅ | ✅ | List only |
+| Networks | ✅ | ✅ | ✅ | List only |
+| Diagnostics (Logs/Events) | ✅ | ✅ | ✅ | Events + Logs views |
+| Linux Machines (VMs) | ✅ | ✅ | ❌ | Virtualization.framework implemented; no UI |
+| Kubernetes (k3s) | ✅ | ✅ | ❌ | Domain routing pending |
+| DNS + HTTPS | ✅ | ✅ | ❌ | No UI configuration |
+| Command Palette | ❌ | n/a | ⚠️ Placeholder | No actions wired |
+| Debug Shell (VSOCK) | ⚠️ Partial | ✅ (exec/ssh) | ❌ | UI not implemented |
 
-### 1.1 Container Engine ✅
-- [x] Container state machine
-- [x] Container event streaming
-- [x] Container logs streaming (VSOCK protocol implemented)
-- [x] VSOCK communication (dial + length-prefixed JSON protocol)
-- [x] Compose project support (YAML parsing implemented)
-
-### 1.2 Image Management ✅
-- [x] Kernel download automation (symlink to expected location implemented)
-- [x] Image layer caching (ImageCacheManager wired to runtime)
-- [x] Registry authentication (Docker Hub OAuth, GitHub PAT, Keychain storage)
-- [x] Auth integration in pullImage (Bearer tokens + 401 retry)
-- [ ] BuildKit integration (deferred)
-- [ ] Multi-platform builds (deferred)
-- [x] Image filesystem exposure (`~/FlyingDutchman/images/`) - placeholder
-
-### 1.3 Storage ✅
-- [x] Bind mount support (virtiofs sharing implemented)
-- [x] Named volumes (VolumeManager)
-- [x] Volume lifecycle management
-- [x] Environment variables applied to containers
-- [x] Working directory applied to containers
-- [x] Filesystem exposure (`~/FlyingDutchman/containers/`) - placeholder with README
-
-### 1.4 CLI Commands ✅
-- [x] `fd login [registry]` - Interactive authentication
-- [x] `fd logout [registry]` - Remove credentials
-
-### 1.5 HTTP API ✅
-- [x] `/auth/login` - Registry authentication endpoint
-- [x] `/auth/logout` - Credential removal endpoint
+Legend: ✅ implemented, ⚠️ partial, ❌ missing
 
 ---
 
-## Phase 2: Networking ✅
+## 3) Immediate Priorities (Ordered)
 
-**Goal**: Full container networking with zero-config domains and HTTPS.
-**Capabilities**: `container-networking`
-**Primary Module**: `FlyingDutchmanNetworking`
-**Status**: Complete (2026-01-29)
+### P0 — macOS App Completeness
+1. **Linux Machines UI**
+   - list, create, start/stop, SSH, resource edits
+2. **Kubernetes UI**
+   - clusters list, create, kubeconfig export
+3. **Command Palette**
+   - real actions + search across entities
+4. **Debug Shell UI**
+   - local exec/attach over VSOCK (per spec)
 
-### 2.1 Core Networking ✅
-- [x] Bridge network driver (NetworkManager + IPAllocator)
-- [x] Port forwarding (`-p` flag + PortForwardManager)
-- [x] Container IP allocation (CIDR)
-- [x] DomainRoutingTable wired into ContainerizationRuntime
-- [ ] Host networking mode (`--net host`) - deferred to Phase 3
-- [ ] IPv6 and ICMP support - deferred to Phase 3
+### P1 — Networking Enhancements
+1. `*.k8s.fd.local` routing
+2. Compose service domains (`service.project.fd.local`)
 
-### 2.2 DNS & Domains ✅
-- [x] Local DNS resolver (UDP 5353)
-- [x] Resolver file installer (`fd networking install-resolver`)
-- [x] Zero-config domains (`*.fd.local`)
-- [x] Container registration/unregistration in routing table
-- [ ] Compose service domains (`service.project.fd.local`) - deferred
-
-### 2.3 HTTPS ✅
-- [x] Local CA generation (CertificateAuthority)
-- [x] Automatic certificate provisioning (wildcard `*.fd.local`)
-- [x] Reverse proxy for HTTPS termination (port 8443)
-- [x] Trust CA command (`fd trust-ca`)
-
-### 2.4 CLI Commands ✅
-- [x] `fd networking install-resolver` - Install DNS resolver
-- [x] `fd networking uninstall-resolver` - Remove DNS resolver
-- [x] `fd trust-ca` - Trust Root CA certificate
+### P2 — Image & Build Workflow
+1. BuildKit integration
+2. Multi-platform builds
 
 ---
 
-## Phase 3: Platform 🟡
+## 4) Workstreams (Concrete Next Steps)
 
-**Goal**: Linux machines and Kubernetes development environment.
-**Capabilities**: `linux-machines`, `kubernetes-dev`, `cli-headless`
-**Primary Modules**: `FlyingDutchmanKubernetes`, `FlyingDutchmanCLI`
-**Status**: In Progress (2026-01-29)
+### UI Workstream (App)
+- Add **Machines** feature module + UI.
+- Add **Kubernetes** feature module + UI.
+- Replace command palette placeholder with functional palette.
+- Add debug shell view (exec/attach).
 
-### 3.1 Linux Machines ✅
-- [x] Machine models and data structures
-- [x] MachineStore (GRDB persistence)
-- [x] MachineRuntimeProtocol and VirtualizationRuntime foundation
-- [x] CLI commands (list, create, start, stop, restart, delete, ssh, exec)
-- [x] HTTP API endpoints (/machines/*)
-- [x] Engine integration and wiring
-- [x] Actual VM creation with Virtualization framework
-- [x] File sharing (Mac ↔ Linux via virtiofs)
-- [x] SSH key generation and auto-configuration
-- [x] Cloud-init provisioning support
-- [x] Kernel/initrd download mechanism
-- [x] Disk image management (sparse files)
-
-### 3.2 Kubernetes ✅
-- [x] Single-node k3s cluster provisioning (via Containerization framework)
-- [x] k3s container configuration with proper ports
-- [x] Kubeconfig generation and export
-- [x] CLI commands (create, list, start, stop, delete, kubeconfig)
-- [x] Service exposure to host (ports 6443, 30080, 30443)
-- [ ] `*.k8s.fd.local` domain routing (future enhancement)
-- [ ] Ingress controller support (future enhancement)
-
-### 3.3 CLI/Headless ✅
-- [x] `fd start/stop` commands
-- [x] `fd config get/set/list/reset` management
-- [x] Headless daemon mode support
-- [x] Shell completion (bash, zsh, fish)
+### Platform Workstream
+- Implement k8s domain routing.
+- Harden HTTPS proxy + DNS resolver UX (UI + status).
 
 ---
 
-## Phase 4: UX Polish
+## 5) Done Definition (for “Phase 4: UX Polish”)
 
-**Goal**: Premium macOS-native user experience.
-**Capabilities**: `menu-bar`, `command-palette`, `debug-shell`, `settings-efficiency`
-**Primary Module**: `FlyingDutchmanApp`
-
-### 4.1 Menu Bar
-- [ ] Menu bar applet
-- [ ] Container/machine quick actions
-- [ ] Status indicators
-- [ ] Web service shortcuts
-
-### 4.2 Command Palette
-- [ ] Global palette (⌘K)
-- [ ] Fuzzy search across all entities
-- [ ] Action execution
-- [ ] Recent items
-
-### 4.3 Debug Shell
-- [ ] Terminal emulator integration
-- [ ] Debug tools injection
-- [ ] Distroless container support
-- [ ] Remote Docker context support
-
-### 4.4 Settings & Efficiency
-- [ ] Resource limits (CPU, memory)
-- [ ] Rosetta toggle
-- [ ] Idle resource optimization
-- [ ] Startup preferences
+The macOS app is “polished” when:
+- Machines and Kubernetes are fully manageable from the UI.
+- Command palette executes key actions.
+- Debug shell is integrated.
+- Settings cover resource limits and startup preferences.
 
 ---
 
-## Dependencies
+## 6) Dependencies Snapshot
 
-See [dependencies.md](./dependencies.md) for full package registry.
+See `openspec/dependencies.md` for full registry and rationale.
 
-### Candidates (In Use)
-| Package | Purpose | Status |
-|---------|---------|--------|
-| apple/containerization | Container runtime | ✅ Integrated |
-| GRDB.swift | Persistence | ✅ Integrated |
-| swift-nio | Async networking | ✅ Integrated |
-| swift-argument-parser | CLI framework | ✅ Integrated |
-| swift-log | Logging | ✅ Integrated |
-| swiftkube/client | Kubernetes API | ✅ Integrated |
-| hummingbird | HTTP server | ✅ Integrated |
-
-### Planned (Evaluated & Selected)
-| Package | Purpose | Status |
-|---------|---------|--------|
-| libghostty-vt | Terminal emulation | ✅ Selected (Phase 4.3) |
-| Citadel | SSH client | ✅ Selected (Phase 3.1, 4.3) |
-| DNSClient | DNS resolution | ✅ Selected (Phase 2.2) |
-| swift-certificates | HTTPS/CA | ✅ Selected (Phase 2.3) |
-
----
-
-## How to Resume
-
-1. Check this file for current phase
-2. Read the phase's status file: `openspec/phases/[phase]/status.md`
-3. Review blockers and incomplete tasks
-4. Continue from the first incomplete checkbox
-
-## How to Update
-
-After completing a task:
-1. Check off the item in this file
-2. Update the status file in the phase directory
-3. If phase complete, update the Quick Navigation table
-4. Commit with message: `spec: complete [phase.subphase] [description]`
+Primary packages in use:
+- `apple/containerization`
+- `GRDB.swift`
+- `swift-nio`
+- `swift-argument-parser`
+- `swift-log`
+- `swiftkube/client`
+- `hummingbird`
+- `pointfreeco/swift-dependencies`
