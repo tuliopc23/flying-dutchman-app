@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 
 public enum AppSection: String, CaseIterable, Identifiable {
+    case dashboard
     case containers
     case stacks
     case images
@@ -19,6 +20,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
 
     public var title: String {
         switch self {
+        case .dashboard: "Dashboard"
         case .containers: "Containers"
         case .stacks: "Stacks"
         case .images: "Images"
@@ -34,6 +36,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
 
     public var systemImage: String {
         switch self {
+        case .dashboard: "house.fill"
         case .containers: "shippingbox.circle"
         case .stacks: "square.stack.3d.up"
         case .images: "shippingbox.fill"
@@ -49,6 +52,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
 
     public var shortcutKey: KeyEquivalent {
         switch self {
+        case .dashboard: "0"
         case .containers: "1"
         case .stacks: "2"
         case .images: "3"
@@ -58,7 +62,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
         case .networks: "7"
         case .logs: "8"
         case .events: "9"
-        case .debugShell: "0"
+        case .debugShell: "d"
         }
     }
 }

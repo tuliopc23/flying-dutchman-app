@@ -208,6 +208,13 @@ public final class DatabaseContainer: @unchecked Sendable {
                 }
             }
         }
+        migrator.registerMigration("v10_container_labels") { db in
+            if try !db.columns(in: "containers").contains(where: { $0.name == "labels" }) {
+                try db.alter(table: "containers") { t in
+                    t.add(column: "labels", .text).notNull().defaults(to: "{}")
+                }
+            }
+        }
         return migrator
     }()
 }

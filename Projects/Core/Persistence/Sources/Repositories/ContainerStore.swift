@@ -116,6 +116,7 @@ private struct ContainerRecord: Codable, FetchableRecord, PersistableRecord {
     var status: String
     var ports: String
     var mounts: String
+    var labels: String
     var createdAt: Date
     var updatedAt: Date
 
@@ -128,6 +129,7 @@ private struct ContainerRecord: Codable, FetchableRecord, PersistableRecord {
         status = summary.status.rawValue
         ports = (try? JSONEncoder().encode(summary.ports)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
         mounts = (try? JSONEncoder().encode(summary.mounts)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+        labels = (try? JSONEncoder().encode(summary.labels ?? [:])).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         createdAt = summary.createdAt
         updatedAt = Date()
     }
@@ -135,6 +137,7 @@ private struct ContainerRecord: Codable, FetchableRecord, PersistableRecord {
     func toSummary() -> ContainerSummary {
         let portArray: [String] = (try? JSONDecoder().decode([String].self, from: Data(ports.utf8))) ?? []
         let mountsArray: [MountSpec] = (try? JSONDecoder().decode([MountSpec].self, from: Data(mounts.utf8))) ?? []
+        let labelsDict: [String: String] = (try? JSONDecoder().decode([String: String].self, from: Data(labels.utf8))) ?? [:]
         return ContainerSummary(
             id: UUID(uuidString: id) ?? UUID(),
             name: name,
@@ -142,7 +145,10 @@ private struct ContainerRecord: Codable, FetchableRecord, PersistableRecord {
             status: ContainerSummary.Status(rawValue: status) ?? .stopped,
             ports: portArray,
             mounts: mountsArray,
-            createdAt: createdAt
+            createdAt: createdAt,
+            rootfsPath: nil, // Not persisted, runtime state only
+            ipAddress: nil, // Not persisted, network manager handles this
+            labels: labelsDict.isEmpty ? nil : labelsDict
         )
     }
 }

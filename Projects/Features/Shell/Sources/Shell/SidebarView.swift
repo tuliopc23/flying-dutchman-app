@@ -12,6 +12,10 @@ public struct SidebarView: View {
 
     public var body: some View {
         List(selection: $selection) {
+            Section {
+                SidebarRow(section: .dashboard)
+            }
+
             Section("Management") {
                 SidebarRow(section: .containers)
                 SidebarRow(section: .stacks)

@@ -242,11 +242,18 @@ public actor ComposeProjectManager {
     }
 
     private func createContainer(from service: ComposeService, project: ComposeProject) async throws -> UUID {
+        let labels: [String: String] = [
+            "com.docker.compose.project": project.name,
+            "com.docker.compose.service": service.name,
+            "com.docker.compose.version": "1.0"
+        ]
+
         let config = ContainerConfig(
             ports: service.ports.isEmpty ? nil : service.ports,
             env: service.environment.isEmpty ? nil : service.environment,
             volumes: service.volumes.isEmpty ? nil : service.volumes,
-            command: service.command
+            command: service.command,
+            labels: labels
         )
 
         let container = try await runtime.createContainer(

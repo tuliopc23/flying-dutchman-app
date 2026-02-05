@@ -214,7 +214,8 @@ public actor ContainerizationRuntime: ContainerRuntimeProtocol {
             image: image,
             status: .created,
             ports: config.ports ?? [],
-            mounts: mounts
+            mounts: mounts,
+            labels: config.labels
         )
 
         // Persist to GRDB

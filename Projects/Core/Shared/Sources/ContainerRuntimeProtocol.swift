@@ -11,6 +11,7 @@ public struct ContainerConfig: Codable, Sendable {
     public let memoryLimit: Int? // bytes
     public let command: [String]?
     public let workingDir: String?
+    public let labels: [String: String]?
 
     public init(
         ports: [String]? = nil,
@@ -21,7 +22,8 @@ public struct ContainerConfig: Codable, Sendable {
         cpuLimit: Int? = nil,
         memoryLimit: Int? = nil,
         command: [String]? = nil,
-        workingDir: String? = nil
+        workingDir: String? = nil,
+        labels: [String: String]? = nil
     ) {
         self.ports = ports
         self.portMappings = portMappings
@@ -32,6 +34,7 @@ public struct ContainerConfig: Codable, Sendable {
         self.memoryLimit = memoryLimit
         self.command = command
         self.workingDir = workingDir
+        self.labels = labels
     }
 
     /// Get all port mappings (parsed from legacy ports or direct portMappings)

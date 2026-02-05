@@ -40,6 +40,9 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     /// Allocated IP address (Phase 2)
     public var ipAddress: String?
 
+    /// Container labels (Phase 3.5)
+    public var labels: [String: String]?
+
     public enum Status: String, Codable, Sendable {
         case created
         case starting
@@ -75,7 +78,8 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
         mounts: [MountSpec] = [],
         createdAt: Date = Date(),
         rootfsPath: String? = nil,
-        ipAddress: String? = nil
+        ipAddress: String? = nil,
+        labels: [String: String]? = nil
     ) {
         self.id = id
         self.name = name
@@ -86,6 +90,7 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
         self.createdAt = createdAt
         self.rootfsPath = rootfsPath
         self.ipAddress = ipAddress
+        self.labels = labels
     }
 }
 

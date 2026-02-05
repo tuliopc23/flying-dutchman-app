@@ -31,6 +31,23 @@ public actor DomainRoutingTable {
                 routes[hostname] = upstream
                 hosts.insert(hostname)
             }
+
+            // Compose Domain Routing
+            if let labels = config.labels,
+               let project = labels["com.docker.compose.project"],
+               let service = labels["com.docker.compose.service"]
+            {
+                // service.project.flyingdutchman.local
+                let composeHostname = "\(service).\(project).\(AppConfig.Networking.primaryDomainSuffix)"
+                routes[composeHostname] = upstream
+                hosts.insert(composeHostname)
+
+                // service.project.fd.local (short alias)
+                let shortHostname = "\(service).\(project).fd.local"
+                routes[shortHostname] = upstream
+                hosts.insert(shortHostname)
+            }
+
             containerHostnames[container.id] = hosts
         }
     }
