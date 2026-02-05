@@ -194,7 +194,8 @@ let package = Package(
                 "SettingsInterface",
                 "Shared",
                 "DesignSystem",
-                "FlyingDutchmanPersistence"
+                "FlyingDutchmanPersistence",
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/Settings/Sources/Settings"
         ),
@@ -281,6 +282,7 @@ let package = Package(
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
+                "FlyingDutchmanPersistence",
                 "FlyingDutchmanNetworking",
                 .product(name: "Dependencies", package: "swift-dependencies")
             ],
@@ -293,6 +295,7 @@ let package = Package(
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
+                "FlyingDutchmanPersistence",
                 "FlyingDutchmanNetworking"
             ],
             path: "Projects/Features/Kubernetes/Sources/Kubernetes"

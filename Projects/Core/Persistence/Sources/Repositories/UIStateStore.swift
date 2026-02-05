@@ -33,6 +33,13 @@ private struct UIStateRecord: Codable, FetchableRecord, PersistableRecord {
     var logsPollIntervalSeconds: Double
     var eventsPollIntervalSeconds: Double
     var eventsLimit: Int
+    var defaultMachineCPUCount: Int
+    var defaultMachineMemoryGB: Int
+    var defaultMachineDiskGB: Int
+    var defaultKubernetesCPUCount: Int
+    var defaultKubernetesMemoryGB: Int
+    var startEngineOnLaunch: Bool
+    var launchAtLogin: Bool
     var lastUpdated: Date
 
     static let databaseTableName = "uiState"
@@ -47,6 +54,13 @@ private struct UIStateRecord: Codable, FetchableRecord, PersistableRecord {
         logsPollIntervalSeconds = model.logsPollIntervalSeconds
         eventsPollIntervalSeconds = model.eventsPollIntervalSeconds
         eventsLimit = model.eventsLimit
+        defaultMachineCPUCount = model.defaultMachineCPUCount
+        defaultMachineMemoryGB = model.defaultMachineMemoryGB
+        defaultMachineDiskGB = model.defaultMachineDiskGB
+        defaultKubernetesCPUCount = model.defaultKubernetesCPUCount
+        defaultKubernetesMemoryGB = model.defaultKubernetesMemoryGB
+        startEngineOnLaunch = model.startEngineOnLaunch
+        launchAtLogin = model.launchAtLogin
         lastUpdated = model.lastUpdated
     }
 
@@ -61,6 +75,13 @@ private struct UIStateRecord: Codable, FetchableRecord, PersistableRecord {
             logsPollIntervalSeconds: logsPollIntervalSeconds,
             eventsPollIntervalSeconds: eventsPollIntervalSeconds,
             eventsLimit: eventsLimit,
+            defaultMachineCPUCount: defaultMachineCPUCount,
+            defaultMachineMemoryGB: defaultMachineMemoryGB,
+            defaultMachineDiskGB: defaultMachineDiskGB,
+            defaultKubernetesCPUCount: defaultKubernetesCPUCount,
+            defaultKubernetesMemoryGB: defaultKubernetesMemoryGB,
+            startEngineOnLaunch: startEngineOnLaunch,
+            launchAtLogin: launchAtLogin,
             lastUpdated: lastUpdated
         )
     }

@@ -10,6 +10,13 @@ public struct UIState: Codable, Identifiable, Hashable, Sendable {
     public var logsPollIntervalSeconds: Double
     public var eventsPollIntervalSeconds: Double
     public var eventsLimit: Int
+    public var defaultMachineCPUCount: Int
+    public var defaultMachineMemoryGB: Int
+    public var defaultMachineDiskGB: Int
+    public var defaultKubernetesCPUCount: Int
+    public var defaultKubernetesMemoryGB: Int
+    public var startEngineOnLaunch: Bool
+    public var launchAtLogin: Bool
     public var lastUpdated: Date
 
     public init(
@@ -22,6 +29,13 @@ public struct UIState: Codable, Identifiable, Hashable, Sendable {
         logsPollIntervalSeconds: Double = 5,
         eventsPollIntervalSeconds: Double = 5,
         eventsLimit: Int = 50,
+        defaultMachineCPUCount: Int = 2,
+        defaultMachineMemoryGB: Int = 2,
+        defaultMachineDiskGB: Int = 20,
+        defaultKubernetesCPUCount: Int = 2,
+        defaultKubernetesMemoryGB: Int = 2,
+        startEngineOnLaunch: Bool = true,
+        launchAtLogin: Bool = false,
         lastUpdated: Date = .init()
     ) {
         self.id = id
@@ -33,6 +47,13 @@ public struct UIState: Codable, Identifiable, Hashable, Sendable {
         self.logsPollIntervalSeconds = logsPollIntervalSeconds
         self.eventsPollIntervalSeconds = eventsPollIntervalSeconds
         self.eventsLimit = eventsLimit
+        self.defaultMachineCPUCount = defaultMachineCPUCount
+        self.defaultMachineMemoryGB = defaultMachineMemoryGB
+        self.defaultMachineDiskGB = defaultMachineDiskGB
+        self.defaultKubernetesCPUCount = defaultKubernetesCPUCount
+        self.defaultKubernetesMemoryGB = defaultKubernetesMemoryGB
+        self.startEngineOnLaunch = startEngineOnLaunch
+        self.launchAtLogin = launchAtLogin
         self.lastUpdated = lastUpdated
     }
 }

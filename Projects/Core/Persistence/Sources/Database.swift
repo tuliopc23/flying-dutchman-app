@@ -154,7 +154,57 @@ public final class DatabaseContainer: @unchecked Sendable {
                     t.column("logsPollIntervalSeconds", .double).notNull()
                     t.column("eventsPollIntervalSeconds", .double).notNull()
                     t.column("eventsLimit", .integer).notNull()
+                    t.column("defaultMachineCPUCount", .integer).notNull().defaults(to: 2)
+                    t.column("defaultMachineMemoryGB", .integer).notNull().defaults(to: 2)
+                    t.column("defaultMachineDiskGB", .integer).notNull().defaults(to: 20)
+                    t.column("defaultKubernetesCPUCount", .integer).notNull().defaults(to: 2)
+                    t.column("defaultKubernetesMemoryGB", .integer).notNull().defaults(to: 2)
+                    t.column("startEngineOnLaunch", .boolean).notNull().defaults(to: true)
+                    t.column("launchAtLogin", .boolean).notNull().defaults(to: false)
                     t.column("lastUpdated", .datetime).notNull()
+                }
+            }
+        }
+        migrator.registerMigration("v9_ui_state_preferences") { db in
+            if try db.tableExists("uiState") {
+                let columns = try db.columns(in: "uiState")
+                let hasColumn = { (name: String) in columns.contains { $0.name == name } }
+                try db.alter(table: "uiState") { t in
+                    if !hasColumn("defaultMachineCPUCount") {
+                        t.add(column: "defaultMachineCPUCount", .integer)
+                            .notNull()
+                            .defaults(to: 2)
+                    }
+                    if !hasColumn("defaultMachineMemoryGB") {
+                        t.add(column: "defaultMachineMemoryGB", .integer)
+                            .notNull()
+                            .defaults(to: 2)
+                    }
+                    if !hasColumn("defaultMachineDiskGB") {
+                        t.add(column: "defaultMachineDiskGB", .integer)
+                            .notNull()
+                            .defaults(to: 20)
+                    }
+                    if !hasColumn("defaultKubernetesCPUCount") {
+                        t.add(column: "defaultKubernetesCPUCount", .integer)
+                            .notNull()
+                            .defaults(to: 2)
+                    }
+                    if !hasColumn("defaultKubernetesMemoryGB") {
+                        t.add(column: "defaultKubernetesMemoryGB", .integer)
+                            .notNull()
+                            .defaults(to: 2)
+                    }
+                    if !hasColumn("startEngineOnLaunch") {
+                        t.add(column: "startEngineOnLaunch", .boolean)
+                            .notNull()
+                            .defaults(to: true)
+                    }
+                    if !hasColumn("launchAtLogin") {
+                        t.add(column: "launchAtLogin", .boolean)
+                            .notNull()
+                            .defaults(to: false)
+                    }
                 }
             }
         }

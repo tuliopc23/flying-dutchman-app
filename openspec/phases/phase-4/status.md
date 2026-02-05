@@ -33,7 +33,7 @@ Focus on premium macOS-native user experience, bringing the app out of the "deve
 - [x] Connect to `AppState` for live engine status
 
 ### 4.2 Command Palette ⚪
-- [ ] Global shortcut (⌘K)
+- [x] Global shortcut (⌘K)
 - [x] Fuzzy search implementation
 - [x] Action registry (Start/Stop containers, Navigation)
 - [x] UI overlay
@@ -46,8 +46,8 @@ Focus on premium macOS-native user experience, bringing the app out of the "deve
 - [ ] Theme matching (Dark/Light mode)
 
 ### 4.4 Settings & Efficiency ⚪
-- [ ] Resource configuration UI (CPU/RAM slider)
-- [ ] Startup behavior preferences
+- [x] Resource configuration UI (CPU/RAM slider)
+- [x] Startup behavior preferences
 - [ ] Update checker
 
 ---

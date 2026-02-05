@@ -1,6 +1,7 @@
 import Dependencies
 import DesignSystem
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import Shared
 import SwiftUI
 import UIComponents
@@ -306,6 +307,8 @@ struct MachineCreateSheet: View {
     @State private var cpuCount: Int = 2
     @State private var memoryGB: Int = 2
     @State private var diskGB: Int = 20
+    @State private var defaultsLoaded: Bool = false
+    private let uiStateStore = UIStateStore()
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
@@ -367,6 +370,14 @@ struct MachineCreateSheet: View {
         }
         .padding(DesignSystem.Spacing.xl)
         .frame(width: 520)
+        .task {
+            guard !defaultsLoaded else { return }
+            let defaults = uiStateStore.get()
+            cpuCount = defaults.defaultMachineCPUCount
+            memoryGB = defaults.defaultMachineMemoryGB
+            diskGB = defaults.defaultMachineDiskGB
+            defaultsLoaded = true
+        }
     }
 }
 

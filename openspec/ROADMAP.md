@@ -31,8 +31,8 @@
 - **Diagnostics banners**: platform + containerization checks.
 
 ### macOS App UI (Missing)
-- **Command Palette UX**: global shortcut + polish still pending.
 - **Debug Shell UI**: embedded terminal (libghostty) still pending.
+- **Update Checker**: not implemented.
 
 ---
 
@@ -48,7 +48,7 @@
 | Linux Machines (VMs) | ✅ | ✅ | ✅ | UI list/detail + actions |
 | Kubernetes (k3s) | ✅ | ✅ | ✅ | UI list/create + kubeconfig |
 | DNS + HTTPS | ✅ | ✅ | ❌ | No UI configuration |
-| Command Palette | ❌ | n/a | ⚠️ Partial | UI + actions wired; global shortcut pending |
+| Command Palette | ❌ | n/a | ✅ | UI + actions wired; keyboard navigation |
 | Debug Shell (VSOCK) | ⚠️ Partial | ✅ (exec/ssh) | ⚠️ Partial | External terminal launcher; embedded VT pending |
 
 Legend: ✅ implemented, ⚠️ partial, ❌ missing
@@ -58,12 +58,10 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 ## 3) Immediate Priorities (Ordered)
 
 ### P0 — macOS App Completeness
-1. **Command Palette**
-   - global shortcut + refined UX
-2. **Debug Shell UI**
+1. **Debug Shell UI**
    - embedded terminal (libghostty) + theming
-3. **Settings & Preferences**
-   - resource limits and startup behavior
+2. **Settings & Preferences**
+   - update checker
 
 ### P1 — Networking Enhancements
 1. Compose service domains (`service.project.flyingdutchman.local`)
@@ -77,9 +75,8 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 ## 4) Workstreams (Concrete Next Steps)
 
 ### UI Workstream (App)
-- Finish Command Palette (global shortcut + polish).
 - Embed terminal via `libghostty` for Debug Shell.
-- Add Settings screens for resource limits + startup preferences.
+- Add Update Checker UI in Settings.
 
 ### Platform Workstream
 - Harden HTTPS proxy + DNS resolver UX (UI + status).

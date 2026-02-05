@@ -1,6 +1,7 @@
 import AppKit
 import DesignSystem
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
 import Shared
 import SwiftUI
 import UIComponents
@@ -407,6 +408,8 @@ struct KubernetesCreateSheet: View {
     @State private var cpu: Int = 2
     @State private var memory: Int = 2
     @State private var useVM: Bool = true
+    @State private var defaultsLoaded: Bool = false
+    private let uiStateStore = UIStateStore()
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
@@ -444,6 +447,13 @@ struct KubernetesCreateSheet: View {
         }
         .padding(DesignSystem.Spacing.xl)
         .frame(width: 520)
+        .task {
+            guard !defaultsLoaded else { return }
+            let defaults = uiStateStore.get()
+            cpu = defaults.defaultKubernetesCPUCount
+            memory = defaults.defaultKubernetesMemoryGB
+            defaultsLoaded = true
+        }
     }
 }
 
