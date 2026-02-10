@@ -9,6 +9,7 @@ let project = Project(
             .project(target: "Shared", path: "../../Core/Shared"),
             .project(target: "DesignSystem", path: "../../Core/DesignSystem"),
             .project(target: "FlyingDutchmanPersistence", path: "../../Core/Persistence"),
+            .project(target: "NetworkKit", path: "../../Domain/NetworkKit"),
             .external(name: "Dependencies"),
         ]
     )

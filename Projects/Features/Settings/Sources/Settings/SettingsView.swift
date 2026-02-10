@@ -6,187 +6,145 @@ import SwiftUI
 
 public struct SettingsView: View {
     @State private var state: UIState = UIState()
+    @State private var viewModel = SettingsViewModel()
     private let store = UIStateStore()
     @Dependency(\.terminalLauncher) private var terminalLauncher
 
     public init() {}
 
     public var body: some View {
-        Form {
-            Section("Engine") {
-                TextField("Host", text: Binding(
-                    get: { state.engineHost },
-                    set: { newValue in
-                        state.engineHost = newValue
-                        persist()
-                    }
-                ))
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xl) {
+                Text("Settings")
+                    .font(DesignSystem.Typography.title1)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                    .padding(.bottom, DesignSystem.Spacing.md)
 
-                Stepper(value: Binding(
-                    get: { state.enginePort },
-                    set: { newValue in
-                        state.enginePort = newValue
-                        persist()
+                // Engine Section
+                GlassCard {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                        SectionHeader(title: "Engine", icon: "gearshape.2")
+                        
+                        TextField("Host", text: Binding(
+                            get: { state.engineHost },
+                            set: { newValue in
+                                state.engineHost = newValue
+                                persist()
+                            }
+                        ))
+                        .textFieldStyle(.roundedBorder) // Or a custom glass style
+                        
+                        Stepper(value: Binding(
+                            get: { state.enginePort },
+                            set: { newValue in
+                                state.enginePort = newValue
+                                persist()
+                            }
+                        ), in: 1 ... 65535) {
+                            Text("Port: \(state.enginePort)")
+                        }
                     }
-                ), in: 1 ... 65535) {
-                    Text("Port: \(state.enginePort)")
-                }
-            }
-
-            Section("UI") {
-                Toggle("Default: Follow logs", isOn: Binding(
-                    get: { state.defaultFollowLogs },
-                    set: { newValue in
-                        state.defaultFollowLogs = newValue
-                        persist()
-                    }
-                ))
-
-                Stepper(value: Binding(
-                    get: { Int(state.logsPollIntervalSeconds) },
-                    set: { newValue in
-                        state.logsPollIntervalSeconds = Double(newValue)
-                        persist()
-                    }
-                ), in: 1 ... 60) {
-                    Text("Logs poll: \(Int(state.logsPollIntervalSeconds))s")
+                    .padding(DesignSystem.Inset.md)
                 }
 
-                Stepper(value: Binding(
-                    get: { Int(state.eventsPollIntervalSeconds) },
-                    set: { newValue in
-                        state.eventsPollIntervalSeconds = Double(newValue)
-                        persist()
+                // UI Section
+                GlassCard {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                        SectionHeader(title: "Interface", icon: "macwindow")
+                        
+                        Toggle("Default: Follow logs", isOn: Binding(
+                            get: { state.defaultFollowLogs },
+                            set: { newValue in
+                                state.defaultFollowLogs = newValue
+                                persist()
+                            }
+                        ))
+                        
+                        VStack(alignment: .leading) {
+                            Text("Logs Poll Interval: \(Int(state.logsPollIntervalSeconds))s")
+                            Slider(value: Binding(
+                                get: { state.logsPollIntervalSeconds },
+                                set: { newValue in
+                                    state.logsPollIntervalSeconds = newValue
+                                    persist()
+                                }
+                            ), in: 1...60, step: 1)
+                        }
                     }
-                ), in: 1 ... 60) {
-                    Text("Events poll: \(Int(state.eventsPollIntervalSeconds))s")
+                    .padding(DesignSystem.Inset.md)
                 }
-
-                Stepper(value: Binding(
-                    get: { state.eventsLimit },
-                    set: { newValue in
-                        state.eventsLimit = newValue
-                        persist()
-                    }
-                ), in: 10 ... 500, step: 10) {
-                    Text("Events limit: \(state.eventsLimit)")
-                }
-            }
-
-            Section("Startup") {
-                Toggle("Start engine on app launch", isOn: Binding(
-                    get: { state.startEngineOnLaunch },
-                    set: { newValue in
-                        state.startEngineOnLaunch = newValue
-                        persist()
-                    }
-                ))
-
-                Toggle("Launch at login (requires manual setup)", isOn: Binding(
-                    get: { state.launchAtLogin },
-                    set: { newValue in
-                        state.launchAtLogin = newValue
-                        persist()
-                    }
-                ))
-            }
-
-            Section("Defaults") {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                    Text("Machines")
+                
+                // Networking Section
+                GlassCard {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                        SectionHeader(title: "Networking", icon: "network")
+                        
+                        Text("""
+                        Install the resolver and trust the local CA to enable HTTPS for \
+                        \(AppConfig.Networking.primaryDomainSuffix).
+                        """)
                         .font(DesignSystem.Typography.caption1)
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
-
-                    Stepper(value: Binding(
-                        get: { state.defaultMachineCPUCount },
-                        set: { newValue in
-                            state.defaultMachineCPUCount = newValue
-                            persist()
+                        
+                        if let error = viewModel.errorMessage {
+                            Text(error)
+                                .font(DesignSystem.Typography.caption1)
+                                .foregroundStyle(.red)
                         }
-                    ), in: 1 ... 16) {
-                        Text("CPU: \(state.defaultMachineCPUCount)")
-                    }
 
-                    Stepper(value: Binding(
-                        get: { state.defaultMachineMemoryGB },
-                        set: { newValue in
-                            state.defaultMachineMemoryGB = newValue
-                            persist()
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("DNS Resolver")
+                                    .font(DesignSystem.Typography.body)
+                                Text(viewModel.dnsStatus ? "Installed" : "Not Installed")
+                                    .font(DesignSystem.Typography.caption1)
+                                    .foregroundStyle(viewModel.dnsStatus ? .green : .orange)
+                            }
+                            Spacer()
+                            if !viewModel.dnsStatus {
+                                Button("Install") {
+                                    Task { await viewModel.installDNS() }
+                                }
+                                .disabled(viewModel.isInstallingDNS)
+                                .buttonStyle(.glass)
+                            } else {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
                         }
-                    ), in: 1 ... 64) {
-                        Text("RAM: \(state.defaultMachineMemoryGB)GB")
-                    }
-
-                    Stepper(value: Binding(
-                        get: { state.defaultMachineDiskGB },
-                        set: { newValue in
-                            state.defaultMachineDiskGB = newValue
-                            persist()
+                        
+                        Divider().overlay(DesignSystem.Colors.separator)
+                        
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Root CA")
+                                    .font(DesignSystem.Typography.body)
+                                Text(viewModel.caStatus ? "Trusted" : "Not Trusted")
+                                    .font(DesignSystem.Typography.caption1)
+                                    .foregroundStyle(viewModel.caStatus ? .green : .orange)
+                            }
+                            Spacer()
+                            if !viewModel.caStatus {
+                                Button("Trust") {
+                                    Task { await viewModel.trustCA() }
+                                }
+                                .disabled(viewModel.isTrustingCA)
+                                .buttonStyle(.glass)
+                            } else {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
                         }
-                    ), in: 10 ... 200) {
-                        Text("Disk: \(state.defaultMachineDiskGB)GB")
                     }
-                }
-
-                Divider()
-
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                    Text("Kubernetes")
-                        .font(DesignSystem.Typography.caption1)
-                        .foregroundStyle(DesignSystem.Colors.textSecondary)
-
-                    Stepper(value: Binding(
-                        get: { state.defaultKubernetesCPUCount },
-                        set: { newValue in
-                            state.defaultKubernetesCPUCount = newValue
-                            persist()
-                        }
-                    ), in: 1 ... 16) {
-                        Text("CPU: \(state.defaultKubernetesCPUCount)")
-                    }
-
-                    Stepper(value: Binding(
-                        get: { state.defaultKubernetesMemoryGB },
-                        set: { newValue in
-                            state.defaultKubernetesMemoryGB = newValue
-                            persist()
-                        }
-                    ), in: 1 ... 64) {
-                        Text("RAM: \(state.defaultKubernetesMemoryGB)GB")
-                    }
+                    .padding(DesignSystem.Inset.md)
                 }
             }
-
-            Section("Networking") {
-                Text("""
-                Install the resolver and trust the local CA to enable HTTPS for \
-                \(AppConfig.Networking.primaryDomainSuffix).
-                """)
-                .font(DesignSystem.Typography.caption1)
-                .foregroundStyle(DesignSystem.Colors.textSecondary)
-
-                HStack {
-                    Button("Install Resolver") {
-                        Task {
-                            try? await terminalLauncher.openTerminal("sudo fd networking install-resolver")
-                        }
-                    }
-                    .buttonStyle(.glass)
-
-                    Button("Trust Local CA") {
-                        Task {
-                            try? await terminalLauncher.openTerminal("sudo fd trust-ca")
-                        }
-                    }
-                    .buttonStyle(.glass)
-                }
-            }
+            .padding(DesignSystem.Inset.xl)
         }
-        .padding(DesignSystem.Inset.lg)
-        .frame(width: 420)
         .background(DesignSystem.Colors.background)
         .task {
             state = store.get()
+            await viewModel.checkStatus()
         }
     }
 

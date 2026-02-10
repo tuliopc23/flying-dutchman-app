@@ -10,18 +10,18 @@ public enum DesignSystem {
     public enum Colors {
         // MARK: - Brand Colors (Netherlands Palette)
 
-        /// Accent color - Netherlands Orange
-        /// Light: #FF6200, Dark: #FF8833 (lighter for dark backgrounds)
+        /// Accent color - Pastel Orange
+        /// Light: #EA6852, Dark: #F28B79 (lighter for dark backgrounds)
         public static let accent = Color("AccentOrange", bundle: .main).fallback(
-            light: Color(red: 1.0, green: 0.38, blue: 0.0), // #FF6200
-            dark: Color(red: 1.0, green: 0.53, blue: 0.2) // #FF8833
+            light: Color(red: 0.92, green: 0.41, blue: 0.32), // #EA6852
+            dark: Color(red: 0.95, green: 0.55, blue: 0.47) // #F28B79
         )
 
-        /// Primary brand color - Netherlands Royal Blue
-        /// Light: #21468B, Dark: #4A6FA5 (lighter for dark backgrounds)
+        /// Primary brand color - Pastel Royal Blue
+        /// Light: #236092, Dark: #4A85B5 (lighter for dark backgrounds)
         public static let primary = Color("PrimaryBlue", bundle: .main).fallback(
-            light: Color(red: 0.13, green: 0.27, blue: 0.55), // #21468B
-            dark: Color(red: 0.29, green: 0.44, blue: 0.65) // #4A6FA5
+            light: Color(red: 0.14, green: 0.38, blue: 0.57), // #236092
+            dark: Color(red: 0.29, green: 0.52, blue: 0.71) // #4A85B5
         )
 
         /// Netherlands white - pure white in light mode, off-white in dark

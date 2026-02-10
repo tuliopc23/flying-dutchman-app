@@ -1,3 +1,4 @@
+import Charts
 import Dependencies
 import DesignSystem
 import FlyingDutchmanPersistence
@@ -16,7 +17,6 @@ public final class DashboardViewModel {
     
     private let metricsService = MetricsService()
     private let containerStore = ContainerStore()
-    // ImageStore would be here
     
     public init() {}
     
@@ -53,56 +53,14 @@ public struct DashboardView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.xl) {
-                // Header
-                HStack {
-                    Text("Dashboard")
-                        .font(DesignSystem.Typography.title1)
-                        .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    Spacer()
-                }
+                // Hero Section
+                HeroSection(viewModel: viewModel)
                 
-                // Status Cards Grid
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: DesignSystem.Spacing.lg)], spacing: DesignSystem.Spacing.lg) {
-                    StatusCard(
-                        title: "Containers",
-                        value: "\(viewModel.runningContainers)",
-                        subtitle: "\(viewModel.stoppedContainers) stopped",
-                        icon: "shippingbox.fill",
-                        color: DesignSystem.Colors.accent,
-                        trend: nil
-                    )
-                    
-                    StatusCard(
-                        title: "CPU Load",
-                        value: String(format: "%.1f%%", viewModel.cpuMetrics.last?.value ?? 0),
-                        subtitle: "System Average",
-                        icon: "cpu",
-                        color: .blue,
-                        chart: AnyView(ActivityChart(metrics: viewModel.cpuMetrics, color: .blue))
-                    )
-                    
-                    StatusCard(
-                        title: "Memory",
-                        value: String(format: "%.0f MB", viewModel.memoryMetrics.last?.value ?? 0),
-                        subtitle: "Used",
-                        icon: "memorychip",
-                        color: .orange,
-                        chart: AnyView(ActivityChart(metrics: viewModel.memoryMetrics, color: .orange))
-                    )
-                }
+                // Status Grid
+                StatusGrid(viewModel: viewModel)
                 
                 // Quick Actions
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                    Text("Quick Actions")
-                        .font(DesignSystem.Typography.title3)
-                        .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
-                    HStack(spacing: DesignSystem.Spacing.md) {
-                        QuickActionButton(title: "New Container", icon: "plus", color: .blue) {}
-                        QuickActionButton(title: "Debug Shell", icon: "terminal", color: .gray) {}
-                        QuickActionButton(title: "Documentation", icon: "book", color: .purple) {}
-                    }
-                }
+                QuickActionsRow()
             }
             .padding(DesignSystem.Inset.xl)
         }
@@ -113,18 +71,109 @@ public struct DashboardView: View {
     }
 }
 
+// MARK: - Hero Section
+struct HeroSection: View {
+    let viewModel: DashboardViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+            Text("System Overview")
+                .font(DesignSystem.Typography.title2)
+                .foregroundStyle(DesignSystem.Colors.textPrimary)
+            
+            GlassCard {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                    HStack {
+                        Label("CPU Load", systemImage: "cpu")
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        Spacer()
+                        Text(String(format: "%.1f%%", viewModel.cpuMetrics.last?.value ?? 0))
+                            .font(.system(.title, design: .rounded).weight(.semibold))
+                            .foregroundStyle(DesignSystem.Colors.primary)
+                    }
+                    
+                    Chart(viewModel.cpuMetrics) { point in
+                        AreaMark(
+                            x: .value("Time", point.timestamp),
+                            y: .value("Load", point.value)
+                        )
+                        .interpolationMethod(.catmullRom)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    DesignSystem.Colors.primary.opacity(0.6),
+                                    DesignSystem.Colors.primary.opacity(0.1)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        
+                        LineMark(
+                            x: .value("Time", point.timestamp),
+                            y: .value("Load", point.value)
+                        )
+                        .interpolationMethod(.catmullRom)
+                        .foregroundStyle(DesignSystem.Colors.primary)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                    }
+                    .chartYScale(domain: 0...100)
+                    .chartXAxis(.hidden)
+                    .chartYAxis(.hidden)
+                    .frame(height: 180)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Status Grid
+struct StatusGrid: View {
+    let viewModel: DashboardViewModel
+    
+    var body: some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 240), spacing: DesignSystem.Spacing.lg)],
+            spacing: DesignSystem.Spacing.lg
+        ) {
+            StatusCard(
+                title: "Containers",
+                value: "\(viewModel.runningContainers)",
+                subtitle: "\(viewModel.stoppedContainers) stopped",
+                icon: "shippingbox.fill",
+                color: DesignSystem.Colors.accent
+            )
+            
+            StatusCard(
+                title: "Memory Usage",
+                value: String(format: "%.0f MB", viewModel.memoryMetrics.last?.value ?? 0),
+                subtitle: "Active allocation",
+                icon: "memorychip",
+                color: .orange
+            )
+            
+            StatusCard(
+                title: "Disk Usage",
+                value: "12.4 GB", // Placeholder
+                subtitle: "Images & Volumes",
+                icon: "internaldrive.fill",
+                color: .gray
+            )
+        }
+    }
+}
+
 struct StatusCard: View {
     let title: String
     let value: String
     let subtitle: String
     let icon: String
     let color: Color
-    var trend: Double? = nil
-    var chart: AnyView? = nil
     
     var body: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                 HStack {
                     Image(systemName: icon)
                         .font(.title2)
@@ -134,66 +183,54 @@ struct StatusCard: View {
                         .clipShape(Circle())
                     
                     Spacer()
-                    
-                    if let trend {
-                        HStack(spacing: 2) {
-                            Image(systemName: trend >= 0 ? "arrow.up" : "arrow.down")
-                            Text(String(format: "%.0f%%", abs(trend)))
-                        }
-                        .font(DesignSystem.Typography.caption1)
-                        .foregroundStyle(trend >= 0 ? DesignSystem.Colors.success : DesignSystem.Colors.error)
-                    }
                 }
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(value)
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
-                    Text(title)
-                        .font(DesignSystem.Typography.body)
-                        .foregroundStyle(DesignSystem.Colors.textSecondary)
-                }
+                Spacer().frame(height: 8)
                 
-                if let chart {
-                    chart
-                        .frame(height: 40)
-                        .padding(.top, 4)
-                } else {
-                    Text(subtitle)
-                        .font(DesignSystem.Typography.caption1)
-                        .foregroundStyle(DesignSystem.Colors.textTertiary)
-                        .padding(.top, 8)
-                }
+                Text(value)
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Text(title)
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                
+                Text(subtitle)
+                    .font(DesignSystem.Typography.caption1)
+                    .foregroundStyle(DesignSystem.Colors.textTertiary)
             }
-            .padding(DesignSystem.Inset.md)
         }
     }
 }
 
-struct QuickActionButton: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let action: () -> Void
-    
+// MARK: - Quick Actions
+struct QuickActionsRow: View {
     var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                Text(title)
-                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+            Text("Quick Actions")
+                .font(DesignSystem.Typography.title2)
+                .foregroundStyle(DesignSystem.Colors.textPrimary)
+            
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Button(action: {}) {
+                    Label("New Container", systemImage: "plus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(DesignSystem.Colors.accent)
+                
+                Button(action: {}) {
+                    Label("Pull Image", systemImage: "arrow.down.circle")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
+                
+                Button(action: {}) {
+                    Label("Debug Shell", systemImage: "terminal")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(DesignSystem.Colors.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(DesignSystem.Colors.separator, lineWidth: 1)
-            )
         }
-        .buttonStyle(.plain)
     }
 }

@@ -77,84 +77,108 @@ public struct ContainerListView: View {
     }
 
     public var body: some View {
-        VStack(spacing: DesignSystem.Spacing.lg) {
-            // Header with Refresh Action
-            HStack {
-                Text("Containers")
-                    .font(DesignSystem.Typography.title2)
-                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.lg) {
+                // Header with Refresh Action
+                HStack {
+                    Text("Containers")
+                        .font(DesignSystem.Typography.title2)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
 
-                Spacer()
+                    Spacer()
 
-                if viewModel.isLoading {
-                    ProgressView()
-                        .controlSize(.small)
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+
+                    Button {
+                        Task { @MainActor in await viewModel.load() }
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.glass)
                 }
-
-                Button {
-                    Task { @MainActor in await viewModel.load() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.glass)
-            }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-
-            // Filter
-            Toggle("Running only", isOn: $viewModel.showRunningOnly)
-                .toggleStyle(.switch)
-                .controlSize(.mini)
-                .padding(.horizontal, DesignSystem.Spacing.md)
-
-            if let error = viewModel.error {
-                DiagnosticsBanner(
-                    title: "Error",
-                    message: error,
-                    icon: "exclamationmark.triangle",
-                    tone: .warning
-                )
-                .padding(.horizontal, DesignSystem.Spacing.md)
-            }
-
-            if viewModel.filtered.isEmpty {
-                EmptyStateCard(
-                    title: "No containers found",
-                    message: viewModel.searchQuery.isEmpty
-                        ? "Start the engine or create a container."
-                        : "Try adjusting your search filters.",
-                    systemImage: "shippingbox"
-                )
-                .padding(DesignSystem.Spacing.md)
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: DesignSystem.Spacing.sm) {
-                        ForEach(filteredForStack) { container in
-                            NavigationLink(value: container) {
-                                ContainerRow(container: container, viewModel: viewModel)
-                            }
-                            .buttonStyle(.plain)
+                .padding(.horizontal, DesignSystem.Inset.lg.leading)
+                .padding(.top, DesignSystem.Inset.lg.top)
+                
+                // Container Grid
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 300), spacing: DesignSystem.Spacing.lg)],
+                    spacing: DesignSystem.Spacing.lg
+                ) {
+                    ForEach(viewModel.filtered) { container in
+                        ContainerCard(container: container) {
+                            selectedContainer = container
                         }
                     }
-                    .padding(DesignSystem.Spacing.md)
+                }
+                .padding(.horizontal, DesignSystem.Inset.lg.leading)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .task {
+            await viewModel.load()
+        }
+        .sheet(item: $selectedContainer) { container in
+            ContainerDetailView(
+                viewModel: ContainerDetailViewModel(container: container)
+            )
+            .frame(minWidth: 600, minHeight: 400)
+        }
+    }
+}
+
+struct ContainerCard: View {
+    let container: ContainerSummary
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            GlassCard {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    HStack {
+                        Image(systemName: DesignTokens.containerStatusSymbol(for: container.status))
+                            .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
+                        
+                        Text(container.name)
+                            .font(DesignSystem.Typography.headline)
+                            .lineLimit(1)
+                        
+                        Spacer()
+                        
+                        Text(container.id.uuidString.prefix(8))
+                            .font(DesignSystem.Typography.codeSmall)
+                            .foregroundStyle(DesignSystem.Colors.textTertiary)
+                    }
+                    
+                    Text(container.image)
+                        .font(DesignSystem.Typography.caption1)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    
+                    if !container.ports.isEmpty {
+                        HStack {
+                            ForEach(container.ports.prefix(2), id: \.containerPort) { port in
+                                Text("\(port.hostPort):\(port.containerPort)")
+                                    .font(DesignSystem.Typography.codeSmall)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(DesignSystem.Colors.surfaceSecondary.opacity(0.5))
+                                    .clipShape(DesignSystem.Shapes.chip)
+                            }
+                            if container.ports.count > 2 {
+                                Text("+\(container.ports.count - 2)")
+                                    .font(DesignSystem.Typography.caption2)
+                                    .foregroundStyle(DesignSystem.Colors.textTertiary)
+                            }
+                        }
+                    }
                 }
             }
         }
-        .onAppear {
-            if viewModel.containers.isEmpty {
-                Task { await viewModel.load() }
-            }
-        }
-        .searchable(text: $viewModel.searchQuery)
-        .navigationDestination(for: ContainerSummary.self) { container in
-            ContainerDetailView(viewModel: ContainerDetailViewModel(container: container))
-        }
-    }
-
-    private var filteredForStack: [ContainerSummary] {
-        let base = viewModel.filtered
-        guard let stack else { return base }
-        let allowed = Set(stack.containerNames)
-        return base.filter { allowed.contains($0.name) }
+        .buttonStyle(.plain)
     }
 }
 

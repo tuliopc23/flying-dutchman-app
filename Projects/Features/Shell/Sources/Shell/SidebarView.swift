@@ -48,6 +48,9 @@ public struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .glassSidebar()
+        .toolbar {
+            ToolbarSpacer()
+        }
     }
 }
 
@@ -55,7 +58,14 @@ struct SidebarRow: View {
     let section: AppSection
 
     var body: some View {
-        Label(section.title, systemImage: section.systemImage)
-            .tag(section)
+        Label {
+            Text(section.title)
+                .font(DesignSystem.Typography.body)
+        } icon: {
+            Image(systemName: section.systemImage)
+                .foregroundStyle(DesignSystem.Colors.primary)
+        }
+        .tag(section)
+        .padding(.vertical, 4)
     }
 }
