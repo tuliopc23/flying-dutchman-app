@@ -16,6 +16,8 @@ struct CLIDoctorTests {
         let platform = try #require(payload["platform"] as? [String: Any])
         let containerTool = try #require(payload["containerTool"] as? [String: Any])
         let containerization = try #require(payload["containerization"] as? [String: Any])
+        let resolver = try #require(payload["resolver"] as? [String: Any])
+        let caCertificate = try #require(payload["caCertificate"] as? [String: Any])
 
         #expect(platform["message"] as? String != nil)
         #expect(platform["isSupported"] as? Bool != nil)
@@ -28,6 +30,14 @@ struct CLIDoctorTests {
         #expect(containerization["name"] as? String == "Containerization.framework")
         #expect(containerization["status"] as? String != nil)
         #expect(containerization["message"] as? String != nil)
+
+        #expect(resolver["name"] as? String == "DNS Resolver")
+        #expect(resolver["status"] as? String != nil)
+        #expect((resolver["message"] as? String)?.contains("install-resolver") ?? true)
+
+        #expect(caCertificate["name"] as? String == "Root CA Certificate")
+        #expect(caCertificate["status"] as? String != nil)
+        #expect((caCertificate["message"] as? String)?.contains("trust-ca") ?? true)
 
         #expect(payload["http"] != nil || payload["httpError"] != nil)
         #expect(payload["xpc"] != nil || payload["xpcError"] != nil)

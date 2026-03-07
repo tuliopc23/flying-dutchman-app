@@ -15,7 +15,7 @@
 ## 3. Product Hardening
 
 - [x] 3.1 Audit user-critical stub and placeholder runtime paths and convert P0 cases into production-safe behavior or explicit failures
-- [ ] 3.2 Harden CLI diagnostics and recovery flows for engine health, resolver setup, and certificate trust
+- [x] 3.2 Harden CLI diagnostics and recovery flows for engine health, resolver setup, and certificate trust
 - [ ] 3.3 Harden Settings to surface release-critical runtime status and recovery actions clearly
 - [x] 3.4 Verify persisted defaults and migration-sensitive settings survive relaunch and existing user state
 - [ ] 3.5 Triage release-critical compiler warnings and concurrency/networking issues that could hide correctness problems

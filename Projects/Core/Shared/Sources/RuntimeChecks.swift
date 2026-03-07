@@ -5,6 +5,12 @@ public enum RuntimeChecks {
         public let name: String
         public let status: String
         public let message: String
+
+        public init(name: String, status: String, message: String) {
+            self.name = name
+            self.status = status
+            self.message = message
+        }
     }
 
     public struct PlatformStatus {

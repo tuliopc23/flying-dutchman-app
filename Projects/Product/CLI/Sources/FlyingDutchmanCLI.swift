@@ -83,6 +83,7 @@ struct Doctor: AsyncParsableCommand {
                 CLIOutput.line("HTTP", "\(health.status) – engine: \(health.engine)")
             } else if let error = report.httpError {
                 CLIOutput.warn("HTTP", error)
+                CLIOutput.hint("Start FlyingDutchmanEngine, then rerun 'flyingdutchman doctor'.")
             }
 
             if let detail = report.detail {
@@ -101,6 +102,19 @@ struct Doctor: AsyncParsableCommand {
                 CLIOutput.line("XPC", xpc.engine)
             } else if let error = report.xpcError {
                 CLIOutput.warn("XPC", error)
+            }
+
+            CLIOutput.section("Networking")
+            if report.resolver.status == "ok" {
+                CLIOutput.line("DNS Resolver", "\(report.resolver.status) – \(report.resolver.message)")
+            } else {
+                CLIOutput.warn("DNS Resolver", "\(report.resolver.status) – \(report.resolver.message)")
+            }
+
+            if report.caCertificate.status == "ok" {
+                CLIOutput.line("Root CA", "\(report.caCertificate.status) – \(report.caCertificate.message)")
+            } else {
+                CLIOutput.warn("Root CA", "\(report.caCertificate.status) – \(report.caCertificate.message)")
             }
 
             if !report.platform.isSupported {
@@ -578,6 +592,8 @@ private struct DoctorReport: Encodable {
     let platform: RuntimeChecks.PlatformStatus
     let containerTool: RuntimeChecks.ToolCheck
     let containerization: RuntimeChecks.ToolCheck
+    let resolver: RuntimeChecks.ToolCheck
+    let caCertificate: RuntimeChecks.ToolCheck
     let http: EngineStatus?
     let detail: EngineStatusDetail?
     let xpc: EngineXPCStatus?
@@ -602,6 +618,8 @@ private struct DoctorReport: Encodable {
             case platform
             case containerTool
             case containerization
+            case resolver
+            case caCertificate
             case http
             case detail
             case xpc
@@ -632,6 +650,14 @@ private struct DoctorReport: Encodable {
             ),
             forKey: .containerization
         )
+        try container.encode(
+            ToolPayload(name: resolver.name, status: resolver.status, message: resolver.message),
+            forKey: .resolver
+        )
+        try container.encode(
+            ToolPayload(name: caCertificate.name, status: caCertificate.status, message: caCertificate.message),
+            forKey: .caCertificate
+        )
 
         try container.encodeIfPresent(http, forKey: .http)
         try container.encodeIfPresent(detail, forKey: .detail)
@@ -644,6 +670,23 @@ private struct DoctorReport: Encodable {
         let platform = RuntimeChecks.platformSupport()
         let containerTool = RuntimeChecks.containerToolVersion()
         let containerization = RuntimeChecks.containerizationFramework()
+        let setupManager = NetworkSetupManager()
+        let resolverInstalled = await setupManager.checkDNSStatus()
+        let caCertificatePresent = await setupManager.checkCATrustStatus()
+        let resolver = RuntimeChecks.ToolCheck(
+            name: "DNS Resolver",
+            status: resolverInstalled ? "ok" : "missing",
+            message: resolverInstalled
+                ? "Resolver configuration is installed for Flying Dutchman domains."
+                : "Resolver configuration is missing. Run 'flyingdutchman networking install-resolver'."
+        )
+        let caCertificate = RuntimeChecks.ToolCheck(
+            name: "Root CA Certificate",
+            status: caCertificatePresent ? "ok" : "missing",
+            message: caCertificatePresent
+                ? "Root CA certificate is present on disk. Run 'flyingdutchman trust-ca' if HTTPS remains untrusted."
+                : "Root CA certificate is missing. Start FlyingDutchmanEngine, then run 'flyingdutchman trust-ca'."
+        )
 
         let httpResult: Result<EngineStatus, Error>
         let httpDetailResult: Result<EngineStatusDetail, Error>
@@ -678,6 +721,8 @@ private struct DoctorReport: Encodable {
             platform: platform,
             containerTool: containerTool,
             containerization: containerization,
+            resolver: resolver,
+            caCertificate: caCertificate,
             http: http,
             detail: detail,
             xpc: xpc,
