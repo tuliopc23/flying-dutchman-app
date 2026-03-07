@@ -131,6 +131,10 @@ let package = Package(
 
         // Feature Interfaces
         .target(
+            name: "DashboardInterface",
+            path: "Projects/Features/Dashboard/Sources/DashboardInterface"
+        ),
+        .target(
             name: "SettingsInterface",
             path: "Projects/Features/Settings/Sources/SettingsInterface"
         ),
@@ -189,11 +193,25 @@ let package = Package(
 
         // Feature Implementations
         .target(
+            name: "Dashboard",
+            dependencies: [
+                "DashboardInterface",
+                "Shared",
+                "DesignSystem",
+                "UIComponents",
+                "FlyingDutchmanPersistence",
+                .product(name: "Dependencies", package: "swift-dependencies")
+            ],
+            path: "Projects/Features/Dashboard/Sources/Dashboard"
+        ),
+        .target(
             name: "Settings",
             dependencies: [
                 "SettingsInterface",
                 "Shared",
                 "DesignSystem",
+                "UIComponents",
+                "FlyingDutchmanNetworking",
                 "FlyingDutchmanPersistence",
                 .product(name: "Dependencies", package: "swift-dependencies"),
             ],
@@ -318,6 +336,7 @@ let package = Package(
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
+                "Dashboard",
                 "FlyingDutchmanNetworking",
                 "ContainersInterface",
                 "ImagesInterface",
@@ -380,12 +399,30 @@ let package = Package(
         // Tests
         .testTarget(
             name: "FlyingDutchmanAppTests",
-            dependencies: ["FlyingDutchmanApp"],
+            dependencies: [
+                "FlyingDutchmanApp",
+                "Shell",
+                "Shared",
+                "Diagnostics",
+                "ContainersInterface",
+                "ImagesInterface",
+                "VolumesInterface",
+                "NetworksInterface",
+                "DiagnosticsInterface",
+                "StacksInterface",
+                "MachinesInterface",
+                "KubernetesInterface",
+                "DebugShellInterface"
+            ],
             path: "Tests/FlyingDutchmanAppTests"
         ),
         .testTarget(
             name: "FlyingDutchmanEngineTests",
-            dependencies: ["FlyingDutchmanEngine"],
+            dependencies: [
+                "FlyingDutchmanEngine",
+                "Shared",
+                "FlyingDutchmanContainers"
+            ],
             path: "Tests/FlyingDutchmanEngineTests"
         ),
         .testTarget(
@@ -395,8 +432,23 @@ let package = Package(
         ),
         .testTarget(
             name: "IntegrationTests",
-            dependencies: ["FlyingDutchmanNetworking", "FlyingDutchmanPersistence"],
+            dependencies: ["FlyingDutchmanNetworking", "FlyingDutchmanPersistence", "Shared"],
             path: "Tests/IntegrationTests"
+        ),
+        .testTarget(
+            name: "MachinesTests",
+            dependencies: ["Machines", "Shared"],
+            path: "Projects/Features/Machines/Tests/MachinesTests"
+        ),
+        .testTarget(
+            name: "KubernetesTests",
+            dependencies: ["Kubernetes", "Shared"],
+            path: "Projects/Features/Kubernetes/Tests/KubernetesTests"
+        ),
+        .testTarget(
+            name: "SettingsTests",
+            dependencies: ["Settings"],
+            path: "Projects/Features/Settings/Tests/SettingsTests"
         ),
         .testTarget(
             name: "FlyingDutchmanPersistenceTests",

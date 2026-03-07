@@ -1,8 +1,25 @@
 import Dependencies
 import Foundation
-import NetworkKit
+import FlyingDutchmanNetworking
 import Shared
 import SwiftUI
+
+struct SettingsNetworkClient: Sendable {
+    var checkDNSStatus: @Sendable () async -> Bool
+    var checkCATrustStatus: @Sendable () async -> Bool
+    var installDNSResolvers: @Sendable () async throws -> Void
+    var trustRootCA: @Sendable () async throws -> Void
+
+    static let live: Self = {
+        let manager = NetworkSetupManager()
+        return Self(
+            checkDNSStatus: { await manager.checkDNSStatus() },
+            checkCATrustStatus: { await manager.checkCATrustStatus() },
+            installDNSResolvers: { try await manager.installDNSResolvers() },
+            trustRootCA: { try await manager.trustRootCA() }
+        )
+    }()
+}
 
 @MainActor
 @Observable
@@ -13,20 +30,22 @@ public final class SettingsViewModel {
     public var isTrustingCA: Bool = false
     public var errorMessage: String?
     
-    private let networkManager = NetworkSetupManager()
+    private let networkClient: SettingsNetworkClient
     
-    public init() {}
+    init(networkClient: SettingsNetworkClient = .live) {
+        self.networkClient = networkClient
+    }
     
     public func checkStatus() async {
-        dnsStatus = await networkManager.checkDNSStatus()
-        caStatus = await networkManager.checkCATrustStatus()
+        dnsStatus = await networkClient.checkDNSStatus()
+        caStatus = await networkClient.checkCATrustStatus()
     }
     
     public func installDNS() async {
         isInstallingDNS = true
         errorMessage = nil
         do {
-            try await networkManager.installDNSResolvers()
+            try await networkClient.installDNSResolvers()
             await checkStatus()
         } catch {
             errorMessage = "Failed to install DNS: \(error.localizedDescription)"
@@ -38,7 +57,7 @@ public final class SettingsViewModel {
         isTrustingCA = true
         errorMessage = nil
         do {
-            try await networkManager.trustRootCA()
+            try await networkClient.trustRootCA()
             await checkStatus()
         } catch {
             errorMessage = "Failed to trust CA: \(error.localizedDescription)"

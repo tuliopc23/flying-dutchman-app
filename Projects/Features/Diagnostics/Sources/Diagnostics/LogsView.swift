@@ -12,6 +12,9 @@ import SwiftUI
 @MainActor
 @Observable
 public final class LogsViewModel {
+    nonisolated public static let liveLogsUnavailableMessage =
+        "Live logs unavailable. Start or reconnect the engine, then refresh."
+
     @ObservationIgnored
     @Dependency(\.continuousClock) private var clock
 
@@ -28,8 +31,22 @@ public final class LogsViewModel {
     private var lastLoaded: Date = .distantPast
     private var followTask: Task<Void, Never>?
     private var keepAliveTask: Task<Void, Never>?
+    private let fetchLogs: @MainActor @Sendable (UUID) async throws -> [String]
 
-    public init() {}
+    public init(
+        fetchLogs: @escaping @MainActor @Sendable (UUID) async throws -> [String] = { id in
+            try await EngineClient.fetchLogs(id: id)
+        }
+    ) {
+        self.fetchLogs = fetchLogs
+    }
+
+    nonisolated static func liveLogsUnavailableState(for error: any Error) -> (lines: [String], message: String) {
+        (
+            ["Logs unavailable: \(error.localizedDescription)"],
+            liveLogsUnavailableMessage
+        )
+    }
 
     public func load(containers: [ContainerSummary]) async {
         followTask?.cancel()
@@ -42,10 +59,11 @@ public final class LogsViewModel {
             return
         }
         do {
-            lines = try await EngineClient.fetchLogs(id: target.id)
+            lines = try await fetchLogs(target.id)
         } catch {
-            lines = ["Logs unavailable: \(error.localizedDescription)"]
-            self.error = "Engine unreachable; showing stub log."
+            let fallback = Self.liveLogsUnavailableState(for: error)
+            lines = fallback.lines
+            self.error = fallback.message
         }
         isLoading = false
         lastLoaded = now

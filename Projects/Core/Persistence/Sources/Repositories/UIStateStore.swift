@@ -12,13 +12,17 @@ public actor UIStateStore {
 
     public nonisolated func get() -> UIState {
         (try? dbQueue.read { db in
-            try UIStateRecord.fetchOne(db)?.toModel()
+            try UIStateRecord
+                .order(Column("lastUpdated").desc)
+                .fetchOne(db)?
+                .toModel()
         }) ?? UIState()
     }
 
     public func save(_ state: UIState) throws {
         try dbQueue.write { db in
-            try UIStateRecord(from: state).save(db)
+            try UIStateRecord.deleteAll(db)
+            try UIStateRecord(from: state).insert(db)
         }
     }
 }

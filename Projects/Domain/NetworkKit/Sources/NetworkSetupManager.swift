@@ -4,16 +4,30 @@ import Shared
 /// Manages system-level networking configuration (DNS, CA Trust)
 public actor NetworkSetupManager {
     private let logger = Loggers.make(category: "network.setup")
+    private let fileManager: FileManager
+    private let resolverDirectory: URL
+    private let caCertificateURL: URL
 
-    public init() {}
+    public init() {
+        let fileManager = FileManager.default
+        self.fileManager = fileManager
+        self.resolverDirectory = URL(fileURLWithPath: "/etc/resolver", isDirectory: true)
+        self.caCertificateURL = Self.defaultCACertificatePath(using: fileManager)
+    }
+
+    init(fileManager: FileManager, resolverDirectory: URL, caCertificateURL: URL) {
+        self.fileManager = fileManager
+        self.resolverDirectory = resolverDirectory
+        self.caCertificateURL = caCertificateURL
+    }
 
     // MARK: - DNS Configuration
 
     public func checkDNSStatus() -> Bool {
         let primarySuffix = AppConfig.Networking.primaryDomainSuffix
-        let path = "/etc/resolver/\(primarySuffix)"
+        let path = resolverDirectory.appendingPathComponent(primarySuffix)
         
-        guard FileManager.default.fileExists(atPath: path) else {
+        guard fileManager.fileExists(atPath: path.path) else {
             return false
         }
         
@@ -48,24 +62,21 @@ public actor NetworkSetupManager {
         // The UI should verify if the user *has* run the trust command.
         // A deeper check using `SecTrustSettingsCopyTrustSettings` is possible but complex.
         // For now, we assume if the file exists, it *can* be trusted.
-        let caPath = caCertificatePath()
-        return FileManager.default.fileExists(atPath: caPath.path)
+        return fileManager.fileExists(atPath: caCertificateURL.path)
     }
 
     public func trustRootCA() async throws {
-        let caPath = caCertificatePath()
-        
-        guard FileManager.default.fileExists(atPath: caPath.path) else {
+        guard fileManager.fileExists(atPath: caCertificateURL.path) else {
             throw NetworkError.caCertificateNotFound
         }
 
-        logger.info("Requesting privileges to trust Root CA at \(caPath.path)")
+        logger.info("Requesting privileges to trust Root CA at \(caCertificateURL.path)")
 
         // Use 'security' command via sudo
         // -d: add to admin cert store
         // -r trustRoot: trust as root CA
         // -k /Library/Keychains/System.keychain: system-wide trust
-        let command = "security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain \"\(caPath.path)\""
+        let command = "security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain \"\(caCertificateURL.path)\""
         
         try await executePrivileged(script: command)
         
@@ -94,9 +105,8 @@ public actor NetworkSetupManager {
         }
     }
 
-    private func caCertificatePath() -> URL {
-        let fm = FileManager.default
-        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
+    private static func defaultCACertificatePath(using fileManager: FileManager) -> URL {
+        let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fileManager.temporaryDirectory
         return base
             .appendingPathComponent("flyingdutchman")
             .appendingPathComponent("certs")

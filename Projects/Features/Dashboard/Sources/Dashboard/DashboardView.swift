@@ -4,6 +4,7 @@ import DesignSystem
 import FlyingDutchmanPersistence
 import Shared
 import SwiftUI
+import UIComponents
 
 @MainActor
 @Observable

@@ -6,6 +6,24 @@ import Shared
 import SwiftUI
 import UIComponents
 
+struct MachinesEngineClient: Sendable {
+    var listMachines: @Sendable () async throws -> [Machine]
+    var createMachine: @Sendable (_ name: String, _ config: MachineConfig) async throws -> Machine
+    var startMachine: @Sendable (_ id: String) async throws -> Machine
+    var stopMachine: @Sendable (_ id: String) async throws -> Machine
+    var restartMachine: @Sendable (_ id: String) async throws -> Machine
+    var deleteMachine: @Sendable (_ id: String) async throws -> Void
+
+    static let live = Self(
+        listMachines: { try await EngineClient.listMachines() },
+        createMachine: { name, config in try await EngineClient.createMachine(name: name, config: config) },
+        startMachine: { id in try await EngineClient.startMachine(nameOrID: id) },
+        stopMachine: { id in try await EngineClient.stopMachine(nameOrID: id) },
+        restartMachine: { id in try await EngineClient.restartMachine(nameOrID: id) },
+        deleteMachine: { id in try await EngineClient.deleteMachine(nameOrID: id) }
+    )
+}
+
 @MainActor
 @Observable
 public final class MachineListViewModel {
@@ -16,7 +34,15 @@ public final class MachineListViewModel {
     public var showRunningOnly: Bool = false
     public var showCreateSheet: Bool = false
 
-    public init() {}
+    private let client: MachinesEngineClient
+
+    public init() {
+        client = .live
+    }
+
+    init(client: MachinesEngineClient) {
+        self.client = client
+    }
 
     public var filtered: [Machine] {
         machines.filter { machine in
@@ -37,7 +63,7 @@ public final class MachineListViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            machines = try await EngineClient.listMachines()
+            machines = try await client.listMachines()
         } catch {
             machines = []
             self.error = "Failed to load machines: \(error.localizedDescription)"
@@ -46,19 +72,19 @@ public final class MachineListViewModel {
 
     public func start(_ machine: Machine) async {
         await mutate(machine) { id in
-            try await EngineClient.startMachine(nameOrID: id)
+            try await self.client.startMachine(id)
         }
     }
 
     public func stop(_ machine: Machine) async {
         await mutate(machine) { id in
-            try await EngineClient.stopMachine(nameOrID: id)
+            try await self.client.stopMachine(id)
         }
     }
 
     public func restart(_ machine: Machine) async {
         await mutate(machine) { id in
-            try await EngineClient.restartMachine(nameOrID: id)
+            try await self.client.restartMachine(id)
         }
     }
 
@@ -66,7 +92,7 @@ public final class MachineListViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            try await EngineClient.deleteMachine(nameOrID: machine.id)
+            try await client.deleteMachine(machine.id)
             machines.removeAll { $0.id == machine.id }
         } catch {
             self.error = "Delete failed: \(error.localizedDescription)"
@@ -77,7 +103,7 @@ public final class MachineListViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            let created = try await EngineClient.createMachine(name: name, config: config)
+            let created = try await client.createMachine(name, config)
             machines.append(created)
         } catch {
             self.error = "Create failed: \(error.localizedDescription)"
@@ -387,28 +413,30 @@ final class MachineDetailViewModel {
     var machine: Machine
     var error: String?
     var isPerformingAction: Bool = false
+    private let client: MachinesEngineClient
 
-    init(machine: Machine) {
+    init(machine: Machine, client: MachinesEngineClient = .live) {
         self.machine = machine
+        self.client = client
     }
 
     func start() async {
-        await performAction { try await EngineClient.startMachine(nameOrID: machine.id) }
+        await performAction { try await self.client.startMachine(self.machine.id) }
     }
 
     func stop() async {
-        await performAction { try await EngineClient.stopMachine(nameOrID: machine.id) }
+        await performAction { try await self.client.stopMachine(self.machine.id) }
     }
 
     func restart() async {
-        await performAction { try await EngineClient.restartMachine(nameOrID: machine.id) }
+        await performAction { try await self.client.restartMachine(self.machine.id) }
     }
 
     func delete() async {
         isPerformingAction = true
         defer { isPerformingAction = false }
         do {
-            try await EngineClient.deleteMachine(nameOrID: machine.id)
+            try await client.deleteMachine(machine.id)
         } catch {
             self.error = "Delete failed: \(error.localizedDescription)"
         }

@@ -80,7 +80,7 @@ final class ContainerEventStoreTests: XCTestCase {
     func testRecordMultipleEvents() async {
         let containerID = UUID()
 
-        for i in 0 ..< 5 {
+        for _ in 0 ..< 5 {
             let event = ContainerEvent(
                 containerID: containerID,
                 type: .stateChanged(from: .stopped, to: .running)
@@ -201,7 +201,7 @@ final class ContainerEventStoreTests: XCTestCase {
         }
     }
 
-    func testComplexEventTypeRoundTrips() async {
+    func testComplexEventTypeRoundTrips() async throws {
         let containerID = UUID()
 
         // Test all event types
@@ -231,15 +231,20 @@ final class ContainerEventStoreTests: XCTestCase {
         let retrieved = await eventStore.events(for: containerID)
         XCTAssertEqual(retrieved.count, 3)
 
+        let retrievedByID = Dictionary(uniqueKeysWithValues: retrieved.map { ($0.id, $0) })
+
+        let retrievedLogEvent = try XCTUnwrap(retrievedByID[logEvent.id])
+        let retrievedResourceEvent = try XCTUnwrap(retrievedByID[resourceEvent.id])
+
         // Verify log output with special characters
-        if case let .logOutput(message) = retrieved[1].type {
+        if case let .logOutput(message) = retrievedLogEvent.type {
             XCTAssertEqual(message, "Complex log message with special chars: !@#$%")
         } else {
             XCTFail("Expected logOutput with special characters")
         }
 
         // Verify resource info
-        if case let .resourceUpdate(info) = retrieved[2].type {
+        if case let .resourceUpdate(info) = retrievedResourceEvent.type {
             XCTAssertEqual(info.cpuPercent, 75.5, accuracy: 0.01)
             XCTAssertEqual(info.memoryBytes, 1024 * 1024 * 1024)
             XCTAssertEqual(info.memoryPercent, 50.0, accuracy: 0.01)

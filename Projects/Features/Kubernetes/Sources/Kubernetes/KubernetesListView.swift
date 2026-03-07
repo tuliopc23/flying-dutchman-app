@@ -6,6 +6,34 @@ import Shared
 import SwiftUI
 import UIComponents
 
+struct KubernetesEngineClient: Sendable {
+    var listMachines: @Sendable () async throws -> [Machine]
+    var listContainers: @Sendable () async throws -> [ContainerSummary]
+    var createMachine: @Sendable (_ name: String, _ config: MachineConfig) async throws -> Machine
+    var createContainer: @Sendable (_ name: String, _ image: String, _ config: ContainerConfig) async throws -> ContainerSummary
+    var startMachine: @Sendable (_ id: String) async throws -> Machine
+    var startContainer: @Sendable (_ id: UUID) async throws -> ContainerSummary
+    var stopMachine: @Sendable (_ id: String) async throws -> Machine
+    var stopContainer: @Sendable (_ id: UUID) async throws -> ContainerSummary
+    var deleteMachine: @Sendable (_ id: String) async throws -> Void
+    var removeContainer: @Sendable (_ id: UUID) async throws -> Void
+    var executeMachineCommand: @Sendable (_ id: String, _ command: String) async throws -> String
+
+    static let live = Self(
+        listMachines: { try await EngineClient.listMachines() },
+        listContainers: { try await EngineClient.listContainers() },
+        createMachine: { name, config in try await EngineClient.createMachine(name: name, config: config) },
+        createContainer: { name, image, config in try await EngineClient.createContainer(name: name, image: image, config: config) },
+        startMachine: { id in try await EngineClient.startMachine(nameOrID: id) },
+        startContainer: { id in try await EngineClient.startContainer(id: id) },
+        stopMachine: { id in try await EngineClient.stopMachine(nameOrID: id) },
+        stopContainer: { id in try await EngineClient.stopContainer(id: id) },
+        deleteMachine: { id in try await EngineClient.deleteMachine(nameOrID: id) },
+        removeContainer: { id in try await EngineClient.removeContainer(id: id) },
+        executeMachineCommand: { id, command in try await EngineClient.executeMachineCommand(nameOrID: id, command: command) }
+    )
+}
+
 public enum KubernetesClusterKind: String, Sendable {
     case vm
     case container
@@ -36,14 +64,22 @@ public final class KubernetesListViewModel {
     public var isLoading: Bool = false
     public var showCreateSheet: Bool = false
 
-    public init() {}
+    private let client: KubernetesEngineClient
+
+    public init() {
+        client = .live
+    }
+
+    init(client: KubernetesEngineClient) {
+        self.client = client
+    }
 
     public func load() async {
         isLoading = true
         defer { isLoading = false }
         do {
-            async let machines = EngineClient.listMachines()
-            async let containers = EngineClient.listContainers()
+            async let machines = client.listMachines()
+            async let containers = client.listContainers()
 
             let machineClusters = try await machines
                 .filter(\.isKubernetesCluster)
@@ -91,7 +127,7 @@ public final class KubernetesListViewModel {
                     diskGB: 20,
                     installK3s: true
                 )
-                _ = try await EngineClient.createMachine(name: name, config: config)
+                _ = try await client.createMachine(name, config)
             } else {
                 let config = ContainerConfig(
                     portMappings: [
@@ -102,11 +138,7 @@ public final class KubernetesListViewModel {
                     env: ["K3S_TOKEN": "flying-dutchman-token"],
                     command: ["server", "--disable=traefik"]
                 )
-                _ = try await EngineClient.createContainer(
-                    name: name,
-                    image: "rancher/k3s:latest",
-                    config: config
-                )
+                _ = try await client.createContainer(name, "rancher/k3s:latest", config)
             }
             await load()
         } catch {
@@ -118,10 +150,10 @@ public final class KubernetesListViewModel {
         await mutate(cluster) { cluster in
             switch cluster.kind {
             case .vm:
-                _ = try await EngineClient.startMachine(nameOrID: cluster.id)
+                _ = try await self.client.startMachine(cluster.id)
             case .container:
                 if let id = UUID(uuidString: cluster.id) {
-                    _ = try await EngineClient.startContainer(id: id)
+                    _ = try await self.client.startContainer(id)
                 }
             }
         }
@@ -131,10 +163,10 @@ public final class KubernetesListViewModel {
         await mutate(cluster) { cluster in
             switch cluster.kind {
             case .vm:
-                _ = try await EngineClient.stopMachine(nameOrID: cluster.id)
+                _ = try await self.client.stopMachine(cluster.id)
             case .container:
                 if let id = UUID(uuidString: cluster.id) {
-                    _ = try await EngineClient.stopContainer(id: id)
+                    _ = try await self.client.stopContainer(id)
                 }
             }
         }
@@ -144,10 +176,10 @@ public final class KubernetesListViewModel {
         await mutate(cluster) { cluster in
             switch cluster.kind {
             case .vm:
-                try await EngineClient.deleteMachine(nameOrID: cluster.id)
+                try await self.client.deleteMachine(cluster.id)
             case .container:
                 if let id = UUID(uuidString: cluster.id) {
-                    try await EngineClient.removeContainer(id: id)
+                    try await self.client.removeContainer(id)
                 }
             }
         }
@@ -157,10 +189,7 @@ public final class KubernetesListViewModel {
         do {
             switch cluster.kind {
             case .vm:
-                let config = try await EngineClient.executeMachineCommand(
-                    nameOrID: cluster.id,
-                    command: "sudo cat /etc/rancher/k3s/k3s.yaml"
-                )
+                let config = try await client.executeMachineCommand(cluster.id, "sudo cat /etc/rancher/k3s/k3s.yaml")
                 if let ip = cluster.ipAddress {
                     return config.replacingOccurrences(of: "https://127.0.0.1:6443", with: "https://\(ip):6443")
                 }

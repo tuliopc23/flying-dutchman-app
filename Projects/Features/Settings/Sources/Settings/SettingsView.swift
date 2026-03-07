@@ -3,6 +3,7 @@ import DesignSystem
 import FlyingDutchmanPersistence
 import Shared
 import SwiftUI
+import UIComponents
 
 public struct SettingsView: View {
     @State private var state: UIState = UIState()

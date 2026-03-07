@@ -160,8 +160,8 @@ struct ContainerCard: View {
                     
                     if !container.ports.isEmpty {
                         HStack {
-                            ForEach(container.ports.prefix(2), id: \.containerPort) { port in
-                                Text("\(port.hostPort):\(port.containerPort)")
+                            ForEach(Swift.Array(container.ports.prefix(2)), id: \.self) { port in
+                                Text(port)
                                     .font(DesignSystem.Typography.codeSmall)
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)

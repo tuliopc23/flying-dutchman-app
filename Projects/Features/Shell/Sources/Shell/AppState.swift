@@ -122,6 +122,9 @@ public final class AppState {
 
     func refreshCurrentSection() async {
         switch selectedSection {
+        case .dashboard:
+            await refreshEngineStatus()
+            await refreshContainers()
         case .logs:
             await refreshContainers()
         case .events:

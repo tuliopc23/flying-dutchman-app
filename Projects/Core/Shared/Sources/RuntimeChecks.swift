@@ -14,6 +14,14 @@ public enum RuntimeChecks {
         public let message: String
     }
 
+    private static var containerizationFrameworkAvailable: Bool {
+        #if canImport(Containerization)
+            true
+        #else
+            false
+        #endif
+    }
+
     public static func containerToolVersion() -> ToolCheck {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -43,15 +51,19 @@ public enum RuntimeChecks {
     }
 
     public static func containerizationFramework() -> ToolCheck {
-        #if canImport(Containerization)
+        containerizationFramework(frameworkAvailable: containerizationFrameworkAvailable)
+    }
+
+    public static func containerizationFramework(frameworkAvailable: Bool) -> ToolCheck {
+        if frameworkAvailable {
             return ToolCheck(name: "Containerization.framework", status: "ok", message: "Framework present")
-        #else
-            return ToolCheck(
-                name: "Containerization.framework",
-                status: "missing",
-                message: "Not detected (stub). Install Tahoe Containerization framework."
-            )
-        #endif
+        }
+
+        return ToolCheck(
+            name: "Containerization.framework",
+            status: "missing",
+            message: "Containerization.framework not detected. Install Tahoe Containerization for the native runtime. Flying Dutchman can use CLI fallback when available and only falls back to stub mode if no runtime is reachable."
+        )
     }
 
     public static func platformSupport(

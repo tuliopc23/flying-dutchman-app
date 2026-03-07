@@ -36,11 +36,16 @@ public actor ContainerEventStore {
     public func events(for containerID: UUID, limit: Int = 50) -> [ContainerEvent] {
         do {
             return try dbQueue.read { db in
-                try ContainerEventRecord
-                    .filter(Column("containerId") == containerID.uuidString)
-                    .order(Column("timestamp").desc)
-                    .limit(limit)
-                    .fetchAll(db)
+                try ContainerEventRecord.fetchAll(
+                    db,
+                    sql: """
+                    SELECT * FROM containerEvents
+                    WHERE containerId = ?
+                    ORDER BY timestamp DESC, id DESC
+                    LIMIT ?
+                    """,
+                    arguments: [containerID.uuidString, limit]
+                )
                     .compactMap { $0.toContainerEvent() }
             }
         } catch {
@@ -53,10 +58,15 @@ public actor ContainerEventStore {
     public func recent(limit: Int = 100) -> [ContainerEvent] {
         do {
             return try dbQueue.read { db in
-                let records = try ContainerEventRecord
-                    .order(Column("timestamp").desc)
-                    .limit(limit)
-                    .fetchAll(db)
+                let records = try ContainerEventRecord.fetchAll(
+                    db,
+                    sql: """
+                    SELECT * FROM containerEvents
+                    ORDER BY timestamp DESC, id DESC
+                    LIMIT ?
+                    """,
+                    arguments: [limit]
+                )
                 return records.compactMap { $0.toContainerEvent() }.reversed()
             }
         } catch {
@@ -68,7 +78,7 @@ public actor ContainerEventStore {
     /// Delete all events for a specific container
     public func deleteEvents(for containerID: UUID) {
         do {
-            try dbQueue.write { db in
+            _ = try dbQueue.write { db in
                 try ContainerEventRecord
                     .filter(Column("containerId") == containerID.uuidString)
                     .deleteAll(db)
@@ -96,7 +106,7 @@ public actor ContainerEventStore {
             let idsToDelete = try Int.fetchAll(db, sql: """
             SELECT id FROM containerEvents
             WHERE containerId = ?
-            ORDER BY timestamp ASC
+            ORDER BY timestamp ASC, id ASC
             LIMIT ?
             """, arguments: [containerID.uuidString, count - maxEventsPerContainer])
 
