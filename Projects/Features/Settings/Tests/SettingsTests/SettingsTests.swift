@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import Shared
 @testable import Settings
 
 @Suite("Settings ViewModel Tests")
@@ -19,6 +20,10 @@ struct SettingsTests {
 
         #expect(viewModel.dnsStatus)
         #expect(!viewModel.caStatus)
+        #expect(viewModel.dnsStatusLabel == "Installed")
+        #expect(viewModel.dnsStatusMessage.contains(AppConfig.Networking.primaryDomainSuffix))
+        #expect(viewModel.caStatusLabel == "Action needed")
+        #expect(viewModel.caStatusMessage.contains("Trust the Root CA"))
     }
 
     @Test("installDNS refreshes status after success")
@@ -50,7 +55,8 @@ struct SettingsTests {
         await viewModel.installDNS()
 
         #expect(!viewModel.isInstallingDNS)
-        #expect(viewModel.errorMessage == "Failed to install DNS: DNS install failed")
+        #expect(viewModel.errorMessage?.contains("install-resolver") == true)
+        #expect(viewModel.errorMessage?.contains("DNS install failed") == true)
     }
 
     @Test("trustCA refreshes trust state after success")
@@ -83,7 +89,8 @@ struct SettingsTests {
 
         #expect(!viewModel.caStatus)
         #expect(!viewModel.isTrustingCA)
-        #expect(viewModel.errorMessage == "Failed to trust CA: CA trust failed")
+        #expect(viewModel.errorMessage?.contains("trust-ca") == true)
+        #expect(viewModel.errorMessage?.contains("CA trust failed") == true)
     }
 }
 

@@ -35,7 +35,6 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-navigation.git", from: "2.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0"),
         .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
-        .package(url: "https://github.com/danielsaidi/SwiftPackageScripts.git", from: "1.0.0"),
         .package(url: "https://github.com/orlandos-nl/DNSClient.git", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-certificates.git", from: "1.0.0"),
         .package(url: "https://github.com/orlandos-nl/Citadel.git", from: "0.7.0")

@@ -36,4 +36,5 @@ This command is the minimum repeatable automated smoke gate for release-critical
 
 - The smoke suite is narrower than the full `swift test` gate and is intended to fail fast on release-critical regressions.
 - `bash scripts/validate-release.sh` runs this smoke suite before the full package test pass.
+- `bash scripts/validate-privileged-flows.sh` preflights the CLI validation surface and prints the manual resolver, CA trust, HTTPS, and port-forward commands for privileged smoke passes.
 - Manual smoke for privileged networking, containers, machines, and Kubernetes remains required and is tracked separately in the release evidence checklist.

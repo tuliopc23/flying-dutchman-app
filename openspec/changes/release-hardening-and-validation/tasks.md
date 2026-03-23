@@ -16,14 +16,14 @@
 
 - [x] 3.1 Audit user-critical stub and placeholder runtime paths and convert P0 cases into production-safe behavior or explicit failures
 - [x] 3.2 Harden CLI diagnostics and recovery flows for engine health, resolver setup, and certificate trust
-- [ ] 3.3 Harden Settings to surface release-critical runtime status and recovery actions clearly
+- [x] 3.3 Harden Settings to surface release-critical runtime status and recovery actions clearly
 - [x] 3.4 Verify persisted defaults and migration-sensitive settings survive relaunch and existing user state
-- [ ] 3.5 Triage release-critical compiler warnings and concurrency/networking issues that could hide correctness problems
+- [x] 3.5 Triage release-critical compiler warnings and concurrency/networking issues that could hide correctness problems
 
 ## 4. Validation and CI Enforcement
 
 - [x] 4.1 Encode the required release gate into CI or scripted local validation steps so regressions fail early
-- [ ] 4.2 Add targeted validation commands for networking and privileged flows where full automation is not possible
+- [x] 4.2 Add targeted validation commands for networking and privileged flows where full automation is not possible
 - [ ] 4.3 Create a manual smoke matrix for container, machine, Kubernetes, DNS, HTTPS, and CLI recovery workflows
 - [ ] 4.4 Verify candidate startup against existing persisted data and document rollback or deferral procedure for failed candidates
 

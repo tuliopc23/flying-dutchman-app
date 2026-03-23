@@ -31,6 +31,34 @@ public final class SettingsViewModel {
     public var errorMessage: String?
     
     private let networkClient: SettingsNetworkClient
+
+    var dnsStatusLabel: String {
+        dnsStatus ? "Installed" : "Action needed"
+    }
+
+    var dnsStatusMessage: String {
+        dnsStatus
+            ? "Resolver configuration is installed for \(AppConfig.Networking.primaryDomainSuffix)."
+            : "Install the resolver to enable local HTTPS domains under \(AppConfig.Networking.primaryDomainSuffix)."
+    }
+
+    var caStatusLabel: String {
+        caStatus ? "Trusted" : "Action needed"
+    }
+
+    var caStatusMessage: String {
+        caStatus
+            ? "Root CA trust is available for local HTTPS connections."
+            : "Trust the Root CA after the engine generates it to avoid local HTTPS trust warnings."
+    }
+
+    static func dnsInstallFailureMessage(for error: any Error) -> String {
+        "Couldn't install the DNS resolver. Retry Install or run 'flyingdutchman networking install-resolver'. Details: \(error.localizedDescription)"
+    }
+
+    static func caTrustFailureMessage(for error: any Error) -> String {
+        "Couldn't trust the Root CA. Start FlyingDutchmanEngine if needed, then retry Trust or run 'flyingdutchman trust-ca'. Details: \(error.localizedDescription)"
+    }
     
     init(networkClient: SettingsNetworkClient = .live) {
         self.networkClient = networkClient
@@ -48,7 +76,7 @@ public final class SettingsViewModel {
             try await networkClient.installDNSResolvers()
             await checkStatus()
         } catch {
-            errorMessage = "Failed to install DNS: \(error.localizedDescription)"
+            errorMessage = Self.dnsInstallFailureMessage(for: error)
         }
         isInstallingDNS = false
     }
@@ -60,7 +88,7 @@ public final class SettingsViewModel {
             try await networkClient.trustRootCA()
             await checkStatus()
         } catch {
-            errorMessage = "Failed to trust CA: \(error.localizedDescription)"
+            errorMessage = Self.caTrustFailureMessage(for: error)
         }
         isTrustingCA = false
     }

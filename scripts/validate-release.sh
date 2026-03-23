@@ -19,4 +19,7 @@ bash scripts/run-release-smoke-suite.sh
 echo "==> Running Swift test suite"
 swift test
 
+echo "==> Privileged/manual validation helper"
+echo "bash scripts/validate-privileged-flows.sh"
+
 echo "==> Release validation completed successfully"

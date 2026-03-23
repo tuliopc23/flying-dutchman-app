@@ -97,9 +97,12 @@ public struct SettingsView: View {
                             VStack(alignment: .leading) {
                                 Text("DNS Resolver")
                                     .font(DesignSystem.Typography.body)
-                                Text(viewModel.dnsStatus ? "Installed" : "Not Installed")
+                                Text(viewModel.dnsStatusLabel)
                                     .font(DesignSystem.Typography.caption1)
                                     .foregroundStyle(viewModel.dnsStatus ? .green : .orange)
+                                Text(viewModel.dnsStatusMessage)
+                                    .font(DesignSystem.Typography.caption1)
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
                             }
                             Spacer()
                             if !viewModel.dnsStatus {
@@ -120,9 +123,12 @@ public struct SettingsView: View {
                             VStack(alignment: .leading) {
                                 Text("Root CA")
                                     .font(DesignSystem.Typography.body)
-                                Text(viewModel.caStatus ? "Trusted" : "Not Trusted")
+                                Text(viewModel.caStatusLabel)
                                     .font(DesignSystem.Typography.caption1)
                                     .foregroundStyle(viewModel.caStatus ? .green : .orange)
+                                Text(viewModel.caStatusMessage)
+                                    .font(DesignSystem.Typography.caption1)
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
                             }
                             Spacer()
                             if !viewModel.caStatus {
