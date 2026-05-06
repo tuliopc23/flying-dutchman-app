@@ -1,4 +1,5 @@
 import ContainersInterface
+import DashboardInterface
 import DebugShellInterface
 import DiagnosticsInterface
 import ImagesInterface
@@ -9,6 +10,7 @@ import StacksInterface
 import VolumesInterface
 
 public struct ShellFeatureRegistry {
+    public let dashboard: DashboardFeature
     public let containers: ContainersFeature
     public let images: ImagesFeature
     public let volumes: VolumesFeature
@@ -20,6 +22,7 @@ public struct ShellFeatureRegistry {
     public let debugShell: DebugShellFeature
 
     public init(
+        dashboard: DashboardFeature,
         containers: ContainersFeature,
         images: ImagesFeature,
         volumes: VolumesFeature,
@@ -30,6 +33,7 @@ public struct ShellFeatureRegistry {
         kubernetes: KubernetesFeature,
         debugShell: DebugShellFeature
     ) {
+        self.dashboard = dashboard
         self.containers = containers
         self.images = images
         self.volumes = volumes

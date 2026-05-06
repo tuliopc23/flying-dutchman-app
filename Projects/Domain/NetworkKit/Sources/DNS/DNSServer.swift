@@ -71,75 +71,80 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
         promise.futureResult.whenSuccess { responseEnvelope in
             context.writeAndFlush(self.wrapOutboundOut(responseEnvelope), promise: nil)
         }
-
         promise.futureResult.whenFailure { error in
             self.logger.error("Failed to handle DNS request: \(error)")
         }
 
         do {
             let request = try DNSMessageDecoder.parse(inboundData)
-
             Task {
-                var answers: [Record] = []
-
-                for question in request.questions {
-                    if question.type == .a {
-                        let hostname = question.labels.string
-                        if let ip = await self.routingTable.resolveIPv4(hostname: hostname) {
-                            if let address = self.ipToUInt32(ip) {
-                                let resource = ARecord(address: address)
-                                let record = Record.a(ResourceRecord(
-                                    domainName: question.labels,
-                                    dataType: DNSResourceType.a.rawValue,
-                                    dataClass: DataClass.internet.rawValue,
-                                    ttl: 60,
-                                    resource: resource
-                                ))
-                                answers.append(record)
-                            }
-                        }
-                    }
-                }
-
-                let responseOptions: MessageOptions = if answers.isEmpty {
-                    [.answer, .authorativeAnswer, .resultCodeNameError]
-                } else {
-                    [.answer, .authorativeAnswer, .resultCodeSuccess]
-                }
-
-                let header = DNSMessageHeader(
-                    id: request.header.id,
-                    options: responseOptions,
-                    questionCount: UInt16(request.questions.count),
-                    answerCount: UInt16(answers.count),
-                    authorityCount: 0,
-                    additionalRecordCount: 0
+                await self.buildAndSendResponse(
+                    request: request,
+                    remoteAddress: remoteAddress,
+                    allocator: allocator,
+                    promise: promise
                 )
-
-                let response = Message(
-                    header: header,
-                    questions: request.questions,
-                    answers: answers,
-                    authorities: [],
-                    additionalData: []
-                )
-
-                do {
-                    var labelIndices: [String: UInt16] = [:]
-                    let responseBuffer = try DNSMessageEncoder.encodeMessage(
-                        response,
-                        allocator: allocator,
-                        labelIndices: &labelIndices
-                    )
-
-                    let responseEnvelope = AddressedEnvelope(remoteAddress: remoteAddress, data: responseBuffer)
-                    promise.succeed(responseEnvelope)
-                } catch {
-                    promise.fail(error)
-                }
             }
         } catch {
             logger.error("Failed to decode DNS message: \(error)")
+        }
+    }
+
+    private func buildAndSendResponse(
+        request: Message,
+        remoteAddress: SocketAddress,
+        allocator: ByteBufferAllocator,
+        promise: EventLoopPromise<AddressedEnvelope<ByteBuffer>>
+    ) async {
+        var answers: [Record] = []
+        for question in request.questions where question.type == .a {
+            let hostname = question.labels.string
+            if let ip = await routingTable.resolveIPv4(hostname: hostname),
+               let address = ipToUInt32(ip) {
+                let resource = ARecord(address: address)
+                let record = Record.a(ResourceRecord(
+                    domainName: question.labels,
+                    dataType: DNSResourceType.a.rawValue,
+                    dataClass: DataClass.internet.rawValue,
+                    ttl: 60,
+                    resource: resource
+                ))
+                answers.append(record)
+            }
+        }
+
+        let responseOptions: MessageOptions = answers.isEmpty
+            ? [.answer, .authorativeAnswer, .resultCodeNameError]
+            : [.answer, .authorativeAnswer, .resultCodeSuccess]
+
+        let header = DNSMessageHeader(
+            id: request.header.id,
+            options: responseOptions,
+            questionCount: UInt16(request.questions.count),
+            answerCount: UInt16(answers.count),
+            authorityCount: 0,
+            additionalRecordCount: 0
+        )
+
+        let response = Message(
+            header: header,
+            questions: request.questions,
+            answers: answers,
+            authorities: [],
+            additionalData: []
+        )
+
+        do {
+            var labelIndices: [String: UInt16] = [:]
+            let responseBuffer = try DNSMessageEncoder.encodeMessage(
+                response,
+                allocator: allocator,
+                labelIndices: &labelIndices
+            )
+            let responseEnvelope = AddressedEnvelope(remoteAddress: remoteAddress, data: responseBuffer)
+            promise.succeed(responseEnvelope)
+        } catch {
+            promise.fail(error)
         }
     }
 

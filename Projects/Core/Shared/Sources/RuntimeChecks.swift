@@ -68,7 +68,12 @@ public enum RuntimeChecks {
         return ToolCheck(
             name: "Containerization.framework",
             status: "missing",
-            message: "Containerization.framework not detected. Install Tahoe Containerization for the native runtime. Flying Dutchman can use CLI fallback when available and only falls back to stub mode if no runtime is reachable."
+            message: """
+            Containerization.framework not detected. \
+            Install Tahoe Containerization for the native runtime. \
+            Flying Dutchman can use CLI fallback when available \
+            and only falls back to stub mode if no runtime is reachable.
+            """
         )
     }
 

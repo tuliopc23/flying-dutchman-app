@@ -1,8 +1,8 @@
 import Foundation
-import NIOCore
-import NIOTransportServices
 import Logging
 import Network
+import NIOCore
+import NIOTransportServices
 
 public final class VSOCKConnector: Sendable {
     private let group: NIOTSEventLoopGroup
@@ -20,19 +20,19 @@ public final class VSOCKConnector: Sendable {
                 // Add our framing codec to the pipeline
                 channel.pipeline.addHandler(ControlPlaneCodec())
             }
-            
+
         // Construct the VSOCK endpoint
         let endpoint = try NWEndpoint.vsock(cid: cid, port: port)
-        
+
         logger.info("Connecting VSOCK to CID: \(cid) Port: \(port)")
         return try await bootstrap.connect(endpoint: endpoint).get()
     }
 }
 
-// Helper for macOS 26+ VSOCK addressing
+/// Helper for macOS 26+ VSOCK addressing
 extension NWEndpoint {
     static func vsock(cid: UInt32, port: UInt32) throws -> NWEndpoint {
         // Format: cid.vsock:port (Standard convention for macOS Virtio bridging)
-        return .hostPort(host: .init("\(cid).vsock"), port: .init(integerLiteral: UInt16(port)))
+        .hostPort(host: .init("\(cid).vsock"), port: .init(integerLiteral: UInt16(port)))
     }
 }

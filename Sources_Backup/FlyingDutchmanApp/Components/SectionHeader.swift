@@ -18,12 +18,12 @@ struct SectionHeader<Content: View>: View {
             HStack(spacing: DesignSystem.Spacing.sm) {
                 Image.systemIcon(icon, size: DesignSystem.Size.iconLarge)
                     .foregroundStyle(DesignSystem.Colors.accent)
-                
+
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
                     Text(title)
                         .font(DesignSystem.Typography.title3)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     if let subtitle {
                         Text(subtitle)
                             .font(DesignSystem.Typography.caption1)
@@ -31,9 +31,9 @@ struct SectionHeader<Content: View>: View {
                     }
                 }
             }
-            
+
             Spacer(minLength: DesignSystem.Spacing.md)
-            
+
             actions
                 .buttonStyle(.borderless)
         }

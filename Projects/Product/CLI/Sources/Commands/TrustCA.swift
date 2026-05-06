@@ -24,9 +24,12 @@ struct TrustCA: AsyncParsableCommand {
 
         do {
             try await setupManager.trustRootCA()
-            
+
             CLIOutput.line("Status", "✓ Certificate trusted successfully")
-            CLIOutput.hint("You can now access containers via https://<container-name>.flyingdutchman.local:\(AppConfig.Networking.httpsProxyPort)")
+            CLIOutput
+                .hint(
+                    "You can now access containers via https://<container-name>.flyingdutchman.local:\(AppConfig.Networking.httpsProxyPort)"
+                )
         } catch {
             CLIOutput.warn("Error", error.localizedDescription)
             CLIOutput.hint("Ensure you enter your password when prompted to modify the System keychain")

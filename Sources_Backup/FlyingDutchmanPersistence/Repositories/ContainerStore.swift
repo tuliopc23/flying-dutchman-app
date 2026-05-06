@@ -42,7 +42,7 @@ public actor ContainerStore: AnyContainerStore {
             return try ContainerRecord
                 .filter(
                     Column("name").lowercased.like(pattern) ||
-                    Column("image").lowercased.like(pattern)
+                        Column("image").lowercased.like(pattern)
                 )
                 .fetchAll(db)
                 .map { $0.toSummary() }

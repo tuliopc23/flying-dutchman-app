@@ -29,6 +29,6 @@ let template = Template(
         .file(
             path: "Projects/Features/\(nameAttribute)/Tests/\(nameAttribute)Tests/\(nameAttribute)Tests.swift",
             templatePath: "Tests.stencil"
-        )
+        ),
     ]
 )

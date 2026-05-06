@@ -19,24 +19,24 @@ struct CLIDoctorTests {
         let resolver = try #require(payload["resolver"] as? [String: Any])
         let caCertificate = try #require(payload["caCertificate"] as? [String: Any])
 
-        #expect(platform["message"] as? String != nil)
-        #expect(platform["isSupported"] as? Bool != nil)
-        #expect(platform["osVersion"] as? String != nil)
+        #expect(platform["message"] is String)
+        #expect(platform["isSupported"] is Bool)
+        #expect(platform["osVersion"] is String)
 
         #expect(containerTool["name"] as? String == "container")
-        #expect(containerTool["status"] as? String != nil)
-        #expect(containerTool["message"] as? String != nil)
+        #expect(containerTool["status"] is String)
+        #expect(containerTool["message"] is String)
 
         #expect(containerization["name"] as? String == "Containerization.framework")
-        #expect(containerization["status"] as? String != nil)
-        #expect(containerization["message"] as? String != nil)
+        #expect(containerization["status"] is String)
+        #expect(containerization["message"] is String)
 
         #expect(resolver["name"] as? String == "DNS Resolver")
-        #expect(resolver["status"] as? String != nil)
+        #expect(resolver["status"] is String)
         #expect((resolver["message"] as? String)?.contains("install-resolver") ?? true)
 
         #expect(caCertificate["name"] as? String == "Root CA Certificate")
-        #expect(caCertificate["status"] as? String != nil)
+        #expect(caCertificate["status"] is String)
         #expect((caCertificate["message"] as? String)?.contains("trust-ca") ?? true)
 
         #expect(payload["http"] != nil || payload["httpError"] != nil)
@@ -116,7 +116,7 @@ private enum CLIProcessError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case let .executableNotFound(paths):
-            return "Could not find FlyingDutchmanCLI executable at: \(paths.joined(separator: ", "))"
+            "Could not find FlyingDutchmanCLI executable at: \(paths.joined(separator: ", "))"
         }
     }
 }

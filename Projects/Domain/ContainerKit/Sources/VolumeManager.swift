@@ -138,8 +138,7 @@ public actor VolumeManager {
         if let enumerator = FileManager.default.enumerator(at: volumeURL, includingPropertiesForKeys: [.fileSizeKey]) {
             for case let fileURL as URL in enumerator {
                 if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
-                   let fileSize = resourceValues.fileSize
-                {
+                   let fileSize = resourceValues.fileSize {
                     totalSize += Int64(fileSize)
                 }
             }

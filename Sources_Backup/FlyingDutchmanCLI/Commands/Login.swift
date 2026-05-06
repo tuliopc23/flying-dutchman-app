@@ -1,6 +1,6 @@
-import Foundation
 import ArgumentParser
 import FlyingDutchmanNetworking
+import Foundation
 import Shared
 
 /// CLI command for logging in to a container registry
@@ -11,24 +11,24 @@ struct Login: AsyncParsableCommand {
         commandName: "login",
         abstract: "Log in to a container registry"
     )
-    
+
     @Argument(help: "Registry to log in to (default: docker.io)")
     var registry: String = "docker.io"
-    
+
     @Option(name: .shortAndLong, help: "Username (will prompt if not provided)")
     var username: String?
-    
+
     @Option(name: .shortAndLong, help: "Password or token (will prompt securely if not provided)")
     var password: String?
-    
+
     func run() async throws {
         // Normalize registry name
         let normalizedRegistry = normalizeRegistry(registry)
-        
+
         // Get credentials (prompt if not provided)
         let user = username ?? promptForUsername(registry: normalizedRegistry)
         let pass = password ?? promptForPassword(registry: normalizedRegistry)
-        
+
         // Validate inputs
         guard !user.isEmpty else {
             throw ValidationError("Username cannot be empty")
@@ -36,7 +36,7 @@ struct Login: AsyncParsableCommand {
         guard !pass.isEmpty else {
             throw ValidationError("Password cannot be empty")
         }
-        
+
         // Send login request to Engine
         do {
             try await EngineClient.login(registry: normalizedRegistry, username: user, password: pass)
@@ -50,9 +50,9 @@ struct Login: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
-    
+
     // MARK: - Private Helpers
-    
+
     /// Normalize registry name (handle shortcuts)
     private func normalizeRegistry(_ input: String) -> String {
         switch input.lowercased() {
@@ -77,39 +77,39 @@ struct Login: AsyncParsableCommand {
             return normalized
         }
     }
-    
+
     /// Prompt for username with registry context
     private func promptForUsername(registry: String) -> String {
         print("Username for \(registry): ", terminator: "")
         fflush(stdout)
         return readLine() ?? ""
     }
-    
+
     /// Prompt for password securely (no echo)
     private func promptForPassword(registry: String) -> String {
         print("Password or token for \(registry): ", terminator: "")
         fflush(stdout)
-        
+
         // Attempt to disable echo for password input
         let password = readPasswordSecurely()
         print("") // New line after password input
-        
+
         return password
     }
-    
+
     /// Read password with echo disabled (macOS-specific)
     private func readPasswordSecurely() -> String {
         var oldTermios = termios()
         tcgetattr(STDIN_FILENO, &oldTermios)
-        
+
         var newTermios = oldTermios
         newTermios.c_lflag &= ~tcflag_t(ECHO)
         tcsetattr(STDIN_FILENO, TCSANOW, &newTermios)
-        
+
         defer {
             tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios)
         }
-        
+
         return readLine() ?? ""
     }
 }

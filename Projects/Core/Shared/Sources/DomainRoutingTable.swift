@@ -35,8 +35,7 @@ public actor DomainRoutingTable {
             // Compose Domain Routing
             if let labels = config.labels,
                let project = labels["com.docker.compose.project"],
-               let service = labels["com.docker.compose.service"]
-            {
+               let service = labels["com.docker.compose.service"] {
                 // service.project.flyingdutchman.local
                 let composeHostname = "\(service).\(project).\(AppConfig.Networking.primaryDomainSuffix)"
                 routes[composeHostname] = upstream

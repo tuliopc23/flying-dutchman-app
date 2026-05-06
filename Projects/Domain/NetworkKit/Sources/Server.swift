@@ -7,77 +7,77 @@ import HummingbirdHTTP2
 import HummingbirdTLS
 import Shared
 
+private struct HealthResponse: ResponseEncodable {
+    let status: String
+    let engine: String
+    let version: String
+    let uptimeSeconds: Int
+    let containerization: String
+    let workers: [String: String]
+}
+
+private struct StatusResponse: ResponseEncodable {
+    let engine: String
+    let uptimeSeconds: Int
+    let workers: [String: String]
+    let mode: String
+}
+
+private struct RuntimeEventPayload: Encodable {
+    let id: String
+    let containerId: String
+    let type: ContainerEvent.EventType
+    let timestamp: Date
+
+    init(event: ContainerEvent) {
+        self.id = event.id.uuidString
+        self.containerId = event.containerID.uuidString
+        self.type = event.type
+        self.timestamp = event.timestamp
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case containerId
+        case type
+        case timestamp
+    }
+
+    private enum EventTypeKeys: String, CodingKey {
+        case type
+        case from
+        case to
+        case message
+        case cpuPercent
+        case memoryBytes
+        case memoryPercent
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(containerId, forKey: .containerId)
+        try container.encode(timestamp, forKey: .timestamp)
+
+        var eventContainer = container.nestedContainer(keyedBy: EventTypeKeys.self, forKey: .type)
+        switch type {
+        case let .stateChanged(from, to):
+            try eventContainer.encode("stateChanged", forKey: .type)
+            try eventContainer.encode(from, forKey: .from)
+            try eventContainer.encode(to, forKey: .to)
+        case let .logOutput(message):
+            try eventContainer.encode("logOutput", forKey: .type)
+            try eventContainer.encode(message, forKey: .message)
+        case let .resourceUpdate(info):
+            try eventContainer.encode("resourceUpdate", forKey: .type)
+            try eventContainer.encode(info.cpuPercent, forKey: .cpuPercent)
+            try eventContainer.encode(info.memoryBytes, forKey: .memoryBytes)
+            try eventContainer.encode(info.memoryPercent, forKey: .memoryPercent)
+        }
+    }
+}
+
 public enum EngineServer {
-    private struct HealthResponse: ResponseEncodable {
-        let status: String
-        let engine: String
-        let version: String
-        let uptimeSeconds: Int
-        let containerization: String
-        let workers: [String: String]
-    }
-
-    private struct StatusResponse: ResponseEncodable {
-        let engine: String
-        let uptimeSeconds: Int
-        let workers: [String: String]
-        let mode: String
-    }
-
-    private struct RuntimeEventPayload: Encodable {
-        let id: String
-        let containerId: String
-        let type: ContainerEvent.EventType
-        let timestamp: Date
-
-        init(event: ContainerEvent) {
-            self.id = event.id.uuidString
-            self.containerId = event.containerID.uuidString
-            self.type = event.type
-            self.timestamp = event.timestamp
-        }
-
-        private enum CodingKeys: String, CodingKey {
-            case id
-            case containerId
-            case type
-            case timestamp
-        }
-
-        private enum EventTypeKeys: String, CodingKey {
-            case type
-            case from
-            case to
-            case message
-            case cpuPercent
-            case memoryBytes
-            case memoryPercent
-        }
-
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(id, forKey: .id)
-            try container.encode(containerId, forKey: .containerId)
-            try container.encode(timestamp, forKey: .timestamp)
-
-            var eventContainer = container.nestedContainer(keyedBy: EventTypeKeys.self, forKey: .type)
-            switch type {
-            case let .stateChanged(from, to):
-                try eventContainer.encode("stateChanged", forKey: .type)
-                try eventContainer.encode(from, forKey: .from)
-                try eventContainer.encode(to, forKey: .to)
-            case let .logOutput(message):
-                try eventContainer.encode("logOutput", forKey: .type)
-                try eventContainer.encode(message, forKey: .message)
-            case let .resourceUpdate(info):
-                try eventContainer.encode("resourceUpdate", forKey: .type)
-                try eventContainer.encode(info.cpuPercent, forKey: .cpuPercent)
-                try eventContainer.encode(info.memoryBytes, forKey: .memoryBytes)
-                try eventContainer.encode(info.memoryPercent, forKey: .memoryPercent)
-            }
-        }
-    }
-
     public static func makeRouter(
         runtime: ContainerRuntimeProtocol,
         store: AnyContainerStore? = nil,
@@ -125,88 +125,119 @@ public enum EngineServer {
         // Docker API compatibility layer
         DockerShimServer(runtime: runtime).register(on: router)
 
-        router.get("/events") { request, context -> Response in
-            struct EventsQuery: Decodable { let limit: Int? }
-
-            let wantsSSE = request.headers[values: .accept].contains("text/event-stream")
-            let query = try? request.uri.decodeQuery(as: EventsQuery.self, context: context)
-            let limit = query?.limit ?? 50
-            let events = eventStore?.recent(limit: limit) ?? []
-
-            if wantsSSE {
-                let lines: [String] = events.compactMap { event in
-                    guard let data = try? JSONSerialization.data(withJSONObject: event, options: []) else { return nil }
-                    return String(data: data, encoding: .utf8)
-                }
-
-                let body = ResponseBody { writer in
-                    for line in lines {
-                        try await writer.write(ByteBuffer(string: "data: \(line)\n\n"))
-                    }
-                    try await writer.finish(nil)
-                }
-                var headers = HTTPFields()
-                headers[.contentType] = "text/event-stream"
-                return Response(status: .ok, headers: headers, body: body)
-            } else {
-                let data = try JSONSerialization.data(withJSONObject: events, options: [])
-                var buffer = ByteBufferAllocator().buffer(capacity: data.count)
-                buffer.writeBytes(data)
-
-                var headers = HTTPFields()
-                headers[.contentType] = "application/json"
-                headers[.contentLength] = "\(buffer.readableBytes)"
-
-                return Response(status: .ok, headers: headers, body: .init(byteBuffer: buffer))
-            }
+        router.get("/events") { request, context in
+            await Self.handleEventsRequest(request: request, context: context, eventStore: eventStore)
         }
 
-        router.get("/runtime-events") { request, _ -> Response in
-            let wantsSSE = request.headers[values: .accept].contains("text/event-stream")
-            guard wantsSSE else {
-                var headers = HTTPFields()
-                headers[.contentType] = "text/plain"
-                return Response(
-                    status: .notAcceptable,
-                    headers: headers,
-                    body: ResponseBody(byteBuffer: ByteBuffer(string: "Accept: text/event-stream required"))
-                )
-            }
-
-            let stream = await runtime.eventStream()
-
-            let body = ResponseBody { writer in
-                let encoder = JSONEncoder()
-                do {
-                    for await event in stream {
-                        let payload = RuntimeEventPayload(event: event)
-                        let data = try encoder.encode(payload)
-                        guard let json = String(data: data, encoding: .utf8) else { continue }
-                        try await writer.write(ByteBuffer(string: "data: \(json)\n\n"))
-                    }
-                    try await writer.finish(nil)
-                } catch {
-                    // Client disconnected or stream terminated.
-                }
-            }
-
-            var headers = HTTPFields()
-            headers[.contentType] = "text/event-stream"
-            return Response(status: .ok, headers: headers, body: body)
+        router.get("/runtime-events") { request, _ in
+            await Self.handleRuntimeEventsRequest(request: request, runtime: runtime)
         }
 
         router.post("/images/pull") { request, context in
-            struct PullRequest: Decodable { let reference: String }
-            let payload = try await request.decode(as: PullRequest.self, context: context)
-            let response = await [
-                "status": "pulling",
-                "reference": payload.reference,
-                "message": "Stub pull started; engine running in \(runtime.name) mode.",
-            ]
-            return EditedResponse(status: .accepted, response: response)
+            try await Self.handleImagePullRequest(request: request, context: context, runtime: runtime)
+        }
+
+        router.post("/images/build") { request, context in
+            try await Self.handleImageBuildRequest(request: request, context: context, runtime: runtime)
         }
 
         return router
+    }
+
+    private static func handleEventsRequest(
+        request: Request,
+        context: BasicRequestContext,
+        eventStore: ShimEventStore?
+    ) async -> Response {
+        struct EventsQuery: Decodable { let limit: Int? }
+        let wantsSSE = request.headers[values: .accept].contains("text/event-stream")
+        let query = try? request.uri.decodeQuery(as: EventsQuery.self, context: context)
+        let limit = query?.limit ?? 50
+        let events = eventStore?.recent(limit: limit) ?? []
+
+        if wantsSSE {
+            let lines: [String] = events.compactMap { event in
+                guard let data = try? JSONSerialization.data(withJSONObject: event, options: []) else { return nil }
+                return String(data: data, encoding: .utf8)
+            }
+            let body = ResponseBody { writer in
+                for line in lines {
+                    try await writer.write(ByteBuffer(string: "data: \(line)\n\n"))
+                }
+                try await writer.finish(nil)
+            }
+            var headers = HTTPFields()
+            headers[.contentType] = "text/event-stream"
+            return Response(status: .ok, headers: headers, body: body)
+        } else {
+            let data = try? JSONSerialization.data(withJSONObject: events, options: [])
+            var buffer = ByteBufferAllocator().buffer(capacity: data?.count ?? 0)
+            if let data { buffer.writeBytes(data) }
+            var headers = HTTPFields()
+            headers[.contentType] = "application/json"
+            headers[.contentLength] = "\(buffer.readableBytes)"
+            return Response(status: .ok, headers: headers, body: .init(byteBuffer: buffer))
+        }
+    }
+
+    private static func handleRuntimeEventsRequest(
+        request: Request,
+        runtime: ContainerRuntimeProtocol
+    ) async -> Response {
+        let wantsSSE = request.headers[values: .accept].contains("text/event-stream")
+        guard wantsSSE else {
+            var headers = HTTPFields()
+            headers[.contentType] = "text/plain"
+            return Response(
+                status: .notAcceptable,
+                headers: headers,
+                body: ResponseBody(byteBuffer: ByteBuffer(string: "Accept: text/event-stream required"))
+            )
+        }
+        let stream = await runtime.eventStream()
+        let body = ResponseBody { writer in
+            let encoder = JSONEncoder()
+            do {
+                for await event in stream {
+                    let payload = RuntimeEventPayload(event: event)
+                    let data = try encoder.encode(payload)
+                    guard let json = String(data: data, encoding: .utf8) else { continue }
+                    try await writer.write(ByteBuffer(string: "data: \(json)\n\n"))
+                }
+                try await writer.finish(nil)
+            } catch {
+                // Client disconnected or stream terminated.
+            }
+        }
+        var headers = HTTPFields()
+        headers[.contentType] = "text/event-stream"
+        return Response(status: .ok, headers: headers, body: body)
+    }
+
+    private static func handleImagePullRequest(
+        request: Request,
+        context: BasicRequestContext,
+        runtime: ContainerRuntimeProtocol
+    ) async throws -> EditedResponse<[String: String]> {
+        struct PullRequest: Decodable { let reference: String }
+        let payload = try await request.decode(as: PullRequest.self, context: context)
+        let image = try await runtime.pullImage(reference: payload.reference)
+        let response = [
+            "status": "completed",
+            "reference": payload.reference,
+            "message": "Pulled \(image.displayName)",
+        ]
+        return EditedResponse(status: .ok, response: response)
+    }
+
+    private static func handleImageBuildRequest(
+        request: Request,
+        context: BasicRequestContext,
+        runtime: ContainerRuntimeProtocol
+    ) async throws -> EditedResponse<ImageBuildResult> {
+        let payload = try await request.decode(as: ImageBuildRequest.self, context: context)
+        let result = try await runtime.buildImage(request: payload)
+        return EditedResponse(status: .ok, response: result)
     }
 
     public static func start(
@@ -223,54 +254,13 @@ public enum EngineServer {
         routingTable: DomainRoutingTable,
         machineRuntime: MachineRuntimeProtocol? = nil
     ) async throws {
-        // 1. Initialize Networking Infrastructure
+        let infrastructure = try setupInfrastructure(routingTable: routingTable)
+        try await infrastructure.dnsServer.start()
+        await populateRoutingTable(runtime: runtime, routingTable: routingTable)
+        startEventListener(runtime: runtime, routingTable: routingTable)
 
-        let fm = FileManager.default
-        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
-        let appSupportDir = base.appendingPathComponent("flyingdutchman", isDirectory: true)
-        let certsDir = appSupportDir.appendingPathComponent("certs", isDirectory: true)
-
-        let ca = CertificateAuthority(storagePath: certsDir)
-
-        let dnsServer = DNSServer(routingTable: routingTable)
-        let httpsProxy = HTTPSProxy(routingTable: routingTable, ca: ca)
-
-        // 2. Start DNS Server (Background)
-        try await dnsServer.start()
-
-        // 3. Populate initial routing table
-        if let containers = try? await runtime.listContainers() {
-            for container in containers where container.status == .running {
-                await routingTable.register(container: container, config: .default)
-            }
-        }
-
-        // 4. Start Event Listener for Dynamic Updates
-        Task {
-            let stream = await runtime.eventStream()
-            for await event in stream {
-                if case let .stateChanged(_, to) = event.type {
-                    if to == .running {
-                        // Container started, register it
-                        if let containers = try? await runtime.listContainers(),
-                           let container = containers.first(where: { $0.id == event.containerID })
-                        {
-                            // Note: We use default config here as we lack access to the full config in this context.
-                            // The routing table will fallback to legacy ports from ContainerSummary.
-                            await routingTable.register(container: container, config: .default)
-                        }
-                    } else if to.isStopped {
-                        // Container stopped, unregister
-                        await routingTable.unregister(containerID: event.containerID)
-                    }
-                }
-            }
-        }
-
-        // 5. Prepare Engine API Server
         var configuration = ApplicationConfiguration()
         configuration.address = .hostname(host, port: port)
-
         let router = makeRouter(
             runtime: runtime,
             store: store,
@@ -281,13 +271,11 @@ public enum EngineServer {
             eventStore: eventStore,
             machineRuntime: machineRuntime
         )
-
         let serverBuilder: HTTPServerBuilder = if let tlsConfiguration {
             try .http2Upgrade(tlsConfiguration: tlsConfiguration)
         } else {
             .http1()
         }
-
         let app = Application(
             router: router,
             server: serverBuilder,
@@ -297,24 +285,60 @@ public enum EngineServer {
             }
         )
 
-        // 6. Run Services Concurrently
         try await withThrowingTaskGroup(of: Void.self) { group in
-            // Engine API
-            group.addTask {
-                try await app.runService()
-            }
-
-            // HTTPS Proxy
-            group.addTask {
-                try await httpsProxy.run()
-            }
-
-            // Wait for any to fail
+            group.addTask { try await app.runService() }
+            group.addTask { try await infrastructure.httpsProxy.run() }
             try await group.next()
         }
 
-        // Cleanup
-        await dnsServer.shutdown()
+        await infrastructure.dnsServer.shutdown()
+    }
+
+    private struct Infrastructure {
+        let dnsServer: DNSServer
+        let httpsProxy: HTTPSProxy
+    }
+
+    private static func setupInfrastructure(routingTable: DomainRoutingTable) throws -> Infrastructure {
+        let fm = FileManager.default
+        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
+        let appSupportDir = base.appendingPathComponent("flyingdutchman", isDirectory: true)
+        let certsDir = appSupportDir.appendingPathComponent("certs", isDirectory: true)
+        let ca = CertificateAuthority(storagePath: certsDir)
+        return Infrastructure(
+            dnsServer: DNSServer(routingTable: routingTable),
+            httpsProxy: HTTPSProxy(routingTable: routingTable, ca: ca)
+        )
+    }
+
+    private static func populateRoutingTable(
+        runtime: ContainerRuntimeProtocol,
+        routingTable: DomainRoutingTable
+    ) async {
+        guard let containers = try? await runtime.listContainers() else { return }
+        for container in containers where container.status == .running {
+            await routingTable.register(container: container, config: .default)
+        }
+    }
+
+    private static func startEventListener(
+        runtime: ContainerRuntimeProtocol,
+        routingTable: DomainRoutingTable
+    ) {
+        Task {
+            let stream = await runtime.eventStream()
+            for await event in stream {
+                guard case let .stateChanged(_, to) = event.type else { continue }
+                if to == .running {
+                    if let containers = try? await runtime.listContainers(),
+                       let container = containers.first(where: { $0.id == event.containerID }) {
+                        await routingTable.register(container: container, config: .default)
+                    }
+                } else if to.isStopped {
+                    await routingTable.unregister(containerID: event.containerID)
+                }
+            }
+        }
     }
 }
 

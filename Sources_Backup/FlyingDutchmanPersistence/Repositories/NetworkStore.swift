@@ -110,13 +110,18 @@ private struct NetworkRecord: Codable, FetchableRecord, PersistableRecord {
         id = summary.id.uuidString
         name = summary.name
         subnet = summary.subnet
-        connectedContainerIDs = (try? JSONEncoder().encode(summary.connectedContainerIDs.map { $0.uuidString })).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+        connectedContainerIDs = (try? JSONEncoder().encode(summary.connectedContainerIDs.map(\.uuidString)))
+            .flatMap { String(
+                data: $0,
+                encoding: .utf8
+            ) } ?? "[]"
         createdAt = summary.createdAt
         updatedAt = Date()
     }
 
     func toSummary() -> NetworkSummary {
-        let ids: [UUID] = (try? JSONDecoder().decode([String].self, from: Data(connectedContainerIDs.utf8)).compactMap { UUID(uuidString: $0) }) ?? []
+        let ids: [UUID] = (try? JSONDecoder().decode([String].self, from: Data(connectedContainerIDs.utf8))
+            .compactMap { UUID(uuidString: $0) }) ?? []
         return NetworkSummary(
             id: UUID(uuidString: id) ?? UUID(),
             name: name,

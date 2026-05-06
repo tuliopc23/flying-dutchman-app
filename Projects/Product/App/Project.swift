@@ -10,7 +10,11 @@ let project = Project(
             product: .app,
             bundleId: "com.flyingdutchman.app",
             deploymentTargets: .macOS("26.0"),
-            infoPlist: .default,
+            infoPlist: .extendingDefault(with: [
+                "SUEnableAutomaticChecks": .boolean(true),
+                "SUFeedURL": .string("https://updates.flyingdutchman.app/appcast.xml"),
+                "SUPublicEDKey": .string("REPLACE_AT_RELEASE_TIME"),
+            ]),
             sources: ["Sources/**"],
             dependencies: [
                 .project(target: "Settings", path: "../../Features/Settings"),
@@ -25,6 +29,7 @@ let project = Project(
                 .project(target: "Kubernetes", path: "../../Features/Kubernetes"),
                 .project(target: "DebugShell", path: "../../Features/DebugShell"),
                 .project(target: "Dashboard", path: "../../Features/Dashboard"),
+                .external(name: "Sparkle"),
             ]
         ),
     ]

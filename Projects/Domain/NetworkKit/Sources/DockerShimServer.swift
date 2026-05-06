@@ -15,12 +15,18 @@ public struct DockerShimServer: @unchecked Sendable {
     }
 
     public func register(on router: Router<BasicRequestContext>) {
-        // 1. Ping
-        router.get("/_ping") { _, _ in
-            Response(status: .ok)
-        }
+        registerPingRoute(on: router)
+        registerVersionRoute(on: router)
+        registerContainerRoutes(on: router)
+        registerImageRoutes(on: router)
+        registerInfoRoute(on: router)
+    }
 
-        // 2. Version
+    private func registerPingRoute(on router: Router<BasicRequestContext>) {
+        router.get("/_ping") { _, _ in Response(status: .ok) }
+    }
+
+    private func registerVersionRoute(on router: Router<BasicRequestContext>) {
         router.get("/v1.41/version") { _, _ in
             DockerVersionResponse(
                 version: AppConfig.version,
@@ -31,8 +37,9 @@ public struct DockerShimServer: @unchecked Sendable {
                 kernelVersion: "6.14.9-flyingdutchman"
             )
         }
+    }
 
-        // 3. List Containers (docker ps)
+    private func registerContainerRoutes(on router: Router<BasicRequestContext>) {
         router.get("/v1.41/containers/json") { [runtime] _, _ in
             let containers = try await runtime.listContainers()
             return containers.map { container in
@@ -47,7 +54,6 @@ public struct DockerShimServer: @unchecked Sendable {
             }
         }
 
-        // 4. Create Container (docker run/create)
         router.post("/v1.41/containers/create") { request, context in
             struct CreateRequest: Codable {
                 let Image: String
@@ -70,54 +76,38 @@ public struct DockerShimServer: @unchecked Sendable {
             return Response(status: .created, headers: responseHeaders, body: .init(byteBuffer: ByteBuffer()))
         }
 
-        // 5. Start Container
         router.post("/v1.41/containers/:id/start") { [runtime] _, context in
             let idString = try context.parameters.require("id", as: String.self)
-            guard let id = UUID(uuidString: idString) else {
-                throw HTTPError(.badRequest)
-            }
-
+            guard let id = UUID(uuidString: idString) else { throw HTTPError(.badRequest) }
             _ = try await runtime.startContainer(id: id)
             return Response(status: .noContent)
         }
 
-        // 6. Stop Container
         router.post("/v1.41/containers/:id/stop") { [runtime] _, context in
             let idString = try context.parameters.require("id", as: String.self)
-            guard let id = UUID(uuidString: idString) else {
-                throw HTTPError(.badRequest)
-            }
-
+            guard let id = UUID(uuidString: idString) else { throw HTTPError(.badRequest) }
             _ = try await runtime.stopContainer(id: id)
             return Response(status: .noContent)
         }
 
-        // 7. Remove Container
         router.delete("/v1.41/containers/:id") { [runtime] _, context in
             let idString = try context.parameters.require("id", as: String.self)
-            guard let id = UUID(uuidString: idString) else {
-                throw HTTPError(.badRequest)
-            }
-
+            guard let id = UUID(uuidString: idString) else { throw HTTPError(.badRequest) }
             try await runtime.removeContainer(id: id)
             return Response(status: .noContent)
         }
 
-        // 8. Container Logs
         router.get("/v1.41/containers/:id/logs") { _, context in
             let idString = try context.parameters.require("id", as: String.self)
-            guard UUID(uuidString: idString) != nil else {
-                throw HTTPError(.badRequest)
-            }
-
-            // TODO: Implement streaming response for logs
+            guard UUID(uuidString: idString) != nil else { throw HTTPError(.badRequest) }
             let message = "Log streaming via shim not yet implemented. Use FD app to view logs."
             var buffer = ByteBufferAllocator().buffer(capacity: message.utf8.count)
             buffer.writeString(message)
             return Response(status: .ok, body: .init(byteBuffer: buffer))
         }
+    }
 
-        // 9. List Images
+    private func registerImageRoutes(on router: Router<BasicRequestContext>) {
         router.get("/v1.41/images/json") { [runtime] _, _ in
             let images = try await runtime.listImages()
             return images.map { image in
@@ -130,28 +120,21 @@ public struct DockerShimServer: @unchecked Sendable {
             }
         }
 
-        // 10. Pull Image
         router.post("/v1.41/images/create") { request, context in
-            // Parse query parameters: ?fromImage=alpine:latest
             let query = try? request.uri.decodeQuery(as: ImagePullQuery.self, context: context)
-            guard let imageRef = query?.fromImage else {
-                throw HTTPError(.badRequest)
-            }
-
+            guard let imageRef = query?.fromImage else { throw HTTPError(.badRequest) }
             _ = try await self.runtime.pullImage(reference: imageRef)
-
-            // Docker API expects streaming progress, but for now return simple response
             let message = "Image \(imageRef) pulled successfully"
             var buffer = ByteBufferAllocator().buffer(capacity: message.utf8.count)
             buffer.writeString(message)
             return Response(status: .ok, body: .init(byteBuffer: buffer))
         }
+    }
 
-        // 11. System Info
+    private func registerInfoRoute(on router: Router<BasicRequestContext>) {
         router.get("/v1.41/info") { [runtime] _, _ in
             let containers = try await runtime.listContainers()
             let images = try await runtime.listImages()
-
             return DockerInfoResponse(
                 containers: containers.count,
                 containersRunning: containers.count(where: { $0.status == .running }),

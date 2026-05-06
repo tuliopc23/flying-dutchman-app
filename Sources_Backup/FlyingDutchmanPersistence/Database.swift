@@ -16,7 +16,8 @@ public final class DatabaseContainer: @unchecked Sendable {
             try DatabaseContainer.migrator.migrate(queue)
             logger.info("Initialized SQLite at \(url.path)")
         } catch {
-            logger.error("Failed to open SQLite at \(url.path): \(error.localizedDescription). Using in-memory fallback.")
+            logger
+                .error("Failed to open SQLite at \(url.path): \(error.localizedDescription). Using in-memory fallback.")
             queue = try! DatabaseQueue()
         }
 

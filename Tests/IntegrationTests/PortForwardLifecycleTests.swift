@@ -1,7 +1,7 @@
+@testable import FlyingDutchmanNetworking
 import Logging
 import NIO
 import Testing
-@testable import FlyingDutchmanNetworking
 
 @Suite("Port Forward Lifecycle Tests")
 struct PortForwardLifecycleTests {

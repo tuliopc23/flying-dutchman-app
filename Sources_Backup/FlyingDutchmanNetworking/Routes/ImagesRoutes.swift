@@ -1,7 +1,7 @@
+import FlyingDutchmanPersistence
 import Foundation
 import Hummingbird
 import Shared
-import FlyingDutchmanPersistence
 
 struct ImagesRoutes: @unchecked Sendable {
     let store: ImageStore?

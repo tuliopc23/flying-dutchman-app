@@ -1,3 +1,4 @@
+import Shared
 import SwiftUI
 
 @MainActor
@@ -10,6 +11,12 @@ public struct AppCommands: Commands {
 
     public var body: some Commands {
         CommandGroup(after: .appInfo) {
+            Button("Check for Updates…") {
+                AppUpdateRequests.checkForUpdates()
+            }
+
+            Divider()
+
             Button("Command Palette") {
                 state.showPalette = true
             }

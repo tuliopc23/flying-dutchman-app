@@ -43,8 +43,7 @@ public actor KernelDownloader {
     ) async throws {
         // Check if kernel and initrd already exist
         if FileManager.default.fileExists(atPath: targetKernelPath.path),
-           FileManager.default.fileExists(atPath: targetInitrdPath.path)
-        {
+           FileManager.default.fileExists(atPath: targetInitrdPath.path) {
             logger.info("Kernel and initrd already exist for machine \(machineID)")
             return
         }
@@ -81,8 +80,7 @@ public actor KernelDownloader {
         let initrdPath = cacheDirectory.appendingPathComponent("\(distro)-\(version)-initrd.img")
 
         if FileManager.default.fileExists(atPath: kernelPath.path),
-           FileManager.default.fileExists(atPath: initrdPath.path)
-        {
+           FileManager.default.fileExists(atPath: initrdPath.path) {
             return (kernel: kernelPath, initrd: initrdPath)
         }
 

@@ -46,7 +46,7 @@ enum CLIOutput {
         return value + String(repeating: " ", count: width - value.count)
     }
 
-    static func json<T: Encodable>(_ value: T) {
+    static func json(_ value: some Encodable) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         if let data = try? encoder.encode(value), let string = String(data: data, encoding: .utf8) {

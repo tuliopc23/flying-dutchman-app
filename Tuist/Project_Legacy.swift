@@ -5,20 +5,26 @@ let project = Project(
     options: .options(automaticSchemesOptions: .disabled),
     settings: .settings(
         base: [
-            "MACOSX_DEPLOYMENT_TARGET": "26.0"
+            "MACOSX_DEPLOYMENT_TARGET": "26.0",
         ]
     ),
     packages: [
         .remote(url: "https://github.com/swift-server/hummingbird.git", requirement: .upToNextMajor(from: "2.0.0")),
-        .remote(url: "https://github.com/swift-server/async-http-client.git", requirement: .upToNextMajor(from: "1.20.0")),
+        .remote(
+            url: "https://github.com/swift-server/async-http-client.git",
+            requirement: .upToNextMajor(from: "1.20.0")
+        ),
         .remote(url: "https://github.com/apple/swift-argument-parser.git", requirement: .upToNextMajor(from: "1.3.0")),
         .remote(url: "https://github.com/apple/swift-log.git", requirement: .upToNextMajor(from: "1.6.0")),
-        .remote(url: "https://github.com/swift-server/swift-service-lifecycle.git", requirement: .upToNextMajor(from: "2.0.0")),
+        .remote(
+            url: "https://github.com/swift-server/swift-service-lifecycle.git",
+            requirement: .upToNextMajor(from: "2.0.0")
+        ),
         .remote(url: "https://github.com/groue/GRDB.swift.git", requirement: .upToNextMajor(from: "7.8.0")),
         .remote(url: "https://github.com/apple/swift-nio.git", requirement: .upToNextMajor(from: "2.60.0")),
         .remote(url: "https://github.com/swiftkube/client.git", requirement: .upToNextMajor(from: "0.20.0")),
         .remote(url: "https://github.com/orlandos-nl/DNSClient.git", requirement: .upToNextMajor(from: "2.0.0")),
-        .remote(url: "https://github.com/apple/swift-certificates.git", requirement: .upToNextMajor(from: "1.0.0"))
+        .remote(url: "https://github.com/apple/swift-certificates.git", requirement: .upToNextMajor(from: "1.0.0")),
     ],
     targets: [
         Target(
@@ -28,7 +34,7 @@ let project = Project(
             bundleId: "com.flyingdutchman.shared",
             sources: ["Sources/Shared/**"],
             dependencies: [
-                .package(product: "Logging")
+                .package(product: "Logging"),
             ]
         ),
         Target(
@@ -39,7 +45,7 @@ let project = Project(
             sources: ["Sources/FlyingDutchmanPersistence/**"],
             dependencies: [
                 .target(name: "Shared"),
-                .package(product: "GRDB")
+                .package(product: "GRDB"),
             ]
         ),
         Target(
@@ -51,7 +57,7 @@ let project = Project(
             dependencies: [
                 .target(name: "Shared"),
                 .package(product: "NIOConcurrencyHelpers"),
-                .package(product: "Logging")
+                .package(product: "Logging"),
             ]
         ),
         Target(
@@ -62,7 +68,7 @@ let project = Project(
             sources: ["Sources/FlyingDutchmanKubernetes/**"],
             dependencies: [
                 .target(name: "Shared"),
-                .package(product: "SwiftkubeClient")
+                .package(product: "SwiftkubeClient"),
             ]
         ),
         Target(
@@ -72,7 +78,7 @@ let project = Project(
             bundleId: "com.flyingdutchman.ai",
             sources: ["Sources/FlyingDutchmanAI/**"],
             dependencies: [
-                .target(name: "Shared")
+                .target(name: "Shared"),
             ]
         ),
         Target(
@@ -89,7 +95,7 @@ let project = Project(
                 .package(product: "HummingbirdTLS"),
                 .package(product: "AsyncHTTPClient"),
                 .package(product: "DNSClient"),
-                .package(product: "X509")
+                .package(product: "X509"),
             ]
         ),
         Target(
@@ -103,7 +109,7 @@ let project = Project(
                 .target(name: "FlyingDutchmanNetworking"),
                 .target(name: "FlyingDutchmanPersistence"),
                 .target(name: "FlyingDutchmanContainers"),
-                .package(product: "ServiceLifecycle")
+                .package(product: "ServiceLifecycle"),
             ]
         ),
         Target(
@@ -116,7 +122,7 @@ let project = Project(
                 .target(name: "Shared"),
                 .target(name: "FlyingDutchmanContainers"),
                 .target(name: "FlyingDutchmanNetworking"),
-                .package(product: "ArgumentParser")
+                .package(product: "ArgumentParser"),
             ]
         ),
         Target(
@@ -129,7 +135,7 @@ let project = Project(
             dependencies: [
                 .target(name: "Shared"),
                 .target(name: "FlyingDutchmanNetworking"),
-                .target(name: "FlyingDutchmanPersistence")
+                .target(name: "FlyingDutchmanPersistence"),
             ]
         ),
         Target(
@@ -139,7 +145,7 @@ let project = Project(
             bundleId: "com.flyingdutchman.app.tests",
             sources: ["Tests/FlyingDutchmanAppTests/**"],
             dependencies: [
-                .target(name: "FlyingDutchmanApp")
+                .target(name: "FlyingDutchmanApp"),
             ]
         ),
         Target(
@@ -149,7 +155,7 @@ let project = Project(
             bundleId: "com.flyingdutchman.engine.tests",
             sources: ["Tests/FlyingDutchmanEngineTests/**"],
             dependencies: [
-                .target(name: "FlyingDutchmanEngine")
+                .target(name: "FlyingDutchmanEngine"),
             ]
         ),
         Target(
@@ -159,7 +165,7 @@ let project = Project(
             bundleId: "com.flyingdutchman.cli.tests",
             sources: ["Tests/FlyingDutchmanCLITests/**"],
             dependencies: [
-                .target(name: "FlyingDutchmanCLI")
+                .target(name: "FlyingDutchmanCLI"),
             ]
         ),
         Target(
@@ -170,38 +176,54 @@ let project = Project(
             sources: ["Tests/IntegrationTests/**"],
             dependencies: [
                 .target(name: "FlyingDutchmanNetworking"),
-                .target(name: "FlyingDutchmanPersistence")
+                .target(name: "FlyingDutchmanPersistence"),
             ]
-        )
+        ),
     ],
     schemes: [
         Scheme(
             name: "FlyingDutchmanApp",
             shared: true,
-            buildAction: .buildAction(targets: ["FlyingDutchmanApp", "Shared", "FlyingDutchmanNetworking", "FlyingDutchmanPersistence"]),
+            buildAction: .buildAction(targets: [
+                "FlyingDutchmanApp",
+                "Shared",
+                "FlyingDutchmanNetworking",
+                "FlyingDutchmanPersistence",
+            ]),
             testAction: .targets([
                 .target("FlyingDutchmanAppTests"),
-                .target("IntegrationTests")
+                .target("IntegrationTests"),
             ]),
             runAction: .runAction(executable: .target("FlyingDutchmanApp"))
         ),
         Scheme(
             name: "FlyingDutchmanEngine",
             shared: true,
-            buildAction: .buildAction(targets: ["FlyingDutchmanEngine", "Shared", "FlyingDutchmanNetworking", "FlyingDutchmanPersistence", "FlyingDutchmanContainers"]),
+            buildAction: .buildAction(targets: [
+                "FlyingDutchmanEngine",
+                "Shared",
+                "FlyingDutchmanNetworking",
+                "FlyingDutchmanPersistence",
+                "FlyingDutchmanContainers",
+            ]),
             testAction: .targets([
-                .target("FlyingDutchmanEngineTests")
+                .target("FlyingDutchmanEngineTests"),
             ]),
             runAction: .runAction(executable: .target("FlyingDutchmanEngine"))
         ),
         Scheme(
             name: "FlyingDutchmanCLI",
             shared: true,
-            buildAction: .buildAction(targets: ["FlyingDutchmanCLI", "Shared", "FlyingDutchmanNetworking", "FlyingDutchmanContainers"]),
+            buildAction: .buildAction(targets: [
+                "FlyingDutchmanCLI",
+                "Shared",
+                "FlyingDutchmanNetworking",
+                "FlyingDutchmanContainers",
+            ]),
             testAction: .targets([
-                .target("FlyingDutchmanCLITests")
+                .target("FlyingDutchmanCLITests"),
             ]),
             runAction: .runAction(executable: .target("FlyingDutchmanCLI"))
-        )
+        ),
     ]
 )

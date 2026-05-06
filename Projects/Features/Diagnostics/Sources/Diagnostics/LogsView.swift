@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor
 @Observable
 public final class LogsViewModel {
-    nonisolated public static let liveLogsUnavailableMessage =
+    public nonisolated static let liveLogsUnavailableMessage =
         "Live logs unavailable. Start or reconnect the engine, then refresh."
 
     @ObservationIgnored

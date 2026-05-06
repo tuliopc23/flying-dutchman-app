@@ -2,7 +2,7 @@ import FlyingDutchmanNetworking
 import SwiftUI
 
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 @MainActor
@@ -55,13 +55,13 @@ struct EventsView: View {
                 Text("Events")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Spacer()
-                
+
                 if viewModel.isStreaming {
                     ProgressView().controlSize(.small)
                 }
-                
+
                 Button {
                     viewModel.startStreaming()
                 } label: {
@@ -70,7 +70,7 @@ struct EventsView: View {
                 }
                 .buttonStyle(.glass)
                 .disabled(viewModel.isStreaming)
-                
+
                 Button {
                     viewModel.startStreaming(reset: true)
                 } label: {
@@ -81,7 +81,7 @@ struct EventsView: View {
             }
             .padding(DesignSystem.Spacing.md)
             .background(.thinMaterial)
-            
+
             Divider()
 
             // Content
@@ -124,32 +124,32 @@ struct EventsView: View {
 
 struct EventRow: View {
     let event: RuntimeEvent
-    
+
     private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .none
         formatter.timeStyle = .medium
         return formatter
     }()
-    
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: DesignSystem.Spacing.md) {
             Image(systemName: icon(for: event))
                 .foregroundStyle(color(for: event))
                 .frame(width: 20)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title(for: event))
                     .font(DesignSystem.Typography.subheadline)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Text(detail(for: event))
                     .font(DesignSystem.Typography.caption2)
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
             }
-            
+
             Spacer()
-            
+
             Text(Self.timestampFormatter.string(from: event.timestamp))
                 .font(DesignSystem.Typography.caption2)
                 .foregroundStyle(DesignSystem.Colors.textTertiary)
@@ -161,48 +161,48 @@ struct EventRow: View {
         .contextMenu {
             Button("Copy Details") {
                 #if canImport(AppKit)
-                let line = "\(title(for: event)) · \(detail(for: event))"
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(line, forType: .string)
+                    let line = "\(title(for: event)) · \(detail(for: event))"
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(line, forType: .string)
                 #endif
             }
         }
     }
-    
+
     private func icon(for event: RuntimeEvent) -> String {
         switch event.type {
-        case .stateChanged: return "arrow.triangle.2.circlepath"
-        case .logOutput: return "text.alignleft"
-        case .resourceUpdate: return "speedometer"
+        case .stateChanged: "arrow.triangle.2.circlepath"
+        case .logOutput: "text.alignleft"
+        case .resourceUpdate: "speedometer"
         }
     }
-    
+
     private func color(for event: RuntimeEvent) -> Color {
         switch event.type {
-        case .stateChanged: return DesignSystem.Colors.accent
-        case .logOutput: return DesignSystem.Colors.textSecondary
-        case .resourceUpdate: return DesignSystem.Colors.success
+        case .stateChanged: DesignSystem.Colors.accent
+        case .logOutput: DesignSystem.Colors.textSecondary
+        case .resourceUpdate: DesignSystem.Colors.success
         }
     }
-    
+
     private func title(for event: RuntimeEvent) -> String {
         switch event.type {
-        case .stateChanged(let from, let to):
-            return "\(from.displayName) → \(to.displayName)"
+        case let .stateChanged(from, to):
+            "\(from.displayName) → \(to.displayName)"
         case .logOutput:
-            return "Log Output"
+            "Log Output"
         case .resourceUpdate:
-            return "Resource Update"
+            "Resource Update"
         }
     }
-    
+
     private func detail(for event: RuntimeEvent) -> String {
         switch event.type {
         case .stateChanged:
             return "Container \(event.containerId.prefix(8))"
-        case .logOutput(let message):
+        case let .logOutput(message):
             return message
-        case .resourceUpdate(let info):
+        case let .resourceUpdate(info):
             let memoryMB = Double(info.memoryBytes) / 1024 / 1024
             return String(format: "CPU %.1f%% · Mem %.0f MB", info.cpuPercent, memoryMB)
         }

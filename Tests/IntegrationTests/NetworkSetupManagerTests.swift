@@ -1,7 +1,7 @@
+@testable import FlyingDutchmanNetworking
 import Foundation
 import Shared
 import Testing
-@testable import FlyingDutchmanNetworking
 
 @Suite("Network Setup Manager Tests")
 struct NetworkSetupManagerTests {
@@ -16,7 +16,7 @@ struct NetworkSetupManagerTests {
             caCertificateURL: directory.appendingPathComponent("ca-cert.pem")
         )
 
-        #expect(!(await manager.checkDNSStatus()))
+        #expect(await !(manager.checkDNSStatus()))
 
         let resolverFile = directory.appendingPathComponent(AppConfig.Networking.primaryDomainSuffix)
         try ResolverInstaller.resolverFileContent().write(to: resolverFile, atomically: true, encoding: .utf8)
@@ -36,7 +36,7 @@ struct NetworkSetupManagerTests {
             caCertificateURL: certificateURL
         )
 
-        #expect(!(await manager.checkCATrustStatus()))
+        #expect(await !(manager.checkCATrustStatus()))
 
         try "test-certificate".write(to: certificateURL, atomically: true, encoding: .utf8)
 

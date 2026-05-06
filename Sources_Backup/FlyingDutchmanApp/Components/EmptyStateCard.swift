@@ -13,11 +13,11 @@ struct EmptyStateCard: View {
                 weight: .semibold
             )
             .foregroundStyle(DesignSystem.Colors.textSecondary)
-            
+
             Text(title)
                 .font(DesignSystem.Typography.headline)
                 .foregroundStyle(DesignSystem.Colors.textPrimary)
-            
+
             Text(message)
                 .font(DesignSystem.Typography.subheadline)
                 .foregroundStyle(DesignSystem.Colors.textSecondary)

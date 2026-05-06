@@ -1,14 +1,14 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 struct Completion: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Generate shell completion scripts"
     )
-    
+
     @Argument(help: "Shell type (bash, zsh, fish)")
     var shell: String
-    
+
     func run() throws {
         switch shell.lowercased() {
         case "bash":
@@ -23,7 +23,7 @@ struct Completion: ParsableCommand {
             throw ExitCode.failure
         }
     }
-    
+
     private var bashCompletion: String {
         """
         # Flying Dutchman bash completion
@@ -41,11 +41,11 @@ struct Completion: ParsableCommand {
         complete -F _fd_completion fd
         """
     }
-    
+
     private var zshCompletion: String {
         """
         #compdef fd
-        
+
         _fd() {
             local -a commands
             commands=(
@@ -66,16 +66,16 @@ struct Completion: ParsableCommand {
             
             _describe 'command' commands
         }
-        
+
         _fd
         """
     }
-    
+
     private var fishCompletion: String {
         """
         # Flying Dutchman fish completion
         complete -c fd -f
-        
+
         complete -c fd -n "__fish_use_subcommand" -a start -d "Start the Flying Dutchman engine"
         complete -c fd -n "__fish_use_subcommand" -a stop -d "Stop the Flying Dutchman engine"
         complete -c fd -n "__fish_use_subcommand" -a containers -d "Manage containers"

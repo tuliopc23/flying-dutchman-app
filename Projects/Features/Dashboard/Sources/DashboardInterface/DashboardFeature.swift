@@ -1,2 +1,9 @@
-// Placeholder to satisfy Tuist
-public struct DashboardFeature {}
+import SwiftUI
+
+public struct DashboardFeature {
+    public var dashboardView: @MainActor () -> AnyView
+
+    public init(dashboardView: @escaping @MainActor () -> AnyView) {
+        self.dashboardView = dashboardView
+    }
+}

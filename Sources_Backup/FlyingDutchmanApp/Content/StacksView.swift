@@ -1,7 +1,7 @@
-import Shared
-import FlyingDutchmanPersistence
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import FlyingDutchmanPersistence
+import Shared
 import SwiftUI
 
 @MainActor
@@ -16,9 +16,9 @@ public final class StacksViewModel {
     public var newDescription: String = ""
     public var newContainers: String = ""
     public var lastActionMessage: String?
-    
+
     private let store = StackStore()
-    
+
     public init() {}
 
     public var filtered: [StackSummary] {
@@ -108,9 +108,9 @@ struct StacksView: View {
                 Text("Stacks")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
-                
+
                 Spacer()
-                
+
                 Button {
                     viewModel.showCreate = true
                 } label: {
@@ -118,7 +118,7 @@ struct StacksView: View {
                 }
                 .buttonStyle(.glassProminent)
                 .tint(DesignSystem.Colors.accent)
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load() }
                 } label: {
@@ -150,9 +150,9 @@ struct StacksView: View {
 
             if let error = viewModel.error {
                 DiagnosticsBanner(
-                    title: "Error", 
-                    message: error, 
-                    icon: "exclamationmark.triangle", 
+                    title: "Error",
+                    message: error,
+                    icon: "exclamationmark.triangle",
                     tone: .warning
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
@@ -161,8 +161,8 @@ struct StacksView: View {
             if viewModel.filtered.isEmpty {
                 EmptyStateCard(
                     title: "No stacks found",
-                    message: viewModel.searchQuery.isEmpty 
-                        ? "Create a stack to group containers." 
+                    message: viewModel.searchQuery.isEmpty
+                        ? "Create a stack to group containers."
                         : "No stacks match your search.",
                     systemImage: "square.stack.3d.up"
                 )
@@ -192,14 +192,14 @@ struct StacksView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("New Stack")
                 .font(DesignSystem.Typography.title2)
-            
+
             VStack(alignment: .leading, spacing: 12) {
                 TextField("Name", text: Bindable(viewModel).newName)
                     .textFieldStyle(.roundedBorder)
-                
+
                 TextField("Description (Optional)", text: Bindable(viewModel).newDescription)
                     .textFieldStyle(.roundedBorder)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Containers")
                         .font(DesignSystem.Typography.caption1)
@@ -208,12 +208,12 @@ struct StacksView: View {
                         .textFieldStyle(.roundedBorder)
                 }
             }
-            
+
             HStack {
                 Spacer()
                 Button("Cancel") { viewModel.showCreate = false }
                     .keyboardShortcut(.cancelAction)
-                
+
                 Button("Create") {
                     Task { @MainActor in await viewModel.create() }
                 }
@@ -230,27 +230,27 @@ struct StacksView: View {
 struct StackRow: View {
     let stack: StackSummary
     var viewModel: StacksViewModel
-    
+
     var body: some View {
         GlassCard {
             HStack(spacing: DesignSystem.Spacing.md) {
                 Image.systemIcon("square.stack.3d.up", size: DesignSystem.Size.iconLarge)
                     .foregroundStyle(DesignSystem.Colors.primary)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(stack.name)
                         .font(DesignSystem.Typography.headline)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     if let desc = stack.description {
                         Text(desc)
                             .font(DesignSystem.Typography.caption1)
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 if !stack.containerNames.isEmpty {
                     Text("\(stack.containerNames.count) containers")
                         .font(DesignSystem.Typography.caption2)
@@ -258,7 +258,7 @@ struct StackRow: View {
                         .padding(.vertical, 4)
                         .background(DesignSystem.Colors.surfaceTertiary)
                         .cornerRadius(6)
-                    
+
                     HStack(spacing: 4) {
                         Button {
                             Task { @MainActor in await viewModel.start(stack) }
@@ -268,7 +268,7 @@ struct StackRow: View {
                         }
                         .buttonStyle(.glass)
                         .help("Start Stack")
-                        
+
                         Button {
                             Task { @MainActor in await viewModel.stop(stack) }
                         } label: {

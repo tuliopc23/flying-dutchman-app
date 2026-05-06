@@ -39,7 +39,8 @@ Focus on premium macOS-native user experience, bringing the app out of the "deve
 - [x] UI overlay
 
 ### 4.3 Debug Shell ⚪
-- [ ] Terminal emulator integration (`libghostty` or similar)
+- [x] Embedded terminal session surface
+- [ ] Native terminal renderer integration (`libghostty` or similar)
 - [x] External terminal launcher (Ghostty/iTerm/WezTerm/kitty/Terminal)
 - [x] `exec` support for Containers via VSOCK
 - [x] `ssh` support for Machines via Citadel
@@ -48,7 +49,8 @@ Focus on premium macOS-native user experience, bringing the app out of the "deve
 ### 4.4 Settings & Efficiency ⚪
 - [x] Resource configuration UI (CPU/RAM slider)
 - [x] Startup behavior preferences
-- [ ] Update checker
+- [x] Sparkle update wiring and UI actions
+- [ ] Release feed/signing rollout
 
 ---
 
@@ -63,7 +65,7 @@ Phase 4 is complete when:
 - [ ] App feels "native" and responsive
 - [ ] Users rarely need to open the main window for simple tasks (Menu Bar covers it)
 - [ ] Power users can navigate via keyboard (Command Palette)
-- [ ] Debugging is built-in (Terminal)
+- [x] Debugging is built-in (embedded session surface + external terminal fallback)
 
 ---
 

@@ -69,9 +69,9 @@ public struct FileLogHandler: LogHandler, Sendable {
         message: Logger.Message,
         metadata: Logger.Metadata,
         source: String,
-        file: String,
-        function: String,
-        line: UInt
+        file _: String,
+        function _: String,
+        line _: UInt
     ) -> String {
         let timestamp = ISO8601DateFormatter().string(from: Date())
         let levelString = level.rawValue.uppercased().padding(toLength: 8, withPad: " ", startingAt: 0)

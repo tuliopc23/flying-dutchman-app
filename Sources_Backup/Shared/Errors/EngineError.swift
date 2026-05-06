@@ -19,58 +19,58 @@ public enum EngineError: FlyingDutchmanError {
     public var userMessage: String {
         switch self {
         case .kernelNotFound:
-            return "Linux kernel not found"
+            "Linux kernel not found"
 
         case .initfsNotAvailable:
-            return "Initial filesystem not available"
+            "Initial filesystem not available"
 
         case .vmBootFailed:
-            return "Virtual machine failed to start"
+            "Virtual machine failed to start"
 
         case .vsockConnectionFailed:
-            return "Failed to connect to virtual machine"
+            "Failed to connect to virtual machine"
         }
     }
 
     public var technicalMessage: String {
         switch self {
         case let .kernelNotFound(path):
-            return "Linux kernel binary not found at path: \(path)"
+            "Linux kernel binary not found at path: \(path)"
 
         case .initfsNotAvailable:
-            return "Initial ramdisk (initramfs/initfs) not available for VM boot"
+            "Initial ramdisk (initramfs/initfs) not available for VM boot"
 
         case let .vmBootFailed(reason):
-            return "VM boot sequence failed: \(reason)"
+            "VM boot sequence failed: \(reason)"
 
         case let .vsockConnectionFailed(cid, port):
-            return "VSOCK connection failed to CID \(cid), port \(port)"
+            "VSOCK connection failed to CID \(cid), port \(port)"
         }
     }
 
     public var isRecoverable: Bool {
         switch self {
         case .kernelNotFound:
-            return true // User can provide/download kernel
+            true // User can provide/download kernel
         case .initfsNotAvailable:
-            return true // Can be regenerated
+            true // Can be regenerated
         case .vmBootFailed:
-            return true // Can retry
+            true // Can retry
         case .vsockConnectionFailed:
-            return true // Can retry connection
+            true // Can retry connection
         }
     }
 
     public var suggestedAction: String? {
         switch self {
         case .kernelNotFound:
-            return "Download the Linux kernel using: dutchman kernel download"
+            "Download the Linux kernel using: dutchman kernel download"
         case .initfsNotAvailable:
-            return "Run: dutchman init to set up the initial filesystem"
+            "Run: dutchman init to set up the initial filesystem"
         case .vmBootFailed:
-            return "Check system resources and try again"
+            "Check system resources and try again"
         case .vsockConnectionFailed:
-            return "Ensure the VM is running and try again"
+            "Ensure the VM is running and try again"
         }
     }
 }

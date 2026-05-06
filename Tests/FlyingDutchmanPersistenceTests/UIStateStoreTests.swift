@@ -1,8 +1,8 @@
+@testable import FlyingDutchmanPersistence
 import Foundation
 import GRDB
 import Shared
 import Testing
-@testable import FlyingDutchmanPersistence
 
 @Suite("UI State Store Tests")
 struct UIStateStoreTests {
@@ -30,8 +30,8 @@ struct UIStateStoreTests {
     @Test("save preserves release-critical preferences across reload")
     func saveRoundTripsPersistedPreferences() async throws {
         let store = try makeStore()
-        let expected = UIState(
-            id: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!,
+        let expected = try UIState(
+            id: #require(UUID(uuidString: "11111111-2222-3333-4444-555555555555")),
             selectedSection: "machines",
             appearanceOverride: "dark",
             engineHost: "192.168.64.2",
@@ -59,15 +59,15 @@ struct UIStateStoreTests {
     @Test("save replaces stale persisted user state from prior launches")
     func saveReplacesExistingPersistedState() async throws {
         let store = try makeStore()
-        let stale = UIState(
-            id: UUID(uuidString: "aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb")!,
+        let stale = try UIState(
+            id: #require(UUID(uuidString: "aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb")),
             selectedSection: "containers",
             engineHost: "127.0.0.1",
             enginePort: 8080,
             lastUpdated: Date(timeIntervalSince1970: 1)
         )
-        let current = UIState(
-            id: UUID(uuidString: "cccccccc-4444-5555-6666-dddddddddddd")!,
+        let current = try UIState(
+            id: #require(UUID(uuidString: "cccccccc-4444-5555-6666-dddddddddddd")),
             selectedSection: "kubernetes",
             appearanceOverride: "light",
             engineHost: "10.0.0.25",

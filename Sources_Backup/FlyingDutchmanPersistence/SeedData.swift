@@ -4,7 +4,6 @@ import Shared
 
 /// Provides seed data for development and testing
 public enum SeedData {
-
     /// Seeds all stores with sample data if they are empty
     public static func seedAllIfEmpty() async {
         let containerStore = ContainerStore()
@@ -232,7 +231,7 @@ public enum SeedData {
             image: images.randomElement()! + ":latest",
             status: statuses.randomElement()!,
             ports: generateRandomPorts(),
-            createdAt: Date().addingTimeInterval(-Double.random(in: 0...864000))
+            createdAt: Date().addingTimeInterval(-Double.random(in: 0 ... 864_000))
         )
     }
 
@@ -245,16 +244,16 @@ public enum SeedData {
             name: names.randomElement()!,
             tag: tags.randomElement()!,
             digest: "sha256:" + UUID().uuidString.replacingOccurrences(of: "-", with: ""),
-            sizeBytes: Int.random(in: 10_000_000...500_000_000),
-            createdAt: Date().addingTimeInterval(-Double.random(in: 0...2592000))
+            sizeBytes: Int.random(in: 10_000_000 ... 500_000_000),
+            createdAt: Date().addingTimeInterval(-Double.random(in: 0 ... 2_592_000))
         )
     }
 
     private static func generateRandomPorts() -> [String] {
-        let count = Int.random(in: 0...3)
+        let count = Int.random(in: 0 ... 3)
         var ports: [String] = []
-        for _ in 0..<count {
-            let port = Int.random(in: 3000...9000)
+        for _ in 0 ..< count {
+            let port = Int.random(in: 3000 ... 9000)
             ports.append("\(port):\(port)")
         }
         return ports
@@ -264,11 +263,11 @@ public enum SeedData {
 
     /// Generates multiple random containers for load testing
     public static func generateContainers(count: Int) -> [ContainerSummary] {
-        (0..<count).map { _ in randomContainer() }
+        (0 ..< count).map { _ in randomContainer() }
     }
 
     /// Generates multiple random images for load testing
     public static func generateImages(count: Int) -> [ImageSummary] {
-        (0..<count).map { _ in randomImage() }
+        (0 ..< count).map { _ in randomImage() }
     }
 }

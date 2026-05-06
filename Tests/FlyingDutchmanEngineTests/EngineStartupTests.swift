@@ -1,8 +1,8 @@
-import Testing
-import Foundation
 import Darwin
-import Shared
 import FlyingDutchmanContainers
+import Foundation
+import Shared
+import Testing
 
 @Suite("Engine Startup Tests")
 struct EngineStartupTests {

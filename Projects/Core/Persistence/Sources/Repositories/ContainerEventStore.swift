@@ -46,7 +46,7 @@ public actor ContainerEventStore {
                     """,
                     arguments: [containerID.uuidString, limit]
                 )
-                    .compactMap { $0.toContainerEvent() }
+                .compactMap { $0.toContainerEvent() }
             }
         } catch {
             logger.error("Failed to fetch events for container \(containerID): \(error)")

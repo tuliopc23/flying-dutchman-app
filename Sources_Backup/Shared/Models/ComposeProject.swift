@@ -4,7 +4,7 @@ import Foundation
 public struct ComposeProject: Identifiable, Codable, Sendable {
     public let id: UUID
     public var name: String
-    public var path: String  // Directory containing docker-compose.yml
+    public var path: String // Directory containing docker-compose.yml
     public var services: [ComposeService]
     public var networks: [ComposeNetwork]
     public var volumes: [ComposeVolume]
@@ -36,11 +36,11 @@ public struct ComposeService: Identifiable, Codable, Sendable {
     public var image: String
     public var command: [String]?
     public var environment: [String: String]
-    public var ports: [String]  // Format: "host:container" or "container"
-    public var volumes: [String]   // Format: "host:container[:mode]"
-    public var dependsOn: [String]   // Service names this depends on
+    public var ports: [String] // Format: "host:container" or "container"
+    public var volumes: [String] // Format: "host:container[:mode]"
+    public var dependsOn: [String] // Service names this depends on
     public var restartPolicy: RestartPolicy
-    public var networks: [String]     // Network names
+    public var networks: [String] // Network names
 
     public init(
         id: UUID = UUID(),
@@ -67,8 +67,8 @@ public struct ComposeService: Identifiable, Codable, Sendable {
     }
 
     public enum RestartPolicy: String, Codable, Sendable {
-        case no = "no"
-        case always = "always"
+        case no
+        case always
         case onFailure = "on-failure"
         case unlessStopped = "unless-stopped"
     }

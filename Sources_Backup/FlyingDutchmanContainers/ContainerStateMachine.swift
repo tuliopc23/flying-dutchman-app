@@ -1,6 +1,6 @@
 import Foundation
-import Shared
 import Logging
+import Shared
 
 /// State machine that enforces valid container state transitions
 public final class ContainerStateMachine: @unchecked Sendable {
@@ -15,7 +15,7 @@ public final class ContainerStateMachine: @unchecked Sendable {
         .stopping: [.stopped, .running],
         .stopped: [.starting, .removing],
         .removing: [.removed],
-        .removed: []
+        .removed: [],
     ]
 
     /// Current state of the container
@@ -68,4 +68,3 @@ public final class ContainerStateMachine: @unchecked Sendable {
         onStateChange?(oldState, newState)
     }
 }
-

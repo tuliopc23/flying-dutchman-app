@@ -32,9 +32,9 @@ struct Completion: ParsableCommand {
             COMPREPLY=()
             cur="${COMP_WORDS[COMP_CWORD]}"
             prev="${COMP_WORDS[COMP_CWORD-1]}"
-            
+
             opts="start stop containers images stacks volumes networks machines k8s events config version doctor"
-            
+
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
         }
@@ -63,7 +63,7 @@ struct Completion: ParsableCommand {
                 'version:Show version information'
                 'doctor:Run diagnostics'
             )
-            
+
             _describe 'command' commands
         }
 

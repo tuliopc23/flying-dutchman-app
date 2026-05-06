@@ -1,6 +1,6 @@
+import AsyncHTTPClient
 import Foundation
 import Logging
-import AsyncHTTPClient
 import Shared
 import SystemPackage
 
@@ -20,7 +20,7 @@ public actor KernelManager {
 
     /// Storage path for kernels
     private let kernelsDir: FilePath
-    
+
     /// Path where ContainerizationClient expects the default kernel
     private let defaultKernelSymlinkPath: FilePath
 
@@ -34,7 +34,7 @@ public actor KernelManager {
             atPath: kernelsDir.string,
             withIntermediateDirectories: true
         )
-        
+
         // Ensure the kernel parent directory exists for the symlink
         let kernelParentDir = ContainerizationClient.kernelPath.deletingLastPathComponent()
         try? FileManager.default.createDirectory(
@@ -88,33 +88,33 @@ public actor KernelManager {
             [FileAttributeKey.posixPermissions: 0o755],
             ofItemAtPath: kernelPath.string
         )
-        
+
         // Create/update symlink at default kernel location for ContainerizationClient
         try updateDefaultKernelSymlink(to: kernelPath)
 
         logger.info("Kernel \(kernelVersion) downloaded successfully to \(kernelPath.string)")
         return kernelPath
     }
-    
+
     /// Update the default kernel symlink to point to a specific kernel version
     /// - Parameter kernelPath: Path to the kernel to make default
     /// - Throws: Error if symlink creation fails
     private func updateDefaultKernelSymlink(to kernelPath: FilePath) throws {
         let symlinkPath = defaultKernelSymlinkPath.string
-        
+
         // Remove existing symlink or file if it exists
         if FileManager.default.fileExists(atPath: symlinkPath) {
             try FileManager.default.removeItem(atPath: symlinkPath)
         }
-        
+
         // Create symlink
         try FileManager.default.createSymbolicLink(
             atPath: symlinkPath,
             withDestinationPath: kernelPath.string
         )
-        
+
         logger.info("Updated default kernel symlink: \(symlinkPath) -> \(kernelPath.string)")
-        
+
         // Refresh ContainerizationClient availability
         ContainerizationClient.shared.refresh()
     }
@@ -127,13 +127,13 @@ public actor KernelManager {
         if FileManager.default.fileExists(atPath: defaultKernelSymlinkPath.string) {
             return defaultKernelSymlinkPath
         }
-        
+
         // Fall back to versioned kernel if symlink doesn't exist
         let kernelPath = kernelPath(for: defaultKernelVersion)
         guard FileManager.default.fileExists(atPath: kernelPath.string) else {
             throw KernelError.notFound("Default kernel not found. Please run: dutchman kernel download")
         }
-        
+
         // Create symlink for next time
         try? updateDefaultKernelSymlink(to: kernelPath)
 
@@ -143,7 +143,7 @@ public actor KernelManager {
     /// Get the initfs reference for image pulling
     /// - Returns: The initfs Docker image reference
     public func getInitfsReference() -> String {
-        return defaultInitfsReference
+        defaultInitfsReference
     }
 
     /// List available kernel versions
@@ -155,9 +155,10 @@ public actor KernelManager {
 
         return contents.filter { $0.hasSuffix("vmlinux") || $0.hasSuffix("vmlinuz") }
             .map { $0.replacingOccurrences(of: "vmlinux-", with: "")
-                     .replacingOccurrences(of: "vmlinuz-", with: "")
-                     .replacingOccurrences(of: ".vmlinux", with: "")
-                     .replacingOccurrences(of: ".vmlinuz", with: "") }
+                .replacingOccurrences(of: "vmlinuz-", with: "")
+                .replacingOccurrences(of: ".vmlinux", with: "")
+                .replacingOccurrences(of: ".vmlinuz", with: "")
+            }
             .sorted()
     }
 
@@ -208,11 +209,10 @@ public actor KernelManager {
     }
 
     private func fetchReleaseInfo(version: String) async throws -> KernelReleaseInfo {
-        let url: String
-        if version.lowercased() == "latest" {
-            url = "https://api.github.com/repos/\(githubRepo)/releases/latest"
+        let url: String = if version.lowercased() == "latest" {
+            "https://api.github.com/repos/\(githubRepo)/releases/latest"
         } else {
-            url = "https://api.github.com/repos/\(githubRepo)/releases/tags/v\(version)"
+            "https://api.github.com/repos/\(githubRepo)/releases/tags/v\(version)"
         }
 
         logger.debug("Fetching release info from \(url)")
@@ -290,11 +290,11 @@ public enum KernelError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .notFound(message):
-            return "Kernel not found: \(message)"
+            "Kernel not found: \(message)"
         case let .downloadFailed(reason):
-            return "Failed to download kernel: \(reason)"
+            "Failed to download kernel: \(reason)"
         case let .invalidKernel(reason):
-            return "Invalid kernel: \(reason)"
+            "Invalid kernel: \(reason)"
         }
     }
 }

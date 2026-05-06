@@ -227,82 +227,73 @@ struct Kubernetes: AsyncParsableCommand {
         var save: Bool = false
 
         func run() async throws {
-            var kubeconfig: String = ""
-
-            // Check machines
-            let machines = try await EngineClient.listMachines()
-            if let cluster = machines.first(where: { ($0.name == name || $0.id == name) && $0.isKubernetesCluster }) {
-                guard cluster.status == .running else {
-                    CLIOutput.warn("Error", "Cluster is not running")
-                    CLIOutput.hint("Start it with: fd k8s start \(name)")
-                    throw ExitCode.failure
-                }
-
-                guard let ip = cluster.ipAddress else {
-                    CLIOutput.warn("Error", "Cluster has no IP address")
-                    throw ExitCode.failure
-                }
-
-                // Fetch kubeconfig via SSH
-                let remoteConfig = try await EngineClient.executeMachineCommand(
-                    nameOrID: cluster.id,
-                    command: "sudo cat /etc/rancher/k3s/k3s.yaml"
-                )
-
-                // Replace localhost/127.0.0.1 with actual IP
-                kubeconfig = remoteConfig
-                    .replacingOccurrences(of: "https://127.0.0.1:6443", with: "https://\(ip):6443")
-                    .replacingOccurrences(of: "default", with: name)
-
-            } else {
-                // Check containers
-                let containers = try await EngineClient.listContainers()
-                if let cluster = containers.first(where: { $0.name == name && $0.image.contains("k3s") }) {
-                    guard cluster.status == .running else {
-                        CLIOutput.warn("Error", "Cluster is not running")
-                        CLIOutput.hint("Start it with: fd k8s start \(name)")
-                        throw ExitCode.failure
-                    }
-
-                    // Generate template kubeconfig for container (Phase 1 legacy)
-                    kubeconfig = """
-                    apiVersion: v1
-                    kind: Config
-                    clusters:
-                    - cluster:
-                        server: https://localhost:6443
-                        insecure-skip-tls-verify: true
-                      name: \(name)
-                    contexts:
-                    - context:
-                        cluster: \(name)
-                        user: \(name)
-                      name: \(name)
-                    current-context: \(name)
-                    users:
-                    - name: \(name)
-                      user:
-                        token: flying-dutchman-token
-                    """
-                } else {
-                    CLIOutput.warn("Error", "Cluster not found: \(name)")
-                    throw ExitCode.failure
-                }
-            }
+            let kubeconfig = try await resolveKubeconfig()
 
             if save {
                 let homeDir = FileManager.default.homeDirectoryForCurrentUser
                 let kubeDir = homeDir.appendingPathComponent(".kube")
                 try? FileManager.default.createDirectory(at: kubeDir, withIntermediateDirectories: true)
-
                 let configPath = kubeDir.appendingPathComponent("config-\(name)")
-                try kubeconfig.write(to: configPath, atomically: true, encoding: String.Encoding.utf8)
-
+                try kubeconfig.write(to: configPath, atomically: true, encoding: .utf8)
                 CLIOutput.line("Saved", configPath.path)
                 CLIOutput.hint("Use: export KUBECONFIG=\(configPath.path)")
             } else {
                 print(kubeconfig)
             }
+        }
+
+        private func resolveKubeconfig() async throws -> String {
+            let machines = try await EngineClient.listMachines()
+            if let cluster = machines.first(where: { ($0.name == name || $0.id == name) && $0.isKubernetesCluster }) {
+                return try await kubeconfigFromMachine(cluster: cluster)
+            }
+            let containers = try await EngineClient.listContainers()
+            if containers.contains(where: { $0.name == name && $0.image.contains("k3s") }) {
+                return kubeconfigFromContainer()
+            }
+            CLIOutput.warn("Error", "Cluster not found: \(name)")
+            throw ExitCode.failure
+        }
+
+        private func kubeconfigFromMachine(cluster: Machine) async throws -> String {
+            guard cluster.status == .running else {
+                CLIOutput.warn("Error", "Cluster is not running")
+                CLIOutput.hint("Start it with: fd k8s start \(name)")
+                throw ExitCode.failure
+            }
+            guard let ip = cluster.ipAddress else {
+                CLIOutput.warn("Error", "Cluster has no IP address")
+                throw ExitCode.failure
+            }
+            let remoteConfig = try await EngineClient.executeMachineCommand(
+                nameOrID: cluster.id,
+                command: "sudo cat /etc/rancher/k3s/k3s.yaml"
+            )
+            return remoteConfig
+                .replacingOccurrences(of: "https://127.0.0.1:6443", with: "https://\(ip):6443")
+                .replacingOccurrences(of: "default", with: name)
+        }
+
+        private func kubeconfigFromContainer() -> String {
+            """
+            apiVersion: v1
+            kind: Config
+            clusters:
+            - cluster:
+                server: https://localhost:6443
+                insecure-skip-tls-verify: true
+              name: \(name)
+            contexts:
+            - context:
+                cluster: \(name)
+                user: \(name)
+              name: \(name)
+            current-context: \(name)
+            users:
+            - name: \(name)
+              user:
+                token: flying-dutchman-token
+            """
         }
     }
 }

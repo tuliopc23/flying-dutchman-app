@@ -37,15 +37,11 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
     public func createMachine(name: String, config: MachineConfig) async throws -> Machine {
         logger.info("Creating machine: \(name) with \(config.distro):\(config.version)")
 
-        // Validate distro
         guard MachineDistro(rawValue: config.distro) != nil else {
             throw MachineError.unsupportedDistro(config.distro)
         }
 
-        // Generate stable MAC address
         let macAddress = generateMACAddress()
-
-        // Create machine record
         var machine = Machine(
             name: name,
             distro: config.distro,
@@ -56,85 +52,82 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
             diskGB: config.diskGB,
             macAddress: macAddress
         )
-
-        // Save to store
         try machineStore.create(machine)
 
         do {
-            // Create machine directory
-            try await resourceManager.createMachineDirectory(for: machine.id)
-            let machineDir = await resourceManager.machineDirectory(for: machine.id)
-
-            // Create disk image
-            try await resourceManager.createDiskImage(for: machine.id, sizeGB: config.diskGB)
-
-            // Generate SSH keys
-            let (publicKey, privateKey) = try await sshConfigurator.generateSSHKeyPair(for: machine.id)
-            try await sshConfigurator.saveSSHKeys(
-                for: machine.id,
-                publicKey: publicKey,
-                privateKey: privateKey,
-                machineDirectory: machineDir
-            )
-
-            // Create cloud-init user data
-            if let cloudInitData = config.cloudInitData {
-                let cloudInitPath = machineDir.appendingPathComponent("user-data.yml")
-                try cloudInitData.write(to: cloudInitPath, atomically: true, encoding: .utf8)
-            } else if config.installK3s {
-                // Generate K3s cloud-init
-                let k3sCloudInit = await k8sManager.createK3sCloudInit(
-                    machineName: name,
-                    sshPublicKey: publicKey
-                )
-                let cloudInitPath = machineDir.appendingPathComponent("user-data.yml")
-                try k3sCloudInit.write(to: cloudInitPath, atomically: true, encoding: .utf8)
-
-                // Mark machine as Kubernetes cluster
-                machine.isKubernetesCluster = true
-                machine.kubernetesVersion = "latest"
-                // Store update below
-            } else {
-                // Generate default cloud-init with SSH key
-                let defaultCloudInit = await sshConfigurator.createCloudInitUserData(
-                    sshPublicKey: publicKey,
-                    hostname: name
-                )
-                let cloudInitPath = machineDir.appendingPathComponent("user-data.yml")
-                try defaultCloudInit.write(to: cloudInitPath, atomically: true, encoding: .utf8)
-            }
-
-            // Download kernel and initrd
-            let kernelPath = await resourceManager.kernelPath(for: machine.id)
-            let initrdPath = await resourceManager.initrdPath(for: machine.id)
-
-            do {
-                try await kernelDownloader.ensureKernel(
-                    for: machine.id,
-                    distro: config.distro,
-                    version: config.version,
-                    targetKernelPath: kernelPath,
-                    targetInitrdPath: initrdPath
-                )
-            } catch {
-                logger
-                    .warning(
-                        "Kernel download failed, machine will need manual kernel setup: \(error.localizedDescription)"
-                    )
-            }
-
-            // Update status to stopped (ready to start)
+            try await setupMachineInfrastructure(machine: machine, config: config)
+            try await downloadKernel(for: machine, config: config)
             machine.status = .stopped
             try machineStore.update(machine)
-
-            logger.info("Machine \(name) created successfully")
             return machine
         } catch {
-            // Cleanup on failure
             machine.status = .error
             try? machineStore.update(machine)
-            try? await resourceManager.deleteMachineResources(for: machine.id)
-            throw MachineError.virtualizationError("Failed to create machine: \(error.localizedDescription)")
+            logger.error("Failed to create machine \(name): \(error)")
+            throw error
+        }
+    }
+
+    private func setupMachineInfrastructure(machine: Machine, config: MachineConfig) async throws {
+        try await resourceManager.createMachineDirectory(for: machine.id)
+        let machineDir = await resourceManager.machineDirectory(for: machine.id)
+        try await resourceManager.createDiskImage(for: machine.id, sizeGB: config.diskGB)
+
+        let (publicKey, privateKey) = try await sshConfigurator.generateSSHKeyPair(for: machine.id)
+        try await sshConfigurator.saveSSHKeys(
+            for: machine.id,
+            publicKey: publicKey,
+            privateKey: privateKey,
+            machineDirectory: machineDir
+        )
+
+        try await writeCloudInit(
+            machine: machine,
+            config: config,
+            publicKey: publicKey,
+            machineDirectory: machineDir
+        )
+    }
+
+    private func writeCloudInit(
+        machine: Machine,
+        config: MachineConfig,
+        publicKey: String,
+        machineDirectory: URL
+    ) async throws {
+        let cloudInitPath = machineDirectory.appendingPathComponent("user-data.yml")
+        let cloudInitData: String = if let data = config.cloudInitData {
+            data
+        } else if config.installK3s {
+            await k8sManager.createK3sCloudInit(
+                machineName: machine.name,
+                sshPublicKey: publicKey
+            )
+        } else {
+            await sshConfigurator.createCloudInitUserData(
+                sshPublicKey: publicKey,
+                hostname: machine.name
+            )
+        }
+
+        try cloudInitData.write(to: cloudInitPath, atomically: true, encoding: .utf8)
+    }
+
+    private func downloadKernel(for machine: Machine, config: MachineConfig) async throws {
+        let kernelPath = await resourceManager.kernelPath(for: machine.id)
+        let initrdPath = await resourceManager.initrdPath(for: machine.id)
+        do {
+            try await kernelDownloader.ensureKernel(
+                for: machine.id,
+                distro: config.distro,
+                version: config.version,
+                targetKernelPath: kernelPath,
+                targetInitrdPath: initrdPath
+            )
+        } catch {
+            logger.warning(
+                "Kernel download failed, machine will need manual kernel setup: \(error.localizedDescription)"
+            )
         }
     }
 
@@ -193,7 +186,7 @@ public actor VirtualizationRuntime: MachineRuntimeProtocol {
             runningVMs[machine.id] = vm
 
             // Detect IP address via ARP scanning
-            var detectedIP: String? = nil
+            var detectedIP: String?
             if let mac = machine.macAddress {
                 let scanner = ARPScanner()
                 // Retry for up to 30 seconds

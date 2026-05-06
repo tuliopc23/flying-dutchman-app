@@ -27,8 +27,7 @@ public actor ContainerCLIRuntime: ContainerRuntimeProtocol {
 
     public func listContainers() async throws -> [ContainerSummary] {
         if let data = runCLI(args: ["list", "--format", "json"]),
-           let decoded = try? JSONDecoder().decode([CLISummary].self, from: data)
-        {
+           let decoded = try? JSONDecoder().decode([CLISummary].self, from: data) {
             return decoded.map { $0.toSummary() }
         }
         return try await fallback.listContainers()
@@ -84,6 +83,11 @@ public actor ContainerCLIRuntime: ContainerRuntimeProtocol {
 
     public func pullImage(reference: String) async throws -> ImageSummary {
         try await fallback.pullImage(reference: reference)
+    }
+
+    public func buildImage(request: ImageBuildRequest) async throws -> ImageBuildResult {
+        let (image, logs, builder) = try HostImageBuilder.build(request: request)
+        return ImageBuildResult(image: image, logs: logs, builder: builder)
     }
 
     public func eventStream() -> AsyncStream<ContainerEvent> {

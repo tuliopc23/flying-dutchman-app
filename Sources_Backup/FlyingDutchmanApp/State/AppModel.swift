@@ -7,4 +7,3 @@ final class AppModel {
     var selectedSection: AppSection = .containers
     var appearanceOverride: ColorScheme?
 }
-

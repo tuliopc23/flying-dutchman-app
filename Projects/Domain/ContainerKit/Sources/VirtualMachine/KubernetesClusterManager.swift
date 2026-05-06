@@ -13,6 +13,45 @@ public actor KubernetesClusterManager {
         enableIngress: Bool = true,
         enableLoadBalancer: Bool = true
     ) -> String {
+        k3sCloudInitTemplate(
+            machineName: machineName,
+            sshPublicKey: sshPublicKey,
+            enableIngress: enableIngress,
+            enableLoadBalancer: enableLoadBalancer
+        )
+    }
+
+    private func k3sCloudInitTemplate(
+        machineName: String,
+        sshPublicKey: String,
+        enableIngress: Bool,
+        enableLoadBalancer: Bool
+    ) -> String {
+        let traefikCrd = enableIngress
+            ? "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
+            : ""
+        let traefikRbac = enableIngress
+            ? "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml"
+            : ""
+        let metallb = enableLoadBalancer
+            ? "- kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml"
+            : ""
+        return k3sCloudInitBase(
+            machineName: machineName,
+            sshPublicKey: sshPublicKey,
+            traefikCrd: traefikCrd,
+            traefikRbac: traefikRbac,
+            metallb: metallb
+        )
+    }
+
+    private func k3sCloudInitBase(
+        machineName: String,
+        sshPublicKey: String,
+        traefikCrd: String,
+        traefikRbac: String,
+        metallb: String
+    ) -> String {
         """
         #cloud-config
         hostname: \(machineName)
@@ -58,25 +97,15 @@ public actor KubernetesClusterManager {
         runcmd:
           - systemctl enable ssh
           - systemctl start ssh
-          # Install k3s
           - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable traefik" sh -
           - mkdir -p /home/ubuntu/.kube
           - cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
           - chown -R ubuntu:ubuntu /home/ubuntu/.kube
           - chmod 600 /home/ubuntu/.kube/config
-          # Wait for k3s to be ready
           - until kubectl get nodes; do sleep 2; done
-          # Install Traefik ingress controller if enabled
-          \(enableIngress ?
-            "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml" :
-            "")
-          \(enableIngress ?
-            "- kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml" :
-            "")
-          # Install MetalLB for LoadBalancer support if enabled
-          \(enableLoadBalancer ?
-            "- kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml" :
-            "")
+          \(traefikCrd)
+          \(traefikRbac)
+          \(metallb)
           - echo "k3s installation complete"
 
         final_message: "k3s cluster is ready!"

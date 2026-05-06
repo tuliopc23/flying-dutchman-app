@@ -14,7 +14,7 @@
 
 ### Runtime & Platform (Backend)
 - **Containers**: Apple Containerization framework integrated, lifecycle, logs, events.
-- **Images**: Pull + caching + registry auth.
+- **Images**: Pull + caching + registry auth + local build API/UI.
 - **Storage**: Bind mounts + named volumes.
 - **Networking**: DNS resolver, `*.flyingdutchman.local` (legacy `*.fd.local`), HTTPS proxy + CA, port forwarding.
 - **Linux Machines (VMs)**: **Implemented** via Virtualization.framework.
@@ -31,8 +31,8 @@
 - **Diagnostics banners**: platform + containerization checks.
 
 ### macOS App UI (Missing)
-- **Debug Shell UI**: embedded terminal (libghostty) still pending.
-- **Update Checker**: not implemented.
+- **Debug Shell UI**: embedded terminal session surface is available; native libghostty rendering is still pending.
+- **Update Checker**: Sparkle wiring is present; release feed/signing remain required for production rollout.
 
 ---
 
@@ -41,7 +41,7 @@
 | Feature Area | Backend | CLI | macOS UI | Notes |
 | --- | --- | --- | --- | --- |
 | Containers | ✅ | ✅ | ✅ | List + detail, actions, logs via VSOCK |
-| Images | ✅ | ✅ | ✅ | Pull + list; no build UI |
+| Images | ✅ | ✅ | ✅ | Pull + list + local build workflow |
 | Volumes | ✅ | ✅ | ✅ | List only |
 | Networks | ✅ | ✅ | ✅ | List only |
 | Diagnostics (Logs/Events) | ✅ | ✅ | ✅ | Events + Logs views |
@@ -49,7 +49,7 @@
 | Kubernetes (k3s) | ✅ | ✅ | ✅ | UI list/create + kubeconfig |
 | DNS + HTTPS | ✅ | ✅ | ❌ | No UI configuration |
 | Command Palette | ❌ | n/a | ✅ | UI + actions wired; keyboard navigation |
-| Debug Shell (VSOCK) | ⚠️ Partial | ✅ (exec/ssh) | ⚠️ Partial | External terminal launcher; embedded VT pending |
+| Debug Shell (VSOCK) | ⚠️ Partial | ✅ (exec/ssh) | ⚠️ Partial | Embedded session view + external launcher; libghostty rendering still pending |
 
 Legend: ✅ implemented, ⚠️ partial, ❌ missing
 
@@ -59,9 +59,9 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 
 ### P0 — macOS App Completeness
 1. **Debug Shell UI**
-   - embedded terminal (libghostty) + theming
+   - land native libghostty rendering + theming on top of the embedded session surface
 2. **Settings & Preferences**
-   - update checker
+   - finish production Sparkle feed/signing rollout
 
 ### P1 — Networking Enhancements
 1. Compose service domains (`service.project.flyingdutchman.local`)
@@ -75,8 +75,8 @@ Legend: ✅ implemented, ⚠️ partial, ❌ missing
 ## 4) Workstreams (Concrete Next Steps)
 
 ### UI Workstream (App)
-- Embed terminal via `libghostty` for Debug Shell.
-- Add Update Checker UI in Settings.
+- Replace the interim embedded session renderer with `libghostty`.
+- Finish Sparkle release feed/signing and validate installed-app upgrades.
 
 ### Platform Workstream
 - Harden HTTPS proxy + DNS resolver UX (UI + status).

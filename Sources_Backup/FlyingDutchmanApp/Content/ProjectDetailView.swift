@@ -1,5 +1,5 @@
-import SwiftUI
 import Shared
+import SwiftUI
 
 struct StackDetailView: View {
     var stack: StackSummary?

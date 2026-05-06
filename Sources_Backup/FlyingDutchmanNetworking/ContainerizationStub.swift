@@ -1,6 +1,6 @@
+import FlyingDutchmanContainers
 import Foundation
 import Shared
-import FlyingDutchmanContainers
 
 public enum ContainerizationStub {
     public struct EngineState: Codable {
@@ -18,7 +18,7 @@ public enum ContainerizationStub {
             workers: [
                 "http": "ready",
                 "xpc": "ready",
-                "containerization": runtimeName
+                "containerization": runtimeName,
             ],
             mode: runtimeName
         )

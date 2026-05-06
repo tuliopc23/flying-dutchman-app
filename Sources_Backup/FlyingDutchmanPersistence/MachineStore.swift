@@ -4,9 +4,9 @@ import Shared
 
 public final class MachineStore: Sendable {
     private let dbQueue: DatabaseQueue
-    
+
     public init(dbQueue: DatabaseQueue? = nil) {
-        if let dbQueue = dbQueue {
+        if let dbQueue {
             self.dbQueue = dbQueue
         } else {
             let path = AppConfig.Database.machinesPath
@@ -32,7 +32,7 @@ public final class MachineStore: Sendable {
                         t.column("createdAt", .datetime).notNull()
                         t.column("updatedAt", .datetime).notNull()
                     }
-                    
+
                     if try !db.columns(in: "machines").contains(where: { $0.name == "macAddress" }) {
                         try db.alter(table: "machines") { t in
                             t.add(column: "macAddress", .text)
@@ -44,7 +44,7 @@ public final class MachineStore: Sendable {
             }
         }
     }
-    
+
     public func create(_ machine: Machine) throws {
         try dbQueue.write { db in
             try db.execute(
@@ -65,12 +65,12 @@ public final class MachineStore: Sendable {
                     machine.ipAddress,
                     machine.sshPort,
                     machine.createdAt,
-                    machine.updatedAt
+                    machine.updatedAt,
                 ]
             )
         }
     }
-    
+
     public func update(_ machine: Machine) throws {
         try dbQueue.write { db in
             try db.execute(
@@ -91,39 +91,39 @@ public final class MachineStore: Sendable {
                     machine.ipAddress,
                     machine.sshPort,
                     Date(),
-                    machine.id
+                    machine.id,
                 ]
             )
         }
     }
-    
+
     public func delete(id: String) throws {
         try dbQueue.write { db in
             try db.execute(sql: "DELETE FROM machines WHERE id = ?", arguments: [id])
         }
     }
-    
+
     public func fetch(id: String) throws -> Machine? {
         try dbQueue.read { db in
             try Row.fetchOne(db, sql: "SELECT * FROM machines WHERE id = ?", arguments: [id])
                 .map(parseMachine)
         }
     }
-    
+
     public func fetchAll() throws -> [Machine] {
         try dbQueue.read { db in
             try Row.fetchAll(db, sql: "SELECT * FROM machines ORDER BY createdAt DESC")
                 .map(parseMachine)
         }
     }
-    
+
     public func fetchByName(_ name: String) throws -> Machine? {
         try dbQueue.read { db in
             try Row.fetchOne(db, sql: "SELECT * FROM machines WHERE name = ?", arguments: [name])
                 .map(parseMachine)
         }
     }
-    
+
     private func parseMachine(_ row: Row) -> Machine {
         Machine(
             id: row["id"],

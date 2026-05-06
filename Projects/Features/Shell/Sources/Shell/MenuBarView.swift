@@ -94,6 +94,14 @@ public struct MenuBarView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
 
+                Button("Check for Updates…") {
+                    AppUpdateRequests.checkForUpdates()
+                }
+                .buttonStyle(.borderless)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+
                 Button("Quit Flying Dutchman") {
                     NSApplication.shared.terminate(nil)
                 }

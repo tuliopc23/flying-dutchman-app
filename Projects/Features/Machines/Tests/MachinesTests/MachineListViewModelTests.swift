@@ -1,7 +1,7 @@
 import Foundation
+@testable import Machines
 import Shared
 import Testing
-@testable import Machines
 
 @MainActor
 @Suite("Machine List ViewModel Tests")
@@ -38,7 +38,13 @@ struct MachineListViewModelTests {
     @Test("start updates an existing machine entry")
     func startUpdatesExistingMachine() async {
         let machine = Machine(id: "vm-1", name: "vm-1", distro: "ubuntu", version: "24.04", status: .stopped)
-        let running = Machine(id: machine.id, name: machine.name, distro: machine.distro, version: machine.version, status: .running)
+        let running = Machine(
+            id: machine.id,
+            name: machine.name,
+            distro: machine.distro,
+            version: machine.version,
+            status: .running
+        )
 
         let viewModel = MachineListViewModel(client: .stub(
             startMachine: { id in
@@ -59,9 +65,10 @@ struct MachineListViewModelTests {
 private extension MachinesEngineClient {
     static func stub(
         listMachines: @Sendable @escaping () async throws -> [Machine] = { [] },
-        createMachine: @Sendable @escaping (_ name: String, _ config: MachineConfig) async throws -> Machine = { name, config in
-            Machine(name: name, distro: config.distro, version: config.version, status: .creating)
-        },
+        createMachine: @Sendable @escaping (_ name: String, _ config: MachineConfig) async throws
+            -> Machine = { name, config in
+                Machine(name: name, distro: config.distro, version: config.version, status: .creating)
+            },
         startMachine: @Sendable @escaping (_ id: String) async throws -> Machine = { id in
             Machine(id: id, name: id, distro: "ubuntu", version: "24.04", status: .running)
         },

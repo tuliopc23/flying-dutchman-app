@@ -2,7 +2,6 @@ import Foundation
 import Logging
 import Shared
 import Yams
-import Yams
 
 /// Manager for Docker Compose projects with multi-container orchestration
 public actor ComposeProjectManager {
@@ -68,7 +67,8 @@ public actor ComposeProjectManager {
             } else {
                 // Try to find existing container
                 if let existingID = await findContainerID(for: service.name, in: project),
-                   try await isContainerRunning(id: existingID) {
+                   try await isContainerRunning(id: existingID)
+                {
                     containerID = existingID
                     logger.info("Using existing container for service '\(service.name)'")
                 } else {
@@ -180,11 +180,11 @@ public actor ComposeProjectManager {
             )
         }
 
-        let networks = (yaml.networks ?? [:]).map { (name, config) -> ComposeNetwork in
+        let networks = (yaml.networks ?? [:]).map { name, config -> ComposeNetwork in
             ComposeNetwork(name: name, driver: config.driver ?? "bridge")
         }
 
-        let volumes = (yaml.volumes ?? [:]).map { (name, config) -> ComposeVolume in
+        let volumes = (yaml.volumes ?? [:]).map { name, config -> ComposeVolume in
             ComposeVolume(name: name, driver: config.driver ?? "local")
         }
 
@@ -260,7 +260,7 @@ public actor ComposeProjectManager {
 
     private func findContainerID(for serviceName: String, in project: ComposeProject) async -> UUID? {
         // Find container by name pattern: project_service_N
-        let result = (try? await runtime.listContainers()) ?? []
+        let result = await (try? runtime.listContainers()) ?? []
 
         let namePattern = "\(project.name)_\(serviceName)"
         return result.first { $0.name.hasPrefix(namePattern) }?.id
@@ -322,15 +322,15 @@ public enum ComposeError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .fileNotFound(path):
-            return "Compose file not found: \(path)"
+            "Compose file not found: \(path)"
         case let .invalidYAML(reason):
-            return "Invalid YAML: \(reason)"
+            "Invalid YAML: \(reason)"
         case let .circularDependency(reason):
-            return reason
+            reason
         case let .invalidDependency(reason):
-            return reason
+            reason
         case let .notImplemented(feature):
-            return "\(feature) - this feature is not yet implemented"
+            "\(feature) - this feature is not yet implemented"
         }
     }
 }

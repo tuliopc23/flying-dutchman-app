@@ -15,27 +15,27 @@ public final class ContainerizationClient: @unchecked Sendable {
 
     private init() {
         #if canImport(Containerization)
-        // Framework is available, check for kernel
-        if Self.kernelExists() {
-            availability = .native
-        } else {
-            availability = .missingKernel
-        }
+            // Framework is available, check for kernel
+            if Self.kernelExists() {
+                availability = .native
+            } else {
+                availability = .missingKernel
+            }
         #else
-        availability = .missingFramework
+            availability = .missingFramework
         #endif
     }
-    
+
     /// Refresh availability check (e.g., after kernel download)
     public func refresh() {
         #if canImport(Containerization)
-        if Self.kernelExists() {
-            availability = .native
-        } else {
-            availability = .missingKernel
-        }
+            if Self.kernelExists() {
+                availability = .native
+            } else {
+                availability = .missingKernel
+            }
         #else
-        availability = .missingFramework
+            availability = .missingFramework
         #endif
     }
 
@@ -47,25 +47,25 @@ public final class ContainerizationClient: @unchecked Sendable {
     /// Human-readable worker status string for diagnostics.
     public var workerStatus: String {
         switch availability {
-        case .native: return "ready"
-        case .missingFramework: return "stub (framework unavailable)"
-        case .missingKernel: return "stub (kernel not found)"
+        case .native: "ready"
+        case .missingFramework: "stub (framework unavailable)"
+        case .missingKernel: "stub (kernel not found)"
         }
     }
-    
+
     /// Path to the expected kernel location
     public static var kernelPath: URL {
         let supportDir = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         ).first!
-        
+
         return supportDir
             .appendingPathComponent("flyingdutchman")
             .appendingPathComponent("kernel")
             .appendingPathComponent("vmlinux")
     }
-    
+
     /// Check if kernel exists at expected location
     private static func kernelExists() -> Bool {
         FileManager.default.fileExists(atPath: kernelPath.path)

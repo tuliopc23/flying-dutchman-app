@@ -62,6 +62,10 @@ public actor MockRuntime: ContainerRuntimeProtocol {
         []
     }
 
+    public func buildImage(request _: ImageBuildRequest) async throws -> ImageBuildResult {
+        ImageBuildResult(image: ImageSummary(name: "mock", tag: "latest"), logs: ["mock build"], builder: "mock")
+    }
+
     public func eventStream() -> AsyncStream<ContainerEvent> {
         AsyncStream { $0.finish() }
     }
@@ -103,6 +107,10 @@ public actor UnimplementedRuntime: ContainerRuntimeProtocol {
     }
 
     public func listImages() async throws -> [ImageSummary] {
+        fatalError()
+    }
+
+    public func buildImage(request _: ImageBuildRequest) async throws -> ImageBuildResult {
         fatalError()
     }
 

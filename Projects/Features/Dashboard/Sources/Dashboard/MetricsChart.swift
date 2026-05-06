@@ -6,7 +6,7 @@ import SwiftUI
 struct ActivityChart: View {
     let metrics: [MetricPoint]
     let color: Color
-    
+
     var body: some View {
         Chart(metrics) { point in
             AreaMark(
@@ -21,7 +21,7 @@ struct ActivityChart: View {
                     endPoint: .bottom
                 )
             )
-            
+
             LineMark(
                 x: .value("Time", point.timestamp),
                 y: .value("Value", point.value)

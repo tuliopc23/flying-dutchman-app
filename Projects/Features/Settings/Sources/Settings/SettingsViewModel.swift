@@ -1,10 +1,10 @@
 import Dependencies
-import Foundation
 import FlyingDutchmanNetworking
+import Foundation
 import Shared
 import SwiftUI
 
-struct SettingsNetworkClient: Sendable {
+struct SettingsNetworkClient {
     var checkDNSStatus: @Sendable () async -> Bool
     var checkCATrustStatus: @Sendable () async -> Bool
     var installDNSResolvers: @Sendable () async throws -> Void
@@ -29,7 +29,7 @@ public final class SettingsViewModel {
     public var isInstallingDNS: Bool = false
     public var isTrustingCA: Bool = false
     public var errorMessage: String?
-    
+
     private let networkClient: SettingsNetworkClient
 
     var dnsStatusLabel: String {
@@ -59,16 +59,16 @@ public final class SettingsViewModel {
     static func caTrustFailureMessage(for error: any Error) -> String {
         "Couldn't trust the Root CA. Start FlyingDutchmanEngine if needed, then retry Trust or run 'flyingdutchman trust-ca'. Details: \(error.localizedDescription)"
     }
-    
+
     init(networkClient: SettingsNetworkClient = .live) {
         self.networkClient = networkClient
     }
-    
+
     public func checkStatus() async {
         dnsStatus = await networkClient.checkDNSStatus()
         caStatus = await networkClient.checkCATrustStatus()
     }
-    
+
     public func installDNS() async {
         isInstallingDNS = true
         errorMessage = nil
@@ -80,7 +80,7 @@ public final class SettingsViewModel {
         }
         isInstallingDNS = false
     }
-    
+
     public func trustCA() async {
         isTrustingCA = true
         errorMessage = nil

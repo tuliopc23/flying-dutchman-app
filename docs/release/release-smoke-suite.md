@@ -38,3 +38,9 @@ This command is the minimum repeatable automated smoke gate for release-critical
 - `bash scripts/validate-release.sh` runs this smoke suite before the full package test pass.
 - `bash scripts/validate-privileged-flows.sh` preflights the CLI validation surface and prints the manual resolver, CA trust, HTTPS, and port-forward commands for privileged smoke passes.
 - Manual smoke for privileged networking, containers, machines, and Kubernetes remains required and is tracked separately in the release evidence checklist.
+
+### Additional manual follow-up for v1 completion
+
+- Run one `fd images pull ...` and one `fd images build <context>` check after the automated suite.
+- Open Debug Shell and validate one embedded session plus one external terminal handoff.
+- Trigger `Check for Updates…` once from the app menu or Settings and record whether the configured feed is reachable.

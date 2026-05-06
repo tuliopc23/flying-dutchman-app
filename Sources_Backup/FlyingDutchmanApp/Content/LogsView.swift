@@ -1,10 +1,10 @@
-import Shared
 import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
+import Shared
 import SwiftUI
 
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 @MainActor
@@ -105,13 +105,13 @@ struct LogsView: View {
                 }
                 .buttonStyle(.glass)
                 .frame(width: 200)
-                
+
                 Spacer()
-                
+
                 Toggle("Follow", isOn: $viewModel.follow)
                     .toggleStyle(.switch)
                     .controlSize(.mini)
-                
+
                 Button {
                     Task { @MainActor in await viewModel.load(containers: containers) }
                 } label: {
@@ -122,7 +122,7 @@ struct LogsView: View {
             }
             .padding(DesignSystem.Spacing.md)
             .background(.thinMaterial)
-            
+
             // Search Bar
             HStack {
                 Image(systemName: "magnifyingglass")
@@ -141,7 +141,7 @@ struct LogsView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 2) {
-                        if viewModel.isLoading && viewModel.filteredLines.isEmpty {
+                        if viewModel.isLoading, viewModel.filteredLines.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 200)
                         } else if let error = viewModel.error {
@@ -163,7 +163,7 @@ struct LogsView: View {
                 }
                 .background(Color.black.opacity(0.9))
                 .onChange(of: viewModel.lines.count) { _, count in
-                    if viewModel.follow && count > 0 {
+                    if viewModel.follow, count > 0 {
                         withAnimation {
                             proxy.scrollTo(count - 1, anchor: .bottom)
                         }
@@ -201,26 +201,26 @@ struct LogLineRow: View {
     let line: String
     let index: Int
     @State private var isHovering = false
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Text("\(index + 1)")
                 .font(.system(size: 10, weight: .regular, design: .monospaced))
                 .foregroundStyle(Color.white.opacity(0.3))
                 .frame(width: 30, alignment: .trailing)
-            
+
             Text(line)
                 .font(.system(size: 11, weight: .regular, design: .monospaced))
                 .foregroundStyle(Color.white.opacity(0.9))
                 .textSelection(.enabled)
-            
+
             Spacer()
-            
+
             if isHovering {
                 Button {
                     #if canImport(AppKit)
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(line, forType: .string)
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(line, forType: .string)
                     #endif
                 } label: {
                     Image(systemName: "doc.on.doc")

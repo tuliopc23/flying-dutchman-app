@@ -1,13 +1,13 @@
 import Foundation
+@testable import Kubernetes
 import Shared
 import Testing
-@testable import Kubernetes
 
 @MainActor
 @Suite("Kubernetes List ViewModel Tests")
 struct KubernetesListViewModelTests {
     @Test("load merges VM and container-backed clusters")
-    func loadMergesClusterSources() async {
+    func loadMergesClusterSources() async throws {
         let vmCluster = Machine(
             id: "vm-cluster",
             name: "vm-cluster",
@@ -19,8 +19,8 @@ struct KubernetesListViewModelTests {
             kubernetesVersion: "v1.30.0"
         )
         let plainMachine = Machine(name: "plain", distro: "ubuntu", version: "24.04", status: .running)
-        let containerCluster = ContainerSummary(
-            id: UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")!,
+        let containerCluster = try ContainerSummary(
+            id: #require(UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
             name: "container-cluster",
             image: "rancher/k3s:latest",
             status: .starting,
@@ -117,23 +117,43 @@ private extension KubernetesEngineClient {
     static func stub(
         listMachines: @Sendable @escaping () async throws -> [Machine] = { [] },
         listContainers: @Sendable @escaping () async throws -> [ContainerSummary] = { [] },
-        createMachine: @Sendable @escaping (_ name: String, _ config: MachineConfig) async throws -> Machine = { name, config in
-            Machine(name: name, distro: config.distro, version: config.version, status: .creating, isKubernetesCluster: true)
-        },
-        createContainer: @Sendable @escaping (_ name: String, _ image: String, _ config: ContainerConfig) async throws -> ContainerSummary = { name, image, _ in
-            ContainerSummary(name: name, image: image, status: .created, ports: ["6443:6443"])
-        },
+        createMachine: @Sendable @escaping (_ name: String, _ config: MachineConfig) async throws
+            -> Machine = { name, config in
+                Machine(
+                    name: name,
+                    distro: config.distro,
+                    version: config.version,
+                    status: .creating,
+                    isKubernetesCluster: true
+                )
+            },
+        createContainer: @Sendable @escaping (_ name: String, _ image: String, _ config: ContainerConfig) async throws
+            -> ContainerSummary = { name, image, _ in
+                ContainerSummary(name: name, image: image, status: .created, ports: ["6443:6443"])
+            },
         startMachine: @Sendable @escaping (_ id: String) async throws -> Machine = { id in
             Machine(id: id, name: id, distro: "ubuntu", version: "24.04", status: .running, isKubernetesCluster: true)
         },
         startContainer: @Sendable @escaping (_ id: UUID) async throws -> ContainerSummary = { id in
-            ContainerSummary(id: id, name: id.uuidString, image: "rancher/k3s:latest", status: .running, ports: ["6443:6443"])
+            ContainerSummary(
+                id: id,
+                name: id.uuidString,
+                image: "rancher/k3s:latest",
+                status: .running,
+                ports: ["6443:6443"]
+            )
         },
         stopMachine: @Sendable @escaping (_ id: String) async throws -> Machine = { id in
             Machine(id: id, name: id, distro: "ubuntu", version: "24.04", status: .stopped, isKubernetesCluster: true)
         },
         stopContainer: @Sendable @escaping (_ id: UUID) async throws -> ContainerSummary = { id in
-            ContainerSummary(id: id, name: id.uuidString, image: "rancher/k3s:latest", status: .stopped, ports: ["6443:6443"])
+            ContainerSummary(
+                id: id,
+                name: id.uuidString,
+                image: "rancher/k3s:latest",
+                status: .stopped,
+                ports: ["6443:6443"]
+            )
         },
         deleteMachine: @Sendable @escaping (_ id: String) async throws -> Void = { _ in },
         removeContainer: @Sendable @escaping (_ id: UUID) async throws -> Void = { _ in },

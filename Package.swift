@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "FlyingDutchman",
     platforms: [
-        .macOS("26.0") // Tahoe
+        .macOS("26.0"), // Tahoe
     ],
     products: [
         .executable(name: "FlyingDutchmanApp", targets: ["FlyingDutchmanApp"]),
@@ -17,7 +17,7 @@ let package = Package(
         .library(name: "AIKit", targets: ["AIKit"]),
         .library(name: "Shared", targets: ["Shared"]),
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
-        .library(name: "UIComponents", targets: ["UIComponents"])
+        .library(name: "UIComponents", targets: ["UIComponents"]),
     ],
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.0"),
@@ -37,7 +37,8 @@ let package = Package(
         .package(url: "https://github.com/ChimeHQ/ProcessEnv.git", from: "1.0.0"),
         .package(url: "https://github.com/orlandos-nl/DNSClient.git", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-certificates.git", from: "1.0.0"),
-        .package(url: "https://github.com/orlandos-nl/Citadel.git", from: "0.7.0")
+        .package(url: "https://github.com/orlandos-nl/Citadel.git", from: "0.7.0"),
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.7.0"),
     ],
     targets: [
         // Core
@@ -46,21 +47,21 @@ let package = Package(
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
-                .product(name: "Hummingbird", package: "hummingbird")
+                .product(name: "Hummingbird", package: "hummingbird"),
             ],
             path: "Projects/Core/Shared/Sources"
         ),
         .target(
             name: "DesignSystem",
             dependencies: [
-                "Shared"
+                "Shared",
             ],
             path: "Projects/Core/DesignSystem/Sources"
         ),
         .target(
             name: "UIComponents",
             dependencies: [
-                "DesignSystem"
+                "DesignSystem",
             ],
             path: "Projects/Core/UIComponents/Sources"
         ),
@@ -69,7 +70,7 @@ let package = Package(
             dependencies: [
                 "Shared",
                 .product(name: "GRDB", package: "GRDB.swift"),
-                .product(name: "GRDBSQLite", package: "GRDB.swift")
+                .product(name: "GRDBSQLite", package: "GRDB.swift"),
             ],
             path: "Projects/Core/Persistence/Sources"
         ),
@@ -91,7 +92,7 @@ let package = Package(
                 .product(name: "ProcessEnv", package: "ProcessEnv"),
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "GRDB", package: "GRDB.swift"),
-                .product(name: "Citadel", package: "Citadel")
+                .product(name: "Citadel", package: "Citadel"),
             ],
             path: "Projects/Domain/ContainerKit/Sources"
         ),
@@ -108,7 +109,7 @@ let package = Package(
                 .product(name: "GRDBSQLite", package: "GRDB.swift"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "DNSClient", package: "DNSClient"),
-                .product(name: "X509", package: "swift-certificates")
+                .product(name: "X509", package: "swift-certificates"),
             ],
             path: "Projects/Domain/NetworkKit/Sources"
         ),
@@ -116,14 +117,14 @@ let package = Package(
             name: "KubeKit",
             dependencies: [
                 "Shared",
-                .product(name: "SwiftkubeClient", package: "client")
+                .product(name: "SwiftkubeClient", package: "client"),
             ],
             path: "Projects/Domain/KubeKit/Sources"
         ),
         .target(
             name: "AIKit",
             dependencies: [
-                "Shared"
+                "Shared",
             ],
             path: "Projects/Domain/AIKit/Sources"
         ),
@@ -140,7 +141,7 @@ let package = Package(
         .target(
             name: "ContainersInterface",
             dependencies: [
-                "Shared"
+                "Shared",
             ],
             path: "Projects/Features/Containers/Sources/ContainersInterface"
         ),
@@ -159,21 +160,21 @@ let package = Package(
         .target(
             name: "DiagnosticsInterface",
             dependencies: [
-                "Shared"
+                "Shared",
             ],
             path: "Projects/Features/Diagnostics/Sources/DiagnosticsInterface"
         ),
         .target(
             name: "StacksInterface",
             dependencies: [
-                "Shared"
+                "Shared",
             ],
             path: "Projects/Features/Stacks/Sources/StacksInterface"
         ),
         .target(
             name: "MachinesInterface",
             dependencies: [
-                "Shared"
+                "Shared",
             ],
             path: "Projects/Features/Machines/Sources/MachinesInterface"
         ),
@@ -199,7 +200,7 @@ let package = Package(
                 "DesignSystem",
                 "UIComponents",
                 "FlyingDutchmanPersistence",
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/Dashboard/Sources/Dashboard"
         ),
@@ -226,7 +227,7 @@ let package = Package(
                 "FlyingDutchmanPersistence",
                 "FlyingDutchmanNetworking",
                 "FlyingDutchmanContainers",
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/Containers/Sources/Containers"
         ),
@@ -238,7 +239,7 @@ let package = Package(
                 "DesignSystem",
                 "UIComponents",
                 "FlyingDutchmanPersistence",
-                "FlyingDutchmanNetworking"
+                "FlyingDutchmanNetworking",
             ],
             path: "Projects/Features/Images/Sources/Images"
         ),
@@ -250,7 +251,7 @@ let package = Package(
                 "DesignSystem",
                 "UIComponents",
                 "FlyingDutchmanPersistence",
-                "FlyingDutchmanNetworking"
+                "FlyingDutchmanNetworking",
             ],
             path: "Projects/Features/Volumes/Sources/Volumes"
         ),
@@ -262,7 +263,7 @@ let package = Package(
                 "DesignSystem",
                 "UIComponents",
                 "FlyingDutchmanPersistence",
-                "FlyingDutchmanNetworking"
+                "FlyingDutchmanNetworking",
             ],
             path: "Projects/Features/Networks/Sources/Networks"
         ),
@@ -275,7 +276,7 @@ let package = Package(
                 "UIComponents",
                 "FlyingDutchmanNetworking",
                 "FlyingDutchmanContainers",
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/Diagnostics/Sources/Diagnostics"
         ),
@@ -288,7 +289,7 @@ let package = Package(
                 "UIComponents",
                 "FlyingDutchmanPersistence",
                 "FlyingDutchmanNetworking",
-                "FlyingDutchmanContainers"
+                "FlyingDutchmanContainers",
             ],
             path: "Projects/Features/Stacks/Sources/Stacks"
         ),
@@ -301,7 +302,7 @@ let package = Package(
                 "UIComponents",
                 "FlyingDutchmanPersistence",
                 "FlyingDutchmanNetworking",
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/Machines/Sources/Machines"
         ),
@@ -313,7 +314,7 @@ let package = Package(
                 "DesignSystem",
                 "UIComponents",
                 "FlyingDutchmanPersistence",
-                "FlyingDutchmanNetworking"
+                "FlyingDutchmanNetworking",
             ],
             path: "Projects/Features/Kubernetes/Sources/Kubernetes"
         ),
@@ -324,7 +325,8 @@ let package = Package(
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
-                .product(name: "Dependencies", package: "swift-dependencies")
+                "FlyingDutchmanNetworking",
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/DebugShell/Sources/DebugShell"
         ),
@@ -346,7 +348,7 @@ let package = Package(
                 "MachinesInterface",
                 "KubernetesInterface",
                 "DebugShellInterface",
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
             ],
             path: "Projects/Features/Shell/Sources/Shell"
         ),
@@ -359,7 +361,7 @@ let package = Package(
                 "FlyingDutchmanPersistence",
                 "FlyingDutchmanContainers",
                 "FlyingDutchmanNetworking",
-                .product(name: "ServiceLifecycle", package: "swift-service-lifecycle")
+                .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
             ],
             path: "Projects/Product/Engine/Sources"
         ),
@@ -370,7 +372,7 @@ let package = Package(
                 "FlyingDutchmanPersistence",
                 "FlyingDutchmanContainers",
                 "FlyingDutchmanNetworking",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
             path: "Projects/Product/CLI/Sources"
         ),
@@ -390,7 +392,8 @@ let package = Package(
                 "DebugShell",
                 .product(name: "SwiftNavigation", package: "swift-navigation"),
                 .product(name: "SwiftUINavigation", package: "swift-navigation"),
-                .product(name: "Dependencies", package: "swift-dependencies")
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "Sparkle", package: "Sparkle"),
             ],
             path: "Projects/Product/App/Sources"
         ),
@@ -411,7 +414,7 @@ let package = Package(
                 "StacksInterface",
                 "MachinesInterface",
                 "KubernetesInterface",
-                "DebugShellInterface"
+                "DebugShellInterface",
             ],
             path: "Tests/FlyingDutchmanAppTests"
         ),
@@ -420,7 +423,7 @@ let package = Package(
             dependencies: [
                 "FlyingDutchmanEngine",
                 "Shared",
-                "FlyingDutchmanContainers"
+                "FlyingDutchmanContainers",
             ],
             path: "Tests/FlyingDutchmanEngineTests"
         ),
@@ -454,7 +457,7 @@ let package = Package(
             dependencies: [
                 "FlyingDutchmanPersistence",
                 "Shared",
-                .product(name: "GRDB", package: "GRDB.swift")
+                .product(name: "GRDB", package: "GRDB.swift"),
             ],
             path: "Tests/FlyingDutchmanPersistenceTests"
         ),
@@ -463,9 +466,9 @@ let package = Package(
             dependencies: [
                 "FlyingDutchmanContainers",
                 "Shared",
-                "FlyingDutchmanPersistence"
+                "FlyingDutchmanPersistence",
             ],
             path: "Tests/FlyingDutchmanContainersTests"
-        )
+        ),
     ]
 )

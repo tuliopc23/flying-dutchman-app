@@ -31,7 +31,11 @@ public enum RuntimeChecks {
             if process.terminationStatus == 0 {
                 return ToolCheck(name: "container", status: "ok", message: output)
             } else {
-                return ToolCheck(name: "container", status: "error", message: output.isEmpty ? "container tool returned non-zero" : output)
+                return ToolCheck(
+                    name: "container",
+                    status: "error",
+                    message: output.isEmpty ? "container tool returned non-zero" : output
+                )
             }
         } catch {
             return ToolCheck(name: "container", status: "missing", message: "container CLI not found in PATH")
@@ -40,18 +44,25 @@ public enum RuntimeChecks {
 
     public static func containerizationFramework() -> ToolCheck {
         #if canImport(Containerization)
-        return ToolCheck(name: "Containerization.framework", status: "ok", message: "Framework present")
+            return ToolCheck(name: "Containerization.framework", status: "ok", message: "Framework present")
         #else
-        return ToolCheck(name: "Containerization.framework", status: "missing", message: "Not detected (stub). Install Tahoe Containerization framework.")
+            return ToolCheck(
+                name: "Containerization.framework",
+                status: "missing",
+                message: "Not detected (stub). Install Tahoe Containerization framework."
+            )
         #endif
     }
 
-    public static func platformSupport(minimumMajorVersion: Int = 26, requireAppleSilicon: Bool = true) -> PlatformStatus {
+    public static func platformSupport(
+        minimumMajorVersion: Int = 26,
+        requireAppleSilicon: Bool = true
+    ) -> PlatformStatus {
         let version = ProcessInfo.processInfo.operatingSystemVersion
         #if arch(arm64)
-        let isAppleSilicon = true
+            let isAppleSilicon = true
         #else
-        let isAppleSilicon = false
+            let isAppleSilicon = false
         #endif
 
         let meetsVersion = version.majorVersion >= minimumMajorVersion
@@ -59,13 +70,12 @@ public enum RuntimeChecks {
         let requiredOSLabel = minimumMajorVersion >= 26 ? "macOS Tahoe \(minimumMajorVersion)+" : "macOS \(minimumMajorVersion)+"
 
         let supported = meetsVersion && meetsArch
-        let message: String
-        if supported {
-            message = "Platform supported (\(version.majorVersion).\(version.minorVersion)) on \(isAppleSilicon ? "Apple Silicon" : "Intel")"
+        let message: String = if supported {
+            "Platform supported (\(version.majorVersion).\(version.minorVersion)) on \(isAppleSilicon ? "Apple Silicon" : "Intel")"
         } else if !meetsVersion {
-            message = "Requires \(requiredOSLabel) (detected \(version.majorVersion).\(version.minorVersion))"
+            "Requires \(requiredOSLabel) (detected \(version.majorVersion).\(version.minorVersion))"
         } else {
-            message = "Apple Silicon required (detected Intel)"
+            "Apple Silicon required (detected Intel)"
         }
 
         return PlatformStatus(

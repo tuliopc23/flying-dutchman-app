@@ -10,41 +10,43 @@ enum AppSection: String, CaseIterable, Identifiable {
     case logs
     case events
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var title: String {
         switch self {
-        case .containers: return "Containers"
-        case .stacks: return "Stacks"
-        case .images: return "Images"
-        case .volumes: return "Volumes"
-        case .networks: return "Networks"
-        case .logs: return "Logs"
-        case .events: return "Events"
+        case .containers: "Containers"
+        case .stacks: "Stacks"
+        case .images: "Images"
+        case .volumes: "Volumes"
+        case .networks: "Networks"
+        case .logs: "Logs"
+        case .events: "Events"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .containers: return "shippingbox.circle"
-        case .stacks: return "square.stack.3d.up"
-        case .images: return "shippingbox.fill"
-        case .volumes: return "internaldrive"
-        case .networks: return "network"
-        case .logs: return "terminal"
-        case .events: return "waveform.path"
+        case .containers: "shippingbox.circle"
+        case .stacks: "square.stack.3d.up"
+        case .images: "shippingbox.fill"
+        case .volumes: "internaldrive"
+        case .networks: "network"
+        case .logs: "terminal"
+        case .events: "waveform.path"
         }
     }
 
     var shortcutKey: KeyEquivalent {
         switch self {
-        case .containers: return "1"
-        case .stacks: return "2"
-        case .images: return "3"
-        case .volumes: return "4"
-        case .networks: return "5"
-        case .logs: return "6"
-        case .events: return "7"
+        case .containers: "1"
+        case .stacks: "2"
+        case .images: "3"
+        case .volumes: "4"
+        case .networks: "5"
+        case .logs: "6"
+        case .events: "7"
         }
     }
 }

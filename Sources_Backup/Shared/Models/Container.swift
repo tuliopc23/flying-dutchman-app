@@ -11,7 +11,7 @@ public struct MountSpec: Codable, Hashable, Sendable {
     public let destination: String
     public let type: MountType
     public let readOnly: Bool
-    
+
     public init(
         source: String,
         destination: String,
@@ -33,10 +33,10 @@ public struct ContainerSummary: Codable, Identifiable, Hashable, Sendable {
     public var ports: [String]
     public var mounts: [MountSpec]
     public var createdAt: Date
-    
+
     /// Path to exposed rootfs directory (nil if not running or not exposed)
     public var rootfsPath: String?
-    
+
     /// Allocated IP address (Phase 2)
     public var ipAddress: String?
 

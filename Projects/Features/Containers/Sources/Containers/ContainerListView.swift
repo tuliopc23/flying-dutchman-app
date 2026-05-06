@@ -101,7 +101,7 @@ public struct ContainerListView: View {
                 }
                 .padding(.horizontal, DesignSystem.Inset.lg.leading)
                 .padding(.top, DesignSystem.Inset.lg.top)
-                
+
                 // Container Grid
                 LazyVGrid(
                     columns: [GridItem(.adaptive(minimum: 300), spacing: DesignSystem.Spacing.lg)],
@@ -132,7 +132,7 @@ public struct ContainerListView: View {
 struct ContainerCard: View {
     let container: ContainerSummary
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             GlassCard {
@@ -140,24 +140,24 @@ struct ContainerCard: View {
                     HStack {
                         Image(systemName: DesignTokens.containerStatusSymbol(for: container.status))
                             .foregroundStyle(DesignTokens.containerStatusColor(for: container.status))
-                        
+
                         Text(container.name)
                             .font(DesignSystem.Typography.headline)
                             .lineLimit(1)
-                        
+
                         Spacer()
-                        
+
                         Text(container.id.uuidString.prefix(8))
                             .font(DesignSystem.Typography.codeSmall)
                             .foregroundStyle(DesignSystem.Colors.textTertiary)
                     }
-                    
+
                     Text(container.image)
                         .font(DesignSystem.Typography.caption1)
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
-                    
+
                     if !container.ports.isEmpty {
                         HStack {
                             ForEach(Swift.Array(container.ports.prefix(2)), id: \.self) { port in

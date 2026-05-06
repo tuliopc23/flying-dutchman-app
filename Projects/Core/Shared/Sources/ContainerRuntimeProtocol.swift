@@ -89,6 +89,9 @@ public protocol ContainerRuntimeProtocol: Actor {
     /// List all images
     func listImages() async throws -> [ImageSummary]
 
+    /// Build an image from a local Dockerfile context.
+    func buildImage(request: ImageBuildRequest) async throws -> ImageBuildResult
+
     /// Get a stream of container events (state changes, logs, resource updates)
     func eventStream() -> AsyncStream<ContainerEvent>
 }

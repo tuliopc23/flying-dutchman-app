@@ -16,7 +16,7 @@ struct DomainRoutingTableTests {
             ports: ["8080:80"],
             labels: [
                 "com.docker.compose.project": "demo",
-                "com.docker.compose.service": "frontend"
+                "com.docker.compose.service": "frontend",
             ]
         )
 

@@ -40,7 +40,7 @@ public actor StubContainerRuntime: ContainerRuntimeProtocol {
         // Hydrate logs (mock)
         if let logStore {
             let ids = initial.map(\.id)
-            for id in ids {
+            for _ in ids {
                 // Warning: synchronous fetch from actor/async store might not work if logStore is actor
                 // But this is StubRuntime so maybe it's fine or logStore is mock
                 // logs[id] = logStore.fetch(containerID: id)
@@ -116,6 +116,19 @@ public actor StubContainerRuntime: ContainerRuntimeProtocol {
         return ImageSummary(
             name: reference,
             tag: "latest"
+        )
+    }
+
+    public func buildImage(request: ImageBuildRequest) async throws -> ImageBuildResult {
+        try await Task.sleep(nanoseconds: 500_000_000)
+        let image = ImageSummary(
+            name: request.tags.first ?? "local/build",
+            tag: request.tags.count > 1 ? request.tags[1] : "latest"
+        )
+        return ImageBuildResult(
+            image: image,
+            logs: ["Stub image build completed for \(request.contextPath)"],
+            builder: "stub"
         )
     }
 

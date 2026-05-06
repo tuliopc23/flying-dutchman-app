@@ -24,7 +24,7 @@ public extension Project {
         [
             .init(name: "Core Services", status: .active, description: "Nginx + API + Worker"),
             .init(name: "Empty Project", status: .empty, description: "Create your first stack"),
-            .init(name: "Mobile Backend", status: .active, description: "Auth + Postgres + Redis")
+            .init(name: "Mobile Backend", status: .active, description: "Auth + Postgres + Redis"),
         ]
     }
 }

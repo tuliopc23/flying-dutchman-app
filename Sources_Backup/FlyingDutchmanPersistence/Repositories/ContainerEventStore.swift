@@ -114,7 +114,7 @@ private struct ContainerEventRecord: Codable, FetchableRecord, PersistableRecord
     var eventId: String
     var containerId: String
     var eventType: String
-    var eventData: Data  // JSON-encoded event-specific data
+    var eventData: Data // JSON-encoded event-specific data
     var timestamp: Date
 
     static let databaseTableName = "containerEvents"
@@ -141,12 +141,13 @@ private struct ContainerEventRecord: Codable, FetchableRecord, PersistableRecord
 
     func toContainerEvent() -> ContainerEvent? {
         guard let eventID = UUID(uuidString: eventId),
-              let containerID = UUID(uuidString: containerId) else {
+              let containerID = UUID(uuidString: containerId)
+        else {
             return nil
         }
 
         let decoder = JSONDecoder()
-        
+
         guard let eventType = try? decoder.decode(ContainerEvent.EventType.self, from: eventData) else {
             return nil
         }
@@ -200,16 +201,16 @@ extension ContainerEvent.EventType: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         switch self {
-        case .stateChanged(let from, let to):
+        case let .stateChanged(from, to):
             try container.encode("stateChanged", forKey: .type)
             try container.encode(from, forKey: .from)
             try container.encode(to, forKey: .to)
 
-        case .logOutput(let message):
+        case let .logOutput(message):
             try container.encode("logOutput", forKey: .type)
             try container.encode(message, forKey: .message)
 
-        case .resourceUpdate(let info):
+        case let .resourceUpdate(info):
             try container.encode("resourceUpdate", forKey: .type)
             try container.encode(info.cpuPercent, forKey: .cpuPercent)
             try container.encode(info.memoryBytes, forKey: .memoryBytes)

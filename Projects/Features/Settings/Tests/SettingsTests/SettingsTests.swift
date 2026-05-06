@@ -1,7 +1,7 @@
-import Testing
 import Foundation
-import Shared
 @testable import Settings
+import Shared
+import Testing
 
 @Suite("Settings ViewModel Tests")
 @MainActor
@@ -103,10 +103,21 @@ private actor NetworkState {
         self.ca = ca
     }
 
-    func dnsStatus() -> Bool { dns }
-    func caStatus() -> Bool { ca }
-    func setDNSStatus(_ value: Bool) { dns = value }
-    func setCAStatus(_ value: Bool) { ca = value }
+    func dnsStatus() -> Bool {
+        dns
+    }
+
+    func caStatus() -> Bool {
+        ca
+    }
+
+    func setDNSStatus(_ value: Bool) {
+        dns = value
+    }
+
+    func setCAStatus(_ value: Bool) {
+        ca = value
+    }
 }
 
 private enum TestFailure: LocalizedError {

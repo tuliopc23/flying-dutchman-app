@@ -3,7 +3,7 @@ import ProjectDescription
 private enum SwiftBuildSettings {
     static let strictSwift62: [String: SettingValue] = [
         "SWIFT_VERSION": "6.2",
-        "SWIFT_STRICT_CONCURRENCY": "complete"
+        "SWIFT_STRICT_CONCURRENCY": "complete",
     ]
 }
 
@@ -13,7 +13,7 @@ public extension Target {
         dependencies: [TargetDependency] = [],
         resources: ResourceFileElements? = nil
     ) -> Target {
-        return Target.target(
+        Target.target(
             name: name,
             destinations: .macOS,
             product: .framework,
@@ -26,12 +26,12 @@ public extension Target {
             settings: .settings(base: SwiftBuildSettings.strictSwift62)
         )
     }
-    
+
     static func domain(
         name: String,
         dependencies: [TargetDependency] = []
     ) -> Target {
-        return Target.target(
+        Target.target(
             name: name,
             destinations: .macOS,
             product: .framework,
@@ -43,12 +43,12 @@ public extension Target {
             settings: .settings(base: SwiftBuildSettings.strictSwift62)
         )
     }
-    
+
     static func core(
         name: String,
         dependencies: [TargetDependency] = []
     ) -> Target {
-        return Target.target(
+        Target.target(
             name: name,
             destinations: .macOS,
             product: .framework,

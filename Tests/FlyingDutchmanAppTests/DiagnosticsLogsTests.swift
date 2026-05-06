@@ -1,5 +1,5 @@
-import Foundation
 @testable import Diagnostics
+import Foundation
 import Testing
 
 @Suite("Diagnostics Logs Tests")

@@ -1,6 +1,3 @@
-import Testing
-import SwiftUI
-@testable import Shell
 import ContainersInterface
 import DebugShellInterface
 import DiagnosticsInterface
@@ -8,7 +5,10 @@ import ImagesInterface
 import KubernetesInterface
 import MachinesInterface
 import NetworksInterface
+@testable import Shell
 import StacksInterface
+import SwiftUI
+import Testing
 import VolumesInterface
 
 @Suite("App Launch Tests")

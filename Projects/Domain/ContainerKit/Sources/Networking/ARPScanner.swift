@@ -35,8 +35,7 @@ public struct ARPScanner: Sendable {
                 // Extract IP from parenthesis
                 if let start = line.firstIndex(of: "("),
                    let end = line.firstIndex(of: ")"),
-                   start < end
-                {
+                   start < end {
                     let ipRange = line.index(after: start) ..< end
                     return String(line[ipRange])
                 }

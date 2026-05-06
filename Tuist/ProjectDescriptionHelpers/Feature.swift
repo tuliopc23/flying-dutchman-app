@@ -20,12 +20,12 @@ public func makeFeature(
     resources: ResourceFileElements? = nil
 ) -> [Target] {
     let bundlePrefix = "com.flyingdutchman.feature"
-    
+
     let swiftSettings: [String: SettingValue] = [
         "SWIFT_VERSION": "6.2",
-        "SWIFT_STRICT_CONCURRENCY": "complete"
+        "SWIFT_STRICT_CONCURRENCY": "complete",
     ]
-    
+
     // 1. Interface target - Public protocols and types
     let interfaceTarget = Target.target(
         name: "\(name)Interface",
@@ -38,7 +38,7 @@ public func makeFeature(
         dependencies: interfaceDependencies,
         settings: .settings(base: swiftSettings)
     )
-    
+
     // 2. Implementation target - Main feature logic
     let implementationTarget = Target.target(
         name: name,
@@ -50,11 +50,11 @@ public func makeFeature(
         sources: ["Sources/\(name)/**"],
         resources: resources,
         dependencies: [
-            .target(name: "\(name)Interface")
+            .target(name: "\(name)Interface"),
         ] + dependencies,
         settings: .settings(base: swiftSettings)
     )
-    
+
     // 3. Testing target - Test helpers and mocks
     let testingTarget = Target.target(
         name: "\(name)Testing",
@@ -65,11 +65,11 @@ public func makeFeature(
         infoPlist: .default,
         sources: ["Sources/\(name)Testing/**"],
         dependencies: [
-            .target(name: "\(name)Interface")
+            .target(name: "\(name)Interface"),
         ],
         settings: .settings(base: swiftSettings)
     )
-    
+
     // 4. Tests target - Unit tests
     let testsTarget = Target.target(
         name: "\(name)Tests",
@@ -81,11 +81,11 @@ public func makeFeature(
         sources: ["Tests/\(name)Tests/**"],
         dependencies: [
             .target(name: name),
-            .target(name: "\(name)Testing")
+            .target(name: "\(name)Testing"),
         ],
         settings: .settings(base: swiftSettings)
     )
-    
+
     // 5. Example target - Demo app for isolated development
     let exampleTarget = Target.target(
         name: "\(name)Example",
@@ -96,16 +96,16 @@ public func makeFeature(
         infoPlist: .default,
         sources: ["Examples/\(name)Example/**"],
         dependencies: [
-            .target(name: name)
+            .target(name: name),
         ],
         settings: .settings(base: swiftSettings)
     )
-    
+
     return [
         interfaceTarget,
         implementationTarget,
         testingTarget,
         testsTarget,
-        exampleTarget
+        exampleTarget,
     ]
 }

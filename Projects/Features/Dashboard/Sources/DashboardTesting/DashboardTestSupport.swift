@@ -1,2 +1,2 @@
-// Placeholder to satisfy Tuist
+/// Placeholder to satisfy Tuist
 public struct DashboardTestSupport {}

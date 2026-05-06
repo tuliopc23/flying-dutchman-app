@@ -1,5 +1,6 @@
 import Containers
 import ContainersInterface
+import Dashboard
 import DebugShell
 import Diagnostics
 import DiagnosticsInterface
@@ -10,6 +11,7 @@ import Machines
 import Networks
 import NetworksInterface
 import Settings
+import Shared
 import Shell
 import Stacks
 import StacksInterface
@@ -23,6 +25,7 @@ struct FlyingDutchmanApp: App {
     /// Single source of truth for the entire app state (macOS 26+ Observation)
     @State private var state = AppState(
         features: ShellFeatureRegistry(
+            dashboard: .live,
             containers: .live,
             images: .live,
             volumes: .live,
@@ -35,6 +38,8 @@ struct FlyingDutchmanApp: App {
         )
     )
 
+    @State private var updater = AppUpdaterController()
+
     var body: some Scene {
         WindowGroup(id: "main") {
             MainWindow()
@@ -42,6 +47,10 @@ struct FlyingDutchmanApp: App {
                 .frame(minWidth: 1000, minHeight: 700)
                 .task {
                     await state.bootstrap()
+                }
+                .onReceive(NotificationCenter.default
+                    .publisher(for: AppUpdateRequests.checkForUpdatesNotification)) { _ in
+                    updater.checkForUpdates()
                 }
         }
         .windowStyle(.hiddenTitleBar) // Modern Tahoe look

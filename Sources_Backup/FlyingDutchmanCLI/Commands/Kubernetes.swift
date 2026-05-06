@@ -1,7 +1,7 @@
-import Foundation
 import ArgumentParser
-import Shared
 import FlyingDutchmanNetworking
+import Foundation
+import Shared
 
 struct Kubernetes: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -13,32 +13,32 @@ struct Kubernetes: AsyncParsableCommand {
             Start.self,
             Stop.self,
             Delete.self,
-            Kubeconfig.self
+            Kubeconfig.self,
         ],
         defaultSubcommand: List.self
     )
-    
+
     struct Create: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Create a new k3s cluster")
-        
+
         @Argument(help: "Cluster name")
         var name: String
-        
+
         @Option(name: .shortAndLong, help: "CPU count")
         var cpu: Int = 2
-        
+
         @Option(name: .shortAndLong, help: "Memory in GB")
         var memory: Int = 2
-        
+
         @Flag(name: .long, help: "Create as a Virtual Machine (recommended for isolation)")
         var vm: Bool = false
-        
+
         func run() async throws {
             CLIOutput.section("Create Kubernetes Cluster")
             CLIOutput.line("Name", name)
             CLIOutput.line("Type", vm ? "Virtual Machine" : "Container")
             CLIOutput.line("Resources", "\(cpu) CPU, \(memory)GB RAM")
-            
+
             if vm {
                 let config = MachineConfig(
                     distro: "ubuntu",
@@ -48,9 +48,9 @@ struct Kubernetes: AsyncParsableCommand {
                     diskGB: 20,
                     installK3s: true
                 )
-                
+
                 let machine = try await EngineClient.createMachine(name: name, config: config)
-                
+
                 CLIOutput.line("Status", "✓ Cluster machine created")
                 CLIOutput.line("Machine ID", machine.id)
                 CLIOutput.hint("Start the cluster with: fd machines start \(name)")
@@ -60,43 +60,43 @@ struct Kubernetes: AsyncParsableCommand {
                     portMappings: [
                         PortMapping(hostPort: 6443, containerPort: 6443),
                         PortMapping(hostPort: 30080, containerPort: 80),
-                        PortMapping(hostPort: 30443, containerPort: 443)
+                        PortMapping(hostPort: 30443, containerPort: 443),
                     ],
                     env: ["K3S_TOKEN": "flying-dutchman-token"],
                     command: ["server", "--disable=traefik"]
                 )
-                
+
                 let container = try await EngineClient.createContainer(
                     name: name,
                     image: "rancher/k3s:latest",
                     config: config
                 )
-                
+
                 CLIOutput.line("Status", "✓ Cluster container created")
                 CLIOutput.line("Container ID", container.id.uuidString)
                 CLIOutput.hint("Start the cluster with: fd k8s start \(name)")
             }
         }
     }
-    
+
     struct List: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "List Kubernetes clusters")
-        
+
         func run() async throws {
             // List containers with k3s image
             let containers = try await EngineClient.listContainers()
             let containerClusters = containers.filter { $0.image.contains("k3s") }
-            
+
             // List machines with k3s installed
             let machines = try await EngineClient.listMachines()
-            let machineClusters = machines.filter { $0.isKubernetesCluster }
-            
-            if containerClusters.isEmpty && machineClusters.isEmpty {
+            let machineClusters = machines.filter(\.isKubernetesCluster)
+
+            if containerClusters.isEmpty, machineClusters.isEmpty {
                 print("No Kubernetes clusters found")
                 CLIOutput.hint("Create a cluster with: fd k8s create <name> [--vm]")
                 return
             }
-            
+
             CLIOutput.section("Kubernetes Clusters")
             for cluster in containerClusters {
                 let statusIcon = cluster.status == .running ? "●" : "○"
@@ -108,17 +108,17 @@ struct Kubernetes: AsyncParsableCommand {
             }
         }
     }
-    
+
     struct Start: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Start a cluster")
-        
+
         @Argument(help: "Cluster name")
         var name: String
-        
+
         func run() async throws {
             CLIOutput.section("Start Cluster")
             CLIOutput.line("Cluster", name)
-            
+
             // Check machines first
             let machines = try await EngineClient.listMachines()
             if let cluster = machines.first(where: { ($0.name == name || $0.id == name) && $0.isKubernetesCluster }) {
@@ -127,7 +127,7 @@ struct Kubernetes: AsyncParsableCommand {
                 CLIOutput.hint("Get kubeconfig with: fd k8s kubeconfig \(name)")
                 return
             }
-            
+
             // Check containers
             let containers = try await EngineClient.listContainers()
             if let cluster = containers.first(where: { $0.name == name && $0.image.contains("k3s") }) {
@@ -137,22 +137,22 @@ struct Kubernetes: AsyncParsableCommand {
                 CLIOutput.hint("Get kubeconfig with: fd k8s kubeconfig \(name)")
                 return
             }
-            
+
             CLIOutput.warn("Error", "Cluster not found: \(name)")
             throw ExitCode.failure
         }
     }
-    
+
     struct Stop: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Stop a cluster")
-        
+
         @Argument(help: "Cluster name")
         var name: String
-        
+
         func run() async throws {
             CLIOutput.section("Stop Cluster")
             CLIOutput.line("Cluster", name)
-            
+
             // Check machines
             let machines = try await EngineClient.listMachines()
             if let cluster = machines.first(where: { ($0.name == name || $0.id == name) && $0.isKubernetesCluster }) {
@@ -160,7 +160,7 @@ struct Kubernetes: AsyncParsableCommand {
                 CLIOutput.line("Status", "✓ Cluster machine stopped")
                 return
             }
-            
+
             // Check containers
             let containers = try await EngineClient.listContainers()
             if let cluster = containers.first(where: { $0.name == name && $0.image.contains("k3s") }) {
@@ -168,21 +168,21 @@ struct Kubernetes: AsyncParsableCommand {
                 CLIOutput.line("Status", "✓ Cluster container stopped")
                 return
             }
-            
+
             CLIOutput.warn("Error", "Cluster not found: \(name)")
             throw ExitCode.failure
         }
     }
-    
+
     struct Delete: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Delete a cluster")
-        
+
         @Argument(help: "Cluster name")
         var name: String
-        
+
         @Flag(name: .shortAndLong, help: "Force deletion without confirmation")
         var force: Bool = false
-        
+
         func run() async throws {
             if !force {
                 CLIOutput.warn("Warning", "This will permanently delete the cluster and all its data")
@@ -192,10 +192,10 @@ struct Kubernetes: AsyncParsableCommand {
                     return
                 }
             }
-            
+
             CLIOutput.section("Delete Cluster")
             CLIOutput.line("Cluster", name)
-            
+
             // Check machines
             let machines = try await EngineClient.listMachines()
             if let cluster = machines.first(where: { ($0.name == name || $0.id == name) && $0.isKubernetesCluster }) {
@@ -203,7 +203,7 @@ struct Kubernetes: AsyncParsableCommand {
                 CLIOutput.line("Status", "✓ Cluster machine deleted")
                 return
             }
-            
+
             // Check containers
             let containers = try await EngineClient.listContainers()
             if let cluster = containers.first(where: { $0.name == name && $0.image.contains("k3s") }) {
@@ -211,24 +211,24 @@ struct Kubernetes: AsyncParsableCommand {
                 CLIOutput.warn("Note", "Use 'fd containers rm \(name)' to delete the cluster container")
                 return
             }
-            
+
             CLIOutput.warn("Error", "Cluster not found: \(name)")
             throw ExitCode.failure
         }
     }
-    
+
     struct Kubeconfig: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Get kubeconfig for a cluster")
-        
+
         @Argument(help: "Cluster name")
         var name: String
-        
+
         @Flag(name: .long, help: "Save to ~/.kube/config-<name>")
         var save: Bool = false
-        
+
         func run() async throws {
             var kubeconfig: String = ""
-            
+
             // Check machines
             let machines = try await EngineClient.listMachines()
             if let cluster = machines.first(where: { ($0.name == name || $0.id == name) && $0.isKubernetesCluster }) {
@@ -237,20 +237,23 @@ struct Kubernetes: AsyncParsableCommand {
                     CLIOutput.hint("Start it with: fd k8s start \(name)")
                     throw ExitCode.failure
                 }
-                
+
                 guard let ip = cluster.ipAddress else {
                     CLIOutput.warn("Error", "Cluster has no IP address")
                     throw ExitCode.failure
                 }
-                
+
                 // Fetch kubeconfig via SSH
-                let remoteConfig = try await EngineClient.executeMachineCommand(nameOrID: cluster.id, command: "sudo cat /etc/rancher/k3s/k3s.yaml")
-                
+                let remoteConfig = try await EngineClient.executeMachineCommand(
+                    nameOrID: cluster.id,
+                    command: "sudo cat /etc/rancher/k3s/k3s.yaml"
+                )
+
                 // Replace localhost/127.0.0.1 with actual IP
                 kubeconfig = remoteConfig
                     .replacingOccurrences(of: "https://127.0.0.1:6443", with: "https://\(ip):6443")
                     .replacingOccurrences(of: "default", with: name)
-                
+
             } else {
                 // Check containers
                 let containers = try await EngineClient.listContainers()
@@ -260,7 +263,7 @@ struct Kubernetes: AsyncParsableCommand {
                         CLIOutput.hint("Start it with: fd k8s start \(name)")
                         throw ExitCode.failure
                     }
-                    
+
                     // Generate template kubeconfig for container (Phase 1 legacy)
                     kubeconfig = """
                     apiVersion: v1
@@ -286,15 +289,15 @@ struct Kubernetes: AsyncParsableCommand {
                     throw ExitCode.failure
                 }
             }
-            
+
             if save {
                 let homeDir = FileManager.default.homeDirectoryForCurrentUser
                 let kubeDir = homeDir.appendingPathComponent(".kube")
                 try? FileManager.default.createDirectory(at: kubeDir, withIntermediateDirectories: true)
-                
+
                 let configPath = kubeDir.appendingPathComponent("config-\(name)")
                 try kubeconfig.write(to: configPath, atomically: true, encoding: String.Encoding.utf8)
-                
+
                 CLIOutput.line("Saved", configPath.path)
                 CLIOutput.hint("Use: export KUBECONFIG=\(configPath.path)")
             } else {

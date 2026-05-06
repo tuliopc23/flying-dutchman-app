@@ -7,11 +7,11 @@ public struct ContainerConfig: Codable, Sendable {
     public let env: [String: String]?
     public let volumes: [String]?
     public let networkMode: String?
-    public let cpuLimit: Int?  // millicores (1000 = 1 CPU)
-    public let memoryLimit: Int?  // bytes
+    public let cpuLimit: Int? // millicores (1000 = 1 CPU)
+    public let memoryLimit: Int? // bytes
     public let command: [String]?
     public let workingDir: String?
-    
+
     public init(
         ports: [String]? = nil,
         portMappings: [PortMapping]? = nil,
@@ -33,27 +33,27 @@ public struct ContainerConfig: Codable, Sendable {
         self.command = command
         self.workingDir = workingDir
     }
-    
+
     /// Get all port mappings (parsed from legacy ports or direct portMappings)
     public func getAllPortMappings() throws -> [PortMapping] {
         var mappings: [PortMapping] = []
-        
+
         // Add structured port mappings
-        if let portMappings = portMappings {
+        if let portMappings {
             mappings.append(contentsOf: portMappings)
         }
-        
+
         // Parse legacy ports format
-        if let ports = ports {
+        if let ports {
             for portSpec in ports {
                 let mapping = try PortMapping.parse(portSpec)
                 mappings.append(mapping)
             }
         }
-        
+
         return mappings
     }
-    
+
     public static let `default` = ContainerConfig()
 }
 

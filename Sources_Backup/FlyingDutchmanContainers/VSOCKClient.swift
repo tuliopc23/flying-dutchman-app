@@ -1,5 +1,5 @@
-import Foundation
 import Containerization
+import Foundation
 import Logging
 import Shared
 
@@ -11,9 +11,9 @@ public actor VSOCKClient {
 
     /// Default VSOCK ports
     public enum Port {
-        public static let logs: UInt32 = 1024      // vminitd log streaming
-        public static let health: UInt32 = 1025     // Health check endpoint
-        public static let metrics: UInt32 = 1026    // Container metrics
+        public static let logs: UInt32 = 1024 // vminitd log streaming
+        public static let health: UInt32 = 1025 // Health check endpoint
+        public static let metrics: UInt32 = 1026 // Container metrics
     }
 
     /// Connection timeout in seconds
@@ -97,7 +97,8 @@ public actor VSOCKClient {
             return handle
         } catch {
             logger.error("Failed to connect to VSOCK port \(port): \(error)")
-            throw ContainerError.vsockConnectionFailed("Could not connect to port \(port): \(error.localizedDescription)")
+            throw ContainerError
+                .vsockConnectionFailed("Could not connect to port \(port): \(error.localizedDescription)")
         }
     }
 
@@ -107,7 +108,7 @@ public actor VSOCKClient {
     ///   - maxLength: Maximum bytes to read
     /// - Returns: Data read from the connection
     /// - Throws: Error if read fails or times out
-    public func read(from handle: FileHandle, maxLength: Int) async throws -> Data {
+    public func read(from handle: FileHandle, maxLength _: Int) async throws -> Data {
         try await withThrowingTaskGroup(of: Data.self) { group in
             group.addTask {
                 handle.availableData
@@ -144,5 +145,5 @@ public protocol VsockHandleProtocol: Sendable {
     // Actual implementation would come from Apple's Containerization framework
 }
 
-// FileHandle from dialVsock conforms to our protocol
+/// FileHandle from dialVsock conforms to our protocol
 extension FileHandle: VsockHandleProtocol {}

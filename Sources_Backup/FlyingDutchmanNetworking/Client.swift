@@ -1,6 +1,6 @@
+import FlyingDutchmanContainers
 import Foundation
 import Shared
-import FlyingDutchmanContainers
 
 public enum EngineClient {
     @MainActor private static var configuredHost: String = AppConfig.Engine.host
@@ -31,7 +31,7 @@ public enum EngineClient {
         }
         return try JSONDecoder().decode(EngineStatusDetail.self, from: data)
     }
-    
+
     @MainActor public static func getStatus() async throws -> EngineStatusDetail {
         try await fetchStatus()
     }
@@ -45,36 +45,41 @@ public enum EngineClient {
         return try JSONDecoder().decode([ContainerSummary].self, from: data)
     }
 
-    @MainActor public static func createContainer(name: String, image: String, config: ContainerConfig) async throws -> ContainerSummary {
+    @MainActor public static func createContainer(
+        name: String,
+        image: String,
+        config: ContainerConfig
+    ) async throws -> ContainerSummary {
         let url = URL(string: "\(baseURL)/containers/create")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         struct CreateRequest: Encodable {
             let name: String
             let image: String
             let config: ContainerConfig
         }
-        
+
         let payload = CreateRequest(name: name, image: image, config: config)
         request.httpBody = try JSONEncoder().encode(payload)
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let http = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        
+
         guard http.statusCode == 200 || http.statusCode == 201 else {
             // Try to parse error message
             if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
+               let errorMessage = errorPayload["error"]
+            {
                 throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: errorMessage])
             }
             throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])
         }
-        
+
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
     }
 
@@ -103,13 +108,13 @@ public enum EngineClient {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)/\(action)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
-        
+
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
     }
 
@@ -118,25 +123,26 @@ public enum EngineClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let payload: [String: String] = [
             "registry": registry,
             "username": username,
-            "password": password
+            "password": password,
         ]
-        
+
         request.httpBody = try JSONEncoder().encode(payload)
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let http = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        
+
         guard http.statusCode == 200 else {
             // Try to parse error message
             if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
+               let errorMessage = errorPayload["error"]
+            {
                 throw AuthenticationError.failed(message: errorMessage)
             }
             throw AuthenticationError.failed(message: "HTTP \(http.statusCode)")
@@ -148,23 +154,24 @@ public enum EngineClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let payload: [String: String] = [
-            "registry": registry
+            "registry": registry,
         ]
-        
+
         request.httpBody = try JSONEncoder().encode(payload)
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let http = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        
+
         guard http.statusCode == 200 else {
             // Try to parse error message
             if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
+               let errorMessage = errorPayload["error"]
+            {
                 throw AuthenticationError.failed(message: errorMessage)
             }
             throw AuthenticationError.failed(message: "HTTP \(http.statusCode)")
@@ -173,11 +180,11 @@ public enum EngineClient {
 
     public enum AuthenticationError: Error, LocalizedError {
         case failed(message: String)
-        
+
         public var errorDescription: String? {
             switch self {
-            case .failed(let message):
-                return "Authentication failed: \(message)"
+            case let .failed(message):
+                "Authentication failed: \(message)"
             }
         }
     }
@@ -198,7 +205,7 @@ public enum EngineClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["reference": reference])
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+        guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
         }
         let payload = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
@@ -221,7 +228,7 @@ public enum EngineClient {
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = try JSONEncoder().encode(request)
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+        guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(StackSummary.self, from: data)
@@ -240,7 +247,7 @@ public enum EngineClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+        guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(StackActionResponse.self, from: data)
@@ -301,8 +308,11 @@ public enum EngineClient {
     }
 
     public static func streamRuntimeEvents() -> AsyncThrowingStream<RuntimeEvent, Error> {
-     AsyncThrowingStream { [configuredHost = AppConfig.Engine.host, configuredPort = AppConfig.Engine.port] continuation in
-         let baseURL = "http://\(configuredHost):\(configuredPort)"
+        AsyncThrowingStream { [
+            configuredHost = AppConfig.Engine.host,
+            configuredPort = AppConfig.Engine.port
+        ] continuation in
+            let baseURL = "http://\(configuredHost):\(configuredPort)"
             let task = Task {
                 do {
                     var request = URLRequest(url: URL(string: "\(baseURL)/runtime-events")!)
@@ -337,9 +347,9 @@ public enum EngineClient {
             }
         }
     }
-    
+
     // MARK: - Machine Management
-    
+
     @MainActor public static func listMachines() async throws -> [Machine] {
         let url = URL(string: "\(baseURL)/machines")!
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -348,97 +358,97 @@ public enum EngineClient {
         }
         return try JSONDecoder().decode([Machine].self, from: data)
     }
-    
+
     @MainActor public static func createMachine(name: String, config: MachineConfig) async throws -> Machine {
         let url = URL(string: "\(baseURL)/machines/create")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         struct CreateRequest: Encodable {
             let name: String
             let config: MachineConfig
         }
-        
+
         let body = CreateRequest(name: name, config: config)
         request.httpBody = try JSONEncoder().encode(body)
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(Machine.self, from: data)
     }
-    
+
     @MainActor public static func startMachine(nameOrID: String) async throws -> Machine {
         let url = URL(string: "\(baseURL)/machines/\(nameOrID)/start")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(Machine.self, from: data)
     }
-    
+
     @MainActor public static func stopMachine(nameOrID: String) async throws -> Machine {
         let url = URL(string: "\(baseURL)/machines/\(nameOrID)/stop")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(Machine.self, from: data)
     }
-    
+
     @MainActor public static func restartMachine(nameOrID: String) async throws -> Machine {
         let url = URL(string: "\(baseURL)/machines/\(nameOrID)/restart")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode(Machine.self, from: data)
     }
-    
+
     @MainActor public static func deleteMachine(nameOrID: String) async throws {
         let url = URL(string: "\(baseURL)/machines/\(nameOrID)")!
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
-        
+
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
     }
-    
+
     @MainActor public static func executeMachineCommand(nameOrID: String, command: String) async throws -> String {
         let url = URL(string: "\(baseURL)/machines/\(nameOrID)/exec")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         struct ExecRequest: Encodable {
             let command: String
         }
-        
+
         let body = ExecRequest(command: command)
         request.httpBody = try JSONEncoder().encode(body)
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
-        
+
         struct ExecResponse: Decodable {
             let output: String
         }
-        
+
         let result = try JSONDecoder().decode(ExecResponse.self, from: data)
         return result.output
     }

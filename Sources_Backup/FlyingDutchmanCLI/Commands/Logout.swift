@@ -1,6 +1,6 @@
-import Foundation
 import ArgumentParser
 import FlyingDutchmanNetworking
+import Foundation
 import Shared
 
 /// CLI command for logging out from a container registry
@@ -11,14 +11,14 @@ struct Logout: AsyncParsableCommand {
         commandName: "logout",
         abstract: "Log out from a container registry"
     )
-    
+
     @Argument(help: "Registry to log out from (default: docker.io)")
     var registry: String = "docker.io"
-    
+
     func run() async throws {
         // Normalize registry name
         let normalizedRegistry = normalizeRegistry(registry)
-        
+
         // Send logout request to Engine
         do {
             try await EngineClient.logout(registry: normalizedRegistry)
@@ -30,9 +30,9 @@ struct Logout: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
-    
+
     // MARK: - Private Helpers
-    
+
     /// Normalize registry name (handle shortcuts)
     private func normalizeRegistry(_ input: String) -> String {
         switch input.lowercased() {

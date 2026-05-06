@@ -1,6 +1,6 @@
-import Testing
-import Shared
 import FlyingDutchmanNetworking
+import Shared
+import Testing
 
 @Suite("Integration Validation Tests")
 struct IntegrationValidationTests {
@@ -17,7 +17,7 @@ struct IntegrationValidationTests {
             ports: ["8080:80"],
             labels: [
                 "com.docker.compose.project": "demo",
-                "com.docker.compose.service": "frontend"
+                "com.docker.compose.service": "frontend",
             ]
         )
 

@@ -6,7 +6,7 @@ struct MainWindow: View {
 
     var body: some View {
         @Bindable var state = state
-        
+
         NavigationSplitView {
             SidebarView(selection: $state.selectedSection)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 240)
@@ -36,7 +36,7 @@ struct MainWindow: View {
         .preferredColorScheme(state.appearanceOverride)
         .sheet(isPresented: $state.showPalette) {
             // Command palette implementation remains legacy for now, just updated to AppState
-            Text("Command Palette Placeholder") 
+            Text("Command Palette Placeholder")
                 .frame(width: 520, height: 300)
         }
     }
@@ -46,7 +46,7 @@ struct MainWindow: View {
 
 struct DiagnosticsSection: View {
     @Environment(AppState.self) private var state
-    
+
     var body: some View {
         Group {
             if let platformStatus = state.platformStatus, !platformStatus.isSupported {
@@ -72,7 +72,7 @@ struct DiagnosticsSection: View {
 
 struct EngineStatusHero: View {
     @Environment(AppState.self) private var state
-    
+
     var body: some View {
         GlassCard {
             HStack(spacing: DesignSystem.Spacing.md) {
@@ -80,14 +80,14 @@ struct EngineStatusHero: View {
                     Text("Flying Dutchman Engine")
                         .font(DesignSystem.Typography.title1)
                         .foregroundStyle(DesignSystem.Colors.textPrimary)
-                    
+
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         Image.systemIcon(
                             statusSymbol(for: state.primaryStatus),
                             size: DesignSystem.Size.iconRegular
                         )
                         .foregroundStyle(statusColor(for: state.primaryStatus))
-                        
+
                         Text(state.engineStatus)
                             .font(DesignSystem.Typography.title3)
                             .foregroundStyle(DesignSystem.Colors.textSecondary)
@@ -104,55 +104,54 @@ struct EngineStatusHero: View {
         }
     }
 
-struct DetailContentView: View {
-    @Environment(AppState.self) private var state
-    
-    var body: some View {
-        switch state.selectedSection {
-        case .containers:
-            VStack(spacing: DesignSystem.Spacing.lg) {
-                StackDetailView(stack: state.sidebar.selectedStack)
-                ContainerListView(viewModel: state.containers, stack: state.sidebar.selectedStack)
+    struct DetailContentView: View {
+        @Environment(AppState.self) private var state
+
+        var body: some View {
+            switch state.selectedSection {
+            case .containers:
+                VStack(spacing: DesignSystem.Spacing.lg) {
+                    StackDetailView(stack: state.sidebar.selectedStack)
+                    ContainerListView(viewModel: state.containers, stack: state.sidebar.selectedStack)
+                }
+            case .images:
+                ImageListView(viewModel: state.images)
+            case .volumes:
+                VolumeListView(viewModel: state.volumes)
+            case .networks:
+                NetworkListView(viewModel: state.networks)
+            case .logs:
+                LogsView(viewModel: state.logs, containers: state.containers.containers)
+            case .events:
+                EventsView(viewModel: state.events)
+            case .stacks:
+                StacksView(viewModel: state.stacks)
             }
-        case .images:
-            ImageListView(viewModel: state.images)
-        case .volumes:
-            VolumeListView(viewModel: state.volumes)
-        case .networks:
-            NetworkListView(viewModel: state.networks)
-        case .logs:
-            LogsView(viewModel: state.logs, containers: state.containers.containers)
-        case .events:
-            EventsView(viewModel: state.events)
-        case .stacks:
-            StacksView(viewModel: state.stacks)
         }
     }
-}
 
-    
     // MARK: - Status Helpers (migrated from legacy DesignTokens)
-    
+
     private func statusSymbol(for status: String) -> String {
         switch status.lowercased() {
-        case "running", "ok", "ready", "healthy": return "checkmark.circle.fill"
-        case "stopped", "offline", "disabled": return "xmark.circle.fill"
-        default: return "questionmark.circle.fill"
+        case "running", "ok", "ready", "healthy": "checkmark.circle.fill"
+        case "stopped", "offline", "disabled": "xmark.circle.fill"
+        default: "questionmark.circle.fill"
         }
     }
-    
+
     private func statusColor(for status: String) -> Color {
         switch status.lowercased() {
-        case "running", "ok", "ready", "healthy": return DesignSystem.Colors.success
-        case "stopped", "offline", "disabled": return DesignSystem.Colors.textTertiary
-        default: return DesignSystem.Colors.textTertiary
+        case "running", "ok", "ready", "healthy": DesignSystem.Colors.success
+        case "stopped", "offline", "disabled": DesignSystem.Colors.textTertiary
+        default: DesignSystem.Colors.textTertiary
         }
     }
 }
 
 struct DetailContentView: View {
     @Environment(AppState.self) private var state
-    
+
     var body: some View {
         switch state.selectedSection {
         case .containers:
@@ -175,7 +174,7 @@ struct DetailContentView: View {
 
 struct MainToolbar: ToolbarContent {
     @Environment(AppState.self) private var state
-    
+
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
             Button {

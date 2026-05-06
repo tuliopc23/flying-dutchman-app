@@ -58,7 +58,7 @@ public final class CommandRegistry {
                     lhs.1 < rhs.1
                 }
             }
-            .map { $0.0 }
+            .map(\.0)
     }
 
     enum Fuzzy {

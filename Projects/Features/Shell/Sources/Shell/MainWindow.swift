@@ -3,8 +3,6 @@ import Shared
 import SwiftUI
 import UIComponents
 
-import Dashboard
-
 // MARK: - Main Window
 
 public struct MainWindow: View {
@@ -135,7 +133,7 @@ struct DetailContentView: View {
         let features = state.features
         switch state.selectedSection {
         case .dashboard:
-            DashboardView()
+            features.dashboard.dashboardView()
         case .containers:
             VStack(spacing: DesignSystem.Spacing.lg) {
                 features.stacks.detailView(state.sidebar.selectedStack)
