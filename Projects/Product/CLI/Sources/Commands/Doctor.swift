@@ -34,7 +34,7 @@ struct Doctor: AsyncParsableCommand {
                 )
             }
             CLIOutput.line("container CLI", "\(report.containerTool.status) – \(report.containerTool.message)")
-            
+
             if report.kernel.status == "ok" {
                 CLIOutput.line("Kernel", "\(report.kernel.status) – \(report.kernel.message)")
             } else {
@@ -219,7 +219,7 @@ private struct DoctorReport: Encodable {
         let database = RuntimeChecks.checkDatabaseStatus()
         let ports = RuntimeChecks.checkPortAvailability()
         let runtimeMode = RuntimeChecks.activeRuntimeMode()
-        
+
         let setupManager = NetworkSetupManager()
         let resolverInstalled = await setupManager.checkDNSStatus()
         let caCertificatePresent = await setupManager.checkCATrustStatus()

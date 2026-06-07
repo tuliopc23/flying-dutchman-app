@@ -107,10 +107,12 @@ public final class EngineXPCService: NSObject, EngineXPCProtocol {
                 // Map error to appropriate HTTP status code
                 let errorDescription = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 let errorCode: Int = if errorDescription.contains("not found") || errorDescription
-                    .contains("NotFound") {
+                    .contains("NotFound")
+                {
                     404
                 } else if errorDescription.contains("Invalid state") || errorDescription
-                    .contains("invalidState") || errorDescription.contains("already") {
+                    .contains("invalidState") || errorDescription.contains("already")
+                {
                     409
                 } else {
                     500
@@ -158,10 +160,12 @@ public final class EngineXPCService: NSObject, EngineXPCProtocol {
                 // Map error to appropriate HTTP status code
                 let errorDescription = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 let errorCode: Int = if errorDescription.contains("not found") || errorDescription
-                    .contains("NotFound") {
+                    .contains("NotFound")
+                {
                     404
                 } else if errorDescription.contains("Invalid state") || errorDescription
-                    .contains("invalidState") || errorDescription.contains("already") {
+                    .contains("invalidState") || errorDescription.contains("already")
+                {
                     409
                 } else {
                     500

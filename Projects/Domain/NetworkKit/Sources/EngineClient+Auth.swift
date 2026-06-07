@@ -14,7 +14,8 @@ public extension EngineClient {
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         guard http.statusCode == 200 else {
             if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
+               let errorMessage = errorPayload["error"]
+            {
                 throw AuthenticationError.failed(message: errorMessage)
             }
             throw AuthenticationError.failed(message: "HTTP \(http.statusCode)")
@@ -32,7 +33,8 @@ public extension EngineClient {
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         guard http.statusCode == 200 else {
             if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
+               let errorMessage = errorPayload["error"]
+            {
                 throw AuthenticationError.failed(message: errorMessage)
             }
             throw AuthenticationError.failed(message: "HTTP \(http.statusCode)")

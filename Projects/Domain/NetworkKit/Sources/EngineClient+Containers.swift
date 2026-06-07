@@ -37,7 +37,8 @@ public extension EngineClient {
         }
         guard http.statusCode == 200 || http.statusCode == 201 else {
             if let errorPayload = try? JSONDecoder().decode([String: String].self, from: data),
-               let errorMessage = errorPayload["error"] {
+               let errorMessage = errorPayload["error"]
+            {
                 throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: errorMessage])
             }
             throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])

@@ -1,2 +1,3 @@
 {"id":"int-63fc0ad8","kind":"field_change","created_at":"2026-06-07T19:26:22.553782Z","actor":"Claude","issue_id":"flying-dutchman-app-c5b","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
 {"id":"int-8e1e5eb6","kind":"field_change","created_at":"2026-06-07T19:38:39.801413Z","actor":"Claude","issue_id":"flying-dutchman-app-pik","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
+{"id":"int-830a80bc","kind":"field_change","created_at":"2026-06-07T19:51:45.751933Z","actor":"Claude","issue_id":"flying-dutchman-app-las","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}

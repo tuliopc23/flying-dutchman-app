@@ -18,6 +18,26 @@ extension ContainerizationRuntime {
         }
     }
 
+    func appendLogLineToFile(containerID: UUID, line: String) {
+        let homeDir = FileManager.default.homeDirectoryForCurrentUser
+        let logsDir = homeDir.appendingPathComponent(".flyingdutchman").appendingPathComponent("logs")
+        try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
+
+        let logFileURL = logsDir.appendingPathComponent("\(containerID.uuidString).log")
+        let lineWithNewline = line + "\n"
+        if let data = lineWithNewline.data(using: .utf8) {
+            if FileManager.default.fileExists(atPath: logFileURL.path) {
+                if let fileHandle = try? FileHandle(forWritingTo: logFileURL) {
+                    fileHandle.seekToEndOfFile()
+                    fileHandle.write(data)
+                    fileHandle.closeFile()
+                }
+            } else {
+                try? data.write(to: logFileURL, options: .atomic)
+            }
+        }
+    }
+
     /// Stream logs from a VSOCK FileHandle using length-prefixed JSON protocol
     /// The vminitd protocol uses 4-byte length prefix followed by JSON-encoded ControlPlaneEvent
     func streamLogsFromHandle(
@@ -84,6 +104,8 @@ extension ContainerizationRuntime {
                         continuation.yield(line)
                         // Also persist to log store for historical access
                         self.logStore.append(containerID: containerID, line: line)
+                        // Persist to file log
+                        self.appendLogLineToFile(containerID: containerID, line: line)
 
                     case let .exit(code):
                         logger.info("Container \(containerID) process exited with code \(code)")

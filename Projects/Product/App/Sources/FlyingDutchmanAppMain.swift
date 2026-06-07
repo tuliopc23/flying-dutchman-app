@@ -49,7 +49,8 @@ struct FlyingDutchmanApp: App {
                     await state.bootstrap()
                 }
                 .onReceive(NotificationCenter.default
-                    .publisher(for: AppUpdateRequests.checkForUpdatesNotification)) { _ in
+                    .publisher(for: AppUpdateRequests.checkForUpdatesNotification))
+                { _ in
                     updater.checkForUpdates()
                 }
         }

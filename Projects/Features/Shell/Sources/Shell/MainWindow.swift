@@ -64,19 +64,19 @@ struct DiagnosticsSection: View {
 
             if state.activeRuntimeMode == "stub" {
                 #if DEBUG
-                DiagnosticsBanner(
-                    title: "Stub Runtime Mode Active",
-                    message: "Running in development/demo mode with mocked container engines.",
-                    icon: "info.circle.fill",
-                    tone: .info
-                )
+                    DiagnosticsBanner(
+                        title: "Stub Runtime Mode Active",
+                        message: "Running in development/demo mode with mocked container engines.",
+                        icon: "info.circle.fill",
+                        tone: .info
+                    )
                 #else
-                DiagnosticsBanner(
-                    title: "Critical: Native Runtime Unavailable",
-                    message: "Apple Containerization framework or kernel is missing on this host. Silent fallback to stub is prevented in release mode; operations are disabled.",
-                    icon: "exclamationmark.octagon.fill",
-                    tone: .warning
-                )
+                    DiagnosticsBanner(
+                        title: "Critical: Native Runtime Unavailable",
+                        message: "Apple Containerization framework or kernel is missing on this host. Silent fallback to stub is prevented in release mode; operations are disabled.",
+                        icon: "exclamationmark.octagon.fill",
+                        tone: .warning
+                    )
                 #endif
             }
 
@@ -120,18 +120,50 @@ struct DiagnosticsSection: View {
                 .foregroundStyle(DesignSystem.Colors.textPrimary)
             }
             .buttonStyle(.glass)
-            
+
             if isExpanded {
                 GlassCard {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                        DiagnosticRow(label: "macOS Version", value: "\(state.platformStatus?.osVersion.majorVersion ?? 0).\(state.platformStatus?.osVersion.minorVersion ?? 0)", status: state.platformStatus?.isSupported == true ? "ok" : "warning")
-                        DiagnosticRow(label: "Architecture", value: state.platformStatus?.isAppleSilicon == true ? "arm64" : "x86_64", status: state.platformStatus?.isAppleSilicon == true ? "ok" : "warning")
-                        DiagnosticRow(label: "Runtime Mode", value: state.activeRuntimeMode, status: state.activeRuntimeMode == "stub" ? "warning" : "ok")
-                        DiagnosticRow(label: "Framework", value: state.containerizationStatus?.message ?? "unknown", status: state.containerizationStatus?.status ?? "unknown")
-                        DiagnosticRow(label: "Linux Kernel", value: state.kernelStatus?.message ?? "unknown", status: state.kernelStatus?.status ?? "unknown")
-                        DiagnosticRow(label: "Initfs", value: state.initfsStatus?.message ?? "unknown", status: state.initfsStatus?.status ?? "unknown")
-                        DiagnosticRow(label: "Database", value: state.databaseStatus?.message ?? "unknown", status: state.databaseStatus?.status ?? "unknown")
-                        DiagnosticRow(label: "Ports Availability", value: state.portsStatus?.message ?? "unknown", status: state.portsStatus?.status ?? "unknown")
+                        DiagnosticRow(
+                            label: "macOS Version",
+                            value: "\(state.platformStatus?.osVersion.majorVersion ?? 0).\(state.platformStatus?.osVersion.minorVersion ?? 0)",
+                            status: state.platformStatus?.isSupported == true ? "ok" : "warning"
+                        )
+                        DiagnosticRow(
+                            label: "Architecture",
+                            value: state.platformStatus?.isAppleSilicon == true ? "arm64" : "x86_64",
+                            status: state.platformStatus?.isAppleSilicon == true ? "ok" : "warning"
+                        )
+                        DiagnosticRow(
+                            label: "Runtime Mode",
+                            value: state.activeRuntimeMode,
+                            status: state.activeRuntimeMode == "stub" ? "warning" : "ok"
+                        )
+                        DiagnosticRow(
+                            label: "Framework",
+                            value: state.containerizationStatus?.message ?? "unknown",
+                            status: state.containerizationStatus?.status ?? "unknown"
+                        )
+                        DiagnosticRow(
+                            label: "Linux Kernel",
+                            value: state.kernelStatus?.message ?? "unknown",
+                            status: state.kernelStatus?.status ?? "unknown"
+                        )
+                        DiagnosticRow(
+                            label: "Initfs",
+                            value: state.initfsStatus?.message ?? "unknown",
+                            status: state.initfsStatus?.status ?? "unknown"
+                        )
+                        DiagnosticRow(
+                            label: "Database",
+                            value: state.databaseStatus?.message ?? "unknown",
+                            status: state.databaseStatus?.status ?? "unknown"
+                        )
+                        DiagnosticRow(
+                            label: "Ports Availability",
+                            value: state.portsStatus?.message ?? "unknown",
+                            status: state.portsStatus?.status ?? "unknown"
+                        )
                     }
                     .padding(.vertical, DesignSystem.Spacing.xs)
                 }
@@ -151,15 +183,15 @@ struct DiagnosticRow: View {
                 .font(DesignSystem.Typography.subheadline)
                 .foregroundStyle(DesignSystem.Colors.textSecondary)
                 .frame(width: 140, alignment: .leading)
-            
+
             Text(value)
                 .font(DesignSystem.Typography.body)
                 .foregroundStyle(DesignSystem.Colors.textPrimary)
                 .lineLimit(1)
                 .truncationMode(.tail)
-            
+
             Spacer()
-            
+
             Image(systemName: isReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                 .foregroundStyle(isReady ? DesignSystem.Colors.success : DesignSystem.Colors.warning)
         }

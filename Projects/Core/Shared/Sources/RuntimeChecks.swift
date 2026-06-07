@@ -123,15 +123,27 @@ public enum RuntimeChecks {
         if FileManager.default.fileExists(atPath: path) {
             return ToolCheck(name: "Kernel", status: "ok", message: "Kernel present at \(path)")
         } else {
-            return ToolCheck(name: "Kernel", status: "missing", message: "Kernel missing at \(path). Please run 'dutchman kernel download'")
+            return ToolCheck(
+                name: "Kernel",
+                status: "missing",
+                message: "Kernel missing at \(path). Please run 'dutchman kernel download'"
+            )
         }
     }
 
     public static func checkInitfsAvailability() -> ToolCheck {
         #if canImport(Containerization)
-        return ToolCheck(name: "vminit (initfs)", status: "ok", message: "Reference: ghcr.io/apple/containerization/vminit:0.13.0")
+            return ToolCheck(
+                name: "vminit (initfs)",
+                status: "ok",
+                message: "Reference: ghcr.io/apple/containerization/vminit:0.13.0"
+            )
         #else
-        return ToolCheck(name: "vminit (initfs)", status: "missing", message: "Containerization framework required to load initfs")
+            return ToolCheck(
+                name: "vminit (initfs)",
+                status: "missing",
+                message: "Containerization framework required to load initfs"
+            )
         #endif
     }
 
@@ -147,9 +159,17 @@ public enum RuntimeChecks {
                 try? fm.createDirectory(at: dbDir, withIntermediateDirectories: true)
             }
             if fm.isWritableFile(atPath: dbDir.path) {
-                return ToolCheck(name: "Database (SQLite)", status: "ok", message: "Database does not exist yet, directory is writable")
+                return ToolCheck(
+                    name: "Database (SQLite)",
+                    status: "ok",
+                    message: "Database does not exist yet, directory is writable"
+                )
             } else {
-                return ToolCheck(name: "Database (SQLite)", status: "error", message: "Database directory is not writable")
+                return ToolCheck(
+                    name: "Database (SQLite)",
+                    status: "error",
+                    message: "Database directory is not writable"
+                )
             }
         }
 
@@ -211,10 +231,10 @@ public enum RuntimeChecks {
         }
 
         #if canImport(Containerization)
-        let fm = FileManager.default
-        if fm.fileExists(atPath: kernelPath.path) {
-            return "native"
-        }
+            let fm = FileManager.default
+            if fm.fileExists(atPath: kernelPath.path) {
+                return "native"
+            }
         #endif
 
         let cliCheck = containerToolVersion()

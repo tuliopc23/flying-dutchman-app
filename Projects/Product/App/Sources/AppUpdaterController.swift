@@ -7,7 +7,8 @@ final class AppUpdaterController {
 
     init() {
         if Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") != nil,
-           Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") != nil {
+           Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") != nil
+        {
             updaterController = SPUStandardUpdaterController(
                 startingUpdater: true,
                 updaterDelegate: nil,

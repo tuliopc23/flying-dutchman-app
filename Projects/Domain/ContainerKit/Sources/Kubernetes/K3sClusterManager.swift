@@ -78,7 +78,8 @@ public actor K3sClusterManager {
                 // Check if container is running
                 let containers = try await containerRuntime.listContainers()
                 if let container = containers.first(where: { $0.id == containerID }),
-                   container.status == .running {
+                   container.status == .running
+                {
                     logger.info("k3s cluster container is running")
                     // Give k3s a bit more time to fully initialize
                     try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds

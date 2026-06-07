@@ -331,7 +331,8 @@ public enum EngineServer {
                 guard case let .stateChanged(_, to) = event.type else { continue }
                 if to == .running {
                     if let containers = try? await runtime.listContainers(),
-                       let container = containers.first(where: { $0.id == event.containerID }) {
+                       let container = containers.first(where: { $0.id == event.containerID })
+                    {
                         await routingTable.register(container: container, config: .default)
                     }
                 } else if to.isStopped {

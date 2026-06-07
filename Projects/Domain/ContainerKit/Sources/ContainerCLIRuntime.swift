@@ -27,7 +27,8 @@ public actor ContainerCLIRuntime: ContainerRuntimeProtocol {
 
     public func listContainers() async throws -> [ContainerSummary] {
         if let data = runCLI(args: ["list", "--format", "json"]),
-           let decoded = try? JSONDecoder().decode([CLISummary].self, from: data) {
+           let decoded = try? JSONDecoder().decode([CLISummary].self, from: data)
+        {
             return decoded.map { $0.toSummary() }
         }
         return try await fallback.listContainers()

@@ -67,7 +67,8 @@ public actor ComposeProjectManager {
             } else {
                 // Try to find existing container
                 if let existingID = await findContainerID(for: service.name, in: project),
-                   try await isContainerRunning(id: existingID) {
+                   try await isContainerRunning(id: existingID)
+                {
                     containerID = existingID
                     logger.info("Using existing container for service '\(service.name)'")
                 } else {

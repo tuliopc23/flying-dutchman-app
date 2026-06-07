@@ -164,19 +164,51 @@ public extension ContainerizationRuntime {
         var manager = try await ensureManager()
 
         do {
-            // ... (mount setup)
+            // Map MountSpec to Containerization.Mount
+            var vzMounts = LinuxContainer.defaultMounts()
+            for mountSpec in container.mounts {
+                let hostPath: String
+                if mountSpec.type == .volume {
+                    let volume = try await volumeManager.getOrCreateVolume(name: mountSpec.source)
+                    hostPath = volume.mountPath
+                } else {
+                    hostPath = mountSpec.source
+                }
+
+                let share = Containerization.Mount.share(
+                    source: hostPath,
+                    destination: mountSpec.destination,
+                    options: mountSpec.readOnly ? ["ro"] : []
+                )
+                vzMounts.append(share)
+            }
 
             // Create the LinuxContainer via ContainerManager
             let linuxContainer = try await manager.create(container.name, reference: container.image) { cfg in
                 cfg.cpus = cpuCount
                 cfg.memoryInBytes = UInt64(memoryBytes)
 
-                // Configure Networking (Phase 2)
-                // Note: Containerization framework currently handles networking automatically
-                // We just track the IP allocation for our own records/DNS
-                // Future: Configure custom bridge if framework supports it
+                // Set env variables
+                if let env = config.env {
+                    var envVars = env.map { "\($0.key)=\($0.value)" }
+                    if !envVars.contains(where: { $0.hasPrefix("PATH=") }) {
+                        envVars.append("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin")
+                    }
+                    cfg.process.environmentVariables = envVars
+                }
 
-                // ... (process args, env, mounts)
+                // Set command/arguments
+                if let command = config.command {
+                    cfg.process.arguments = command
+                }
+
+                // Set working directory
+                if let workingDir = config.workingDir {
+                    cfg.process.workingDirectory = workingDir
+                }
+
+                // Set mounts
+                cfg.mounts = vzMounts
             }
 
             // Store active container
@@ -334,6 +366,11 @@ public extension ContainerizationRuntime {
         // Delete container logs
         logStore.delete(containerID: id)
         await eventStore.deleteEvents(for: id)
+
+        // Delete log file on disk
+        let homeDir = FileManager.default.homeDirectoryForCurrentUser
+        let logFileURL = homeDir.appendingPathComponent(".flyingdutchman/logs/\(id.uuidString).log")
+        try? FileManager.default.removeItem(at: logFileURL)
 
         // Clean up rootfs and config
         try await cleanupContainerData(for: id)

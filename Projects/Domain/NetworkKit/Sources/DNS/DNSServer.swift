@@ -100,7 +100,8 @@ private final class DNSHandler: ChannelInboundHandler, Sendable {
         for question in request.questions where question.type == .a {
             let hostname = question.labels.string
             if let ip = await routingTable.resolveIPv4(hostname: hostname),
-               let address = ipToUInt32(ip) {
+               let address = ipToUInt32(ip)
+            {
                 let resource = ARecord(address: address)
                 let record = Record.a(ResourceRecord(
                     domainName: question.labels,
