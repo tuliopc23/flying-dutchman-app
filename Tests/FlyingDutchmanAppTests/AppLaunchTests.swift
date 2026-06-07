@@ -1,4 +1,5 @@
 import ContainersInterface
+import DashboardInterface
 import DebugShellInterface
 import DiagnosticsInterface
 import ImagesInterface
@@ -41,6 +42,7 @@ struct AppLaunchTests {
 
     private func makeFeatureRegistry() -> ShellFeatureRegistry {
         ShellFeatureRegistry(
+            dashboard: DashboardFeature(dashboardView: { AnyView(EmptyView()) }),
             containers: ContainersFeature(listView: { _ in AnyView(EmptyView()) }),
             images: ImagesFeature(listView: { AnyView(EmptyView()) }),
             volumes: VolumesFeature(listView: { AnyView(EmptyView()) }),

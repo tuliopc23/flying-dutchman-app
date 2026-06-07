@@ -41,22 +41,18 @@ This document represents the current release readiness status of Flying Dutchman
 
 ### Test Suite Status
 *   **Command**: `swift test`
-*   **Status**: `Broken` (Compile error)
-*   **Details**: The test target failed to compile due to:
-    ```text
-    Tests/FlyingDutchmanAppTests/AppLaunchTests.swift:44:13: error: missing argument for parameter 'dashboard' in call
-    ```
-    This was introduced because `ShellFeatureRegistry` was updated to require a `DashboardFeature`, but the test stub was not updated with it.
+*   **Status**: `Done`
+*   **Details**: The test suite compiles and runs cleanly with 121 passing tests (91 XCTest + 30 Swift Testing tests).
 
 ### CLI Doctor Status
 *   **Command**: `swift run FlyingDutchmanCLI doctor`
 *   **Status**: `Partial` (Warnings returned)
 *   **Details**: The doctor tool successfully reported platform status but logged 5 environment/connection warnings:
-    *   `[warn] Containerization: missing` (Containerization.framework not detected)
-    *   `[warn] HTTP: Could not connect to the server`
-    *   `[warn] XPC: Couldn’t communicate with a helper application`
-    *   `[warn] DNS Resolver: missing`
-    *   `[warn] Root CA: missing`
+	*   `[warn] Containerization: missing` (Containerization.framework not detected)
+	*   `[warn] HTTP: Could not connect to the server`
+	*   `[warn] XPC: Couldn’t communicate with a helper application`
+	*   `[warn] DNS Resolver: missing`
+	*   `[warn] Root CA: missing`
 
 ---
 
@@ -66,11 +62,10 @@ This document represents the current release readiness status of Flying Dutchman
 *   *None.*
 
 ### Compile Errors
-*   *None for product targets.*
-*   `Tests/FlyingDutchmanAppTests/AppLaunchTests.swift:44:13: error: missing argument for parameter 'dashboard' in call` (Blocks `swift test`).
+*   *None.*
 
 ### Test Failures
-*   *Pending resolution of the compile error above.*
+*   *None.*
 
 ### Runtime Failures
 *   *None observed yet; daemon offline.*
