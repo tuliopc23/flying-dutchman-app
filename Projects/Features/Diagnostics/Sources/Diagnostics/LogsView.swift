@@ -4,6 +4,7 @@ import FlyingDutchmanContainers
 import FlyingDutchmanNetworking
 import Shared
 import SwiftUI
+import UIComponents
 
 #if canImport(AppKit)
     import AppKit
@@ -117,106 +118,116 @@ public struct LogsView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack(spacing: DesignSystem.Spacing.md) {
-                Menu {
-                    ForEach(containers) { container in
-                        Button(container.name) {
-                            viewModel.selectedContainer = container
-                            Task { @MainActor in await viewModel.load(containers: containers) }
+        if containers.isEmpty {
+            EmptyStateView(
+                title: "No Containers Active",
+                message: "Logs require an active container. Start a container to view logs here.",
+                systemImage: "doc.text"
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(DesignSystem.Colors.background)
+        } else {
+            VStack(spacing: 0) {
+                // Header
+                HStack(spacing: DesignSystem.Spacing.md) {
+                    Menu {
+                        ForEach(containers) { container in
+                            Button(container.name) {
+                                viewModel.selectedContainer = container
+                                Task { @MainActor in await viewModel.load(containers: containers) }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "shippingbox")
+                            Text(viewModel.selectedContainer?.name ?? "Select Container")
+                                .fontWeight(.medium)
+                            Image(systemName: "chevron.down")
+                                .imageScale(.small)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                } label: {
-                    HStack {
-                        Image(systemName: "shippingbox")
-                        Text(viewModel.selectedContainer?.name ?? "Select Container")
-                            .fontWeight(.medium)
-                        Image(systemName: "chevron.down")
-                            .imageScale(.small)
-                            .foregroundStyle(.secondary)
+                    .buttonStyle(.glass)
+                    .frame(width: 200)
+
+                    Spacer()
+
+                    Toggle("Follow", isOn: $viewModel.follow)
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+
+                    Button {
+                        Task { @MainActor in await viewModel.load(containers: containers) }
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                            .labelStyle(.iconOnly)
                     }
+                    .buttonStyle(.glass)
                 }
-                .buttonStyle(.glass)
-                .frame(width: 200)
+                .padding(DesignSystem.Spacing.md)
+                .background(.thinMaterial)
 
-                Spacer()
+                Divider()
 
-                Toggle("Follow", isOn: $viewModel.follow)
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-
-                Button {
-                    Task { @MainActor in await viewModel.load(containers: containers) }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.glass)
-            }
-            .padding(DesignSystem.Spacing.md)
-            .background(.thinMaterial)
-
-            Divider()
-
-            // Log Content
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 2) {
-                        if viewModel.isLoading, viewModel.filteredLines.isEmpty {
-                            ProgressView()
-                                .frame(maxWidth: .infinity, minHeight: 200)
-                        } else if let error = viewModel.error {
-                            Text(error)
-                                .foregroundStyle(DesignSystem.Colors.warning)
-                                .padding()
-                        } else if viewModel.filteredLines.isEmpty {
-                            Text("No logs available")
-                                .foregroundStyle(DesignSystem.Colors.textTertiary)
-                                .frame(maxWidth: .infinity, minHeight: 200)
-                        } else {
-                            ForEach(Array(viewModel.filteredLines.enumerated()), id: \.offset) { idx, line in
-                                LogLineRow(line: line, index: idx)
-                                    .id(idx)
+                // Log Content
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 2) {
+                            if viewModel.isLoading, viewModel.filteredLines.isEmpty {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity, minHeight: 200)
+                            } else if let error = viewModel.error {
+                                Text(error)
+                                    .foregroundStyle(DesignSystem.Colors.warning)
+                                    .padding()
+                            } else if viewModel.filteredLines.isEmpty {
+                                Text("No logs available")
+                                    .foregroundStyle(DesignSystem.Colors.textTertiary)
+                                    .frame(maxWidth: .infinity, minHeight: 200)
+                            } else {
+                                ForEach(Array(viewModel.filteredLines.enumerated()), id: \.offset) { idx, line in
+                                    LogLineRow(line: line, index: idx)
+                                        .id(idx)
+                                }
+                            }
+                        }
+                        .padding(DesignSystem.Spacing.md)
+                    }
+                    .background(DesignTokens.glassFieldBackground(for: colorScheme))
+                    .onChange(of: viewModel.lines.count) { _, count in
+                        if viewModel.follow, count > 0 {
+                            withAnimation {
+                                proxy.scrollTo(count - 1, anchor: .bottom)
                             }
                         }
                     }
-                    .padding(DesignSystem.Spacing.md)
-                }
-                .background(DesignTokens.glassFieldBackground(for: colorScheme))
-                .onChange(of: viewModel.lines.count) { _, count in
-                    if viewModel.follow, count > 0 {
-                        withAnimation {
-                            proxy.scrollTo(count - 1, anchor: .bottom)
-                        }
-                    }
                 }
             }
-        }
-        .background(DesignSystem.Colors.surfacePrimary)
-        .clipShape(DesignSystem.Shapes.card)
-        .padding(DesignSystem.Spacing.md)
-        .glassContainer()
-        .onAppear {
-            if viewModel.selectedContainer == nil {
-                viewModel.selectedContainer = containers.first
+            .background(DesignSystem.Colors.surfacePrimary)
+            .clipShape(DesignSystem.Shapes.card)
+            .padding(DesignSystem.Spacing.md)
+            .glassContainer()
+            .onAppear {
+                if viewModel.selectedContainer == nil {
+                    viewModel.selectedContainer = containers.first
+                }
+                Task { await viewModel.load(containers: containers) }
+                if viewModel.follow {
+                    viewModel.scheduleFollow(containers: containers)
+                }
             }
-            Task { await viewModel.load(containers: containers) }
-            if viewModel.follow {
-                viewModel.scheduleFollow(containers: containers)
-            }
-        }
-        .onDisappear {
-            viewModel.cancelFollow()
-        }
-        .onChange(of: viewModel.follow) { _, newValue in
-            if newValue {
-                viewModel.scheduleFollow(containers: containers)
-            } else {
+            .onDisappear {
                 viewModel.cancelFollow()
             }
+            .onChange(of: viewModel.follow) { _, newValue in
+                if newValue {
+                    viewModel.scheduleFollow(containers: containers)
+                } else {
+                    viewModel.cancelFollow()
+                }
+            }
+            .searchable(text: $viewModel.filter)
         }
-        .searchable(text: $viewModel.filter)
     }
 }
 

@@ -7,6 +7,8 @@ import UIComponents
 struct MachineDetailView: View {
     @Bindable var viewModel: MachineDetailViewModel
     @Dependency(\.terminalLauncher) private var terminalLauncher
+    @Environment(\.dismiss) private var dismiss
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         ScrollView {
@@ -26,6 +28,25 @@ struct MachineDetailView: View {
             .padding(DesignSystem.Spacing.lg)
         }
         .navigationTitle(viewModel.machine.name)
+        .confirmationDialog(
+            "Are you sure you want to delete this machine?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    let success = await viewModel.delete()
+                    if success {
+                        dismiss()
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                "This action cannot be undone. All data and disks for '\(viewModel.machine.name)' will be permanently deleted."
+            )
+        }
     }
 
     private var headerCard: some View {
@@ -89,13 +110,23 @@ struct MachineDetailView: View {
                 .buttonStyle(.bordered)
 
             case .stopped, .error, .creating, .starting, .stopping:
-                Button {
-                    Task { await viewModel.start() }
-                } label: {
-                    Label("Start", systemImage: "play.fill")
-                        .frame(minWidth: 110)
+                HStack(spacing: 8) {
+                    Button {
+                        Task { await viewModel.start() }
+                    } label: {
+                        Label("Start", systemImage: "play.fill")
+                            .frame(minWidth: 110)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash.fill")
+                            .frame(minWidth: 110)
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.borderedProminent)
             }
         }
     }

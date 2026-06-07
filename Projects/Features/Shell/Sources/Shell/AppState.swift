@@ -63,6 +63,16 @@ public final class AppState {
         self.databaseStatus = RuntimeChecks.checkDatabaseStatus()
         self.portsStatus = RuntimeChecks.checkPortAvailability()
         rebuildCommandRegistry()
+
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("FDRuntimeModeDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshDiagnostics()
+            }
+        }
     }
 
     /// Perform parallel bootstrap of all app systems
@@ -124,20 +134,40 @@ public final class AppState {
     }
 
     func refreshContainers() async {
+        let oldContainers = self.containers
         if let containers = try? await EngineClient.listContainers() {
             self.containers = containers
         } else {
             self.containers = []
         }
+
+        let deletedContainers = oldContainers.filter { old in !self.containers.contains(where: { $0.id == old.id }) }
+        if !deletedContainers.isEmpty {
+            if selectedSection == .containers {
+                selectedSection = .dashboard
+                navigationPath = NavigationPath()
+            }
+        }
+
         rebuildCommandRegistry()
     }
 
     func refreshMachines() async {
+        let oldMachines = self.machines
         if let machines = try? await EngineClient.listMachines() {
             self.machines = machines
         } else {
             self.machines = []
         }
+
+        let deletedMachines = oldMachines.filter { old in !self.machines.contains(where: { $0.id == old.id }) }
+        if !deletedMachines.isEmpty {
+            if selectedSection == .machines {
+                selectedSection = .dashboard
+                navigationPath = NavigationPath()
+            }
+        }
+
         rebuildCommandRegistry()
     }
 
@@ -171,51 +201,53 @@ public final class AppState {
             )
         })
 
-        for container in containers {
-            switch container.status {
-            case .running:
-                actions.append(CommandAction(
-                    title: "Stop \(container.name)",
-                    subtitle: "Container",
-                    icon: "stop.fill",
-                    perform: {
-                        _ = try? await EngineClient.stopContainer(id: container.id)
-                    }
-                ))
-            case .stopped, .created:
-                actions.append(CommandAction(
-                    title: "Start \(container.name)",
-                    subtitle: "Container",
-                    icon: "play.fill",
-                    perform: {
-                        _ = try? await EngineClient.startContainer(id: container.id)
-                    }
-                ))
-            case .starting, .stopping, .removing, .removed:
-                break
+        if isEngineHealthy {
+            for container in containers {
+                switch container.status {
+                case .running:
+                    actions.append(CommandAction(
+                        title: "Stop \(container.name)",
+                        subtitle: "Container",
+                        icon: "stop.fill",
+                        perform: {
+                            _ = try? await EngineClient.stopContainer(id: container.id)
+                        }
+                    ))
+                case .stopped, .created:
+                    actions.append(CommandAction(
+                        title: "Start \(container.name)",
+                        subtitle: "Container",
+                        icon: "play.fill",
+                        perform: {
+                            _ = try? await EngineClient.startContainer(id: container.id)
+                        }
+                    ))
+                case .starting, .stopping, .removing, .removed:
+                    break
+                }
             }
-        }
 
-        for machine in machines {
-            switch machine.status {
-            case .running:
-                actions.append(CommandAction(
-                    title: "Stop \(machine.name)",
-                    subtitle: "Machine",
-                    icon: "stop.fill",
-                    perform: {
-                        _ = try? await EngineClient.stopMachine(nameOrID: machine.id)
-                    }
-                ))
-            case .stopped, .creating, .starting, .stopping, .error:
-                actions.append(CommandAction(
-                    title: "Start \(machine.name)",
-                    subtitle: "Machine",
-                    icon: "play.fill",
-                    perform: {
-                        _ = try? await EngineClient.startMachine(nameOrID: machine.id)
-                    }
-                ))
+            for machine in machines {
+                switch machine.status {
+                case .running:
+                    actions.append(CommandAction(
+                        title: "Stop \(machine.name)",
+                        subtitle: "Machine",
+                        icon: "stop.fill",
+                        perform: {
+                            _ = try? await EngineClient.stopMachine(nameOrID: machine.id)
+                        }
+                    ))
+                case .stopped, .creating, .starting, .stopping, .error:
+                    actions.append(CommandAction(
+                        title: "Start \(machine.name)",
+                        subtitle: "Machine",
+                        icon: "play.fill",
+                        perform: {
+                            _ = try? await EngineClient.startMachine(nameOrID: machine.id)
+                        }
+                    ))
+                }
             }
         }
 

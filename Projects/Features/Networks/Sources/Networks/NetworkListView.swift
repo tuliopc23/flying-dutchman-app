@@ -72,12 +72,16 @@ public struct NetworkListView: View {
             }
 
             if viewModel.filtered.isEmpty {
-                EmptyStateCard(
+                EmptyStateView(
                     title: "No networks found",
                     message: viewModel.searchQuery.isEmpty
                         ? "Create a network to connect containers."
                         : "No networks match your search.",
-                    systemImage: "network"
+                    systemImage: "network",
+                    actionTitle: "Refresh",
+                    action: {
+                        Task { @MainActor in await viewModel.load() }
+                    }
                 )
                 .padding(DesignSystem.Spacing.md)
             } else {

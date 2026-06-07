@@ -27,10 +27,14 @@ public struct KubernetesListView: View {
             }
 
             if viewModel.clusters.isEmpty {
-                EmptyStateCard(
+                EmptyStateView(
                     title: "No Kubernetes clusters",
                     message: "Create a cluster to get started.",
-                    systemImage: "hexagon"
+                    systemImage: "hexagon",
+                    actionTitle: "Refresh",
+                    action: {
+                        Task { @MainActor in await viewModel.load() }
+                    }
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
             } else {

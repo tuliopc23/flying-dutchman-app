@@ -46,6 +46,25 @@ public struct SettingsView: View {
                 Stepper(value: binding(for: \.enginePort), in: 1 ... 65535) {
                     Text("Port: \(state.enginePort)")
                 }
+
+                Divider()
+
+                Picker("Runtime Mode Override", selection: Binding(
+                    get: { UserDefaults.standard.string(forKey: "FD_RUNTIME") ?? "auto" },
+                    set: {
+                        UserDefaults.standard.set($0, forKey: "FD_RUNTIME")
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("FDRuntimeModeDidChange"),
+                            object: nil
+                        )
+                    }
+                )) {
+                    Text("Auto (Detect)").tag("auto")
+                    Text("Native (Tahoe VM)").tag("native")
+                    Text("CLI Fallback").tag("cli")
+                    Text("Stub (Mock)").tag("stub")
+                }
+                .pickerStyle(.menu)
             }
             .padding(DesignSystem.Inset.md)
         }

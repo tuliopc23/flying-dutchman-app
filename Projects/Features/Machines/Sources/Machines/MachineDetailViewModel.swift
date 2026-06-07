@@ -28,13 +28,15 @@ final class MachineDetailViewModel {
         await performAction { try await self.client.restartMachine(self.machine.id) }
     }
 
-    func delete() async {
+    func delete() async -> Bool {
         isPerformingAction = true
         defer { isPerformingAction = false }
         do {
             try await client.deleteMachine(machine.id)
+            return true
         } catch {
             self.error = "Delete failed: \(error.localizedDescription)"
+            return false
         }
     }
 

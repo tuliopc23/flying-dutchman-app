@@ -49,6 +49,19 @@ final class ContainerDetailViewModel {
         }
     }
 
+    func delete() async -> Bool {
+        isPerformingAction = true
+        error = nil
+        defer { isPerformingAction = false }
+        do {
+            try await EngineClient.removeContainer(id: container.id)
+            return true
+        } catch {
+            self.error = "Delete failed: \(error.localizedDescription)"
+            return false
+        }
+    }
+
     private func performAction(_ action: @MainActor () async throws -> ContainerSummary) async {
         isPerformingAction = true
         error = nil

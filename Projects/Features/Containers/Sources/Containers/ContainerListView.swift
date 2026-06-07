@@ -60,6 +60,7 @@ public final class ContainerListViewModel {
         defer { isLoading = false }
         do {
             _ = try await action(container.id)
+            await load()
         } catch {
             self.error = "Action failed: \(error.localizedDescription)"
         }
@@ -102,18 +103,31 @@ public struct ContainerListView: View {
                 .padding(.horizontal, DesignSystem.Inset.lg.leading)
                 .padding(.top, DesignSystem.Inset.lg.top)
 
-                // Container Grid
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 300), spacing: DesignSystem.Spacing.lg)],
-                    spacing: DesignSystem.Spacing.lg
-                ) {
-                    ForEach(viewModel.filtered) { container in
-                        ContainerCard(container: container) {
-                            selectedContainer = container
+                if viewModel.filtered.isEmpty {
+                    EmptyStateView(
+                        title: "No Containers",
+                        message: "No containers match your search query or filter. Start a container to view it here.",
+                        systemImage: "shippingbox",
+                        actionTitle: "Refresh",
+                        action: {
+                            Task { @MainActor in await viewModel.load() }
+                        }
+                    )
+                    .padding(.top, 40)
+                } else {
+                    // Container Grid
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: 300), spacing: DesignSystem.Spacing.lg)],
+                        spacing: DesignSystem.Spacing.lg
+                    ) {
+                        ForEach(viewModel.filtered) { container in
+                            ContainerCard(container: container) {
+                                selectedContainer = container
+                            }
                         }
                     }
+                    .padding(.horizontal, DesignSystem.Inset.lg.leading)
                 }
-                .padding(.horizontal, DesignSystem.Inset.lg.leading)
             }
         }
         .background(DesignSystem.Colors.background)
@@ -122,7 +136,11 @@ public struct ContainerListView: View {
         }
         .sheet(item: $selectedContainer) { container in
             ContainerDetailView(
-                viewModel: ContainerDetailViewModel(container: container)
+                viewModel: ContainerDetailViewModel(container: container),
+                onDelete: {
+                    selectedContainer = nil
+                    Task { @MainActor in await viewModel.load() }
+                }
             )
             .frame(minWidth: 600, minHeight: 400)
         }

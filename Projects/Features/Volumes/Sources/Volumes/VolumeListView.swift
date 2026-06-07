@@ -26,6 +26,17 @@ public final class VolumeListViewModel {
         isLoading = false
     }
 
+    public func delete(_ volume: VolumeSummary) async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await EngineClient.removeVolume(name: volume.name)
+            await load()
+        } catch {
+            self.error = "Delete failed: \(error.localizedDescription)"
+        }
+    }
+
     var filtered: [VolumeSummary] {
         guard !searchQuery.isEmpty else { return volumes }
         let needle = searchQuery.lowercased()
@@ -37,6 +48,7 @@ public final class VolumeListViewModel {
 
 public struct VolumeListView: View {
     @Bindable var viewModel: VolumeListViewModel
+    @State private var volumeToDelete: VolumeSummary?
 
     public init(viewModel: VolumeListViewModel) {
         self.viewModel = viewModel
@@ -51,6 +63,11 @@ public struct VolumeListView: View {
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
 
                 Spacer()
+
+                if viewModel.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                }
 
                 Button {
                     Task { @MainActor in await viewModel.load() }
@@ -74,19 +91,25 @@ public struct VolumeListView: View {
             }
 
             if viewModel.filtered.isEmpty {
-                EmptyStateCard(
+                EmptyStateView(
                     title: "No volumes found",
                     message: viewModel.searchQuery.isEmpty
-                        ? "Create a volume to persist data."
+                        ? "Create a volume to persist container data."
                         : "No volumes match your search.",
-                    systemImage: "internaldrive"
+                    systemImage: "internaldrive",
+                    actionTitle: "Refresh",
+                    action: {
+                        Task { @MainActor in await viewModel.load() }
+                    }
                 )
                 .padding(DesignSystem.Spacing.md)
             } else {
                 ScrollView {
                     LazyVStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.filtered) { volume in
-                            VolumeRow(volume: volume)
+                            VolumeRow(volume: volume) {
+                                volumeToDelete = volume
+                            }
                         }
                     }
                     .padding(DesignSystem.Spacing.md)
@@ -99,11 +122,32 @@ public struct VolumeListView: View {
             }
         }
         .searchable(text: $viewModel.searchQuery)
+        .confirmationDialog(
+            "Are you sure you want to delete this volume?",
+            isPresented: Binding(
+                get: { volumeToDelete != nil },
+                set: { if !$0 { volumeToDelete = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: volumeToDelete
+        ) { volume in
+            Button("Delete", role: .destructive) {
+                Task {
+                    await viewModel.delete(volume)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { volume in
+            Text(
+                "This action cannot be undone. All files stored in volume '\(volume.name)' will be permanently deleted."
+            )
+        }
     }
 }
 
 struct VolumeRow: View {
     let volume: VolumeSummary
+    let onDelete: () -> Void
 
     var body: some View {
         GlassCard {
@@ -130,6 +174,13 @@ struct VolumeRow: View {
                         .font(DesignSystem.Typography.caption1)
                         .foregroundStyle(DesignSystem.Colors.textSecondary)
                 }
+
+                Button(role: .destructive, action: onDelete) {
+                    Label("Delete", systemImage: "trash")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.glass)
+                .help("Delete Volume")
             }
             .padding(DesignSystem.Inset.sm)
         }

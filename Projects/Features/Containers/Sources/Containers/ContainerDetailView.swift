@@ -9,7 +9,15 @@ import UIComponents
 struct ContainerDetailView: View {
     @Bindable var viewModel: ContainerDetailViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
     @Dependency(\.terminalLauncher) private var terminalLauncher
+    @State private var showDeleteConfirmation = false
+    let onDelete: (() -> Void)?
+
+    init(viewModel: ContainerDetailViewModel, onDelete: (() -> Void)? = nil) {
+        self.viewModel = viewModel
+        self.onDelete = onDelete
+    }
 
     var body: some View {
         ScrollView {
@@ -38,6 +46,24 @@ struct ContainerDetailView: View {
         .navigationTitle(viewModel.container.name)
         .task {
             await viewModel.loadLogs()
+        }
+        .confirmationDialog(
+            "Are you sure you want to delete this container?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    let success = await viewModel.delete()
+                    if success {
+                        onDelete?()
+                        dismiss()
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone. All container data and state will be lost.")
         }
     }
 
@@ -113,13 +139,23 @@ struct ContainerDetailView: View {
                 .buttonStyle(.bordered)
 
             case .stopped, .created:
-                Button {
-                    Task { await viewModel.start() }
-                } label: {
-                    Label("Start", systemImage: "play.fill")
-                        .frame(minWidth: 100)
+                HStack(spacing: 8) {
+                    Button {
+                        Task { await viewModel.start() }
+                    } label: {
+                        Label("Start", systemImage: "play.fill")
+                            .frame(minWidth: 100)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Remove", systemImage: "trash.fill")
+                            .frame(minWidth: 100)
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.borderedProminent)
 
             case .starting, .stopping, .removing, .removed:
                 EmptyView()

@@ -141,12 +141,16 @@ public struct ImageListView: View {
             }
 
             if viewModel.filtered.isEmpty {
-                EmptyStateCard(
+                EmptyStateView(
                     title: "No images found",
                     message: viewModel.searchQuery.isEmpty
                         ? "Pull or build an image to get started."
                         : "No images match your search.",
-                    systemImage: "shippingbox.fill"
+                    systemImage: "shippingbox.fill",
+                    actionTitle: "Refresh",
+                    action: {
+                        Task { @MainActor in await viewModel.load() }
+                    }
                 )
                 .padding(DesignSystem.Spacing.md)
             } else {

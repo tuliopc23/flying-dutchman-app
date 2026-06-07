@@ -20,4 +20,14 @@ public extension EngineClient {
         }
         return try JSONDecoder().decode([NetworkSummary].self, from: data)
     }
+
+    @MainActor static func removeVolume(name: String) async throws {
+        let url = URL(string: "\(baseURL)/volumes/\(name)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+    }
 }

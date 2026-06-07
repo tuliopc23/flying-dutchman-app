@@ -189,15 +189,29 @@ public struct DebugShellView: View {
                     .pickerStyle(.segmented)
 
                     if viewModel.targetKind != .local {
-                        Picker("Destination", selection: Binding(
-                            get: { viewModel.selectedTargetID },
-                            set: { viewModel.selectedTargetID = $0 }
-                        )) {
-                            ForEach(viewModel.targetOptions) { option in
-                                Text(option.title).tag(option.id)
+                        if viewModel.targetOptions.isEmpty {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(DesignSystem.Colors.warning)
+                                Text(
+                                    "No running \(viewModel.targetKind == .container ? "containers" : "machines") found"
+                                )
+                                .font(DesignSystem.Typography.caption1)
+                                .foregroundStyle(DesignSystem.Colors.textSecondary)
                             }
+                            .padding(.horizontal, 8)
+                            .frame(maxWidth: 320, alignment: .leading)
+                        } else {
+                            Picker("Destination", selection: Binding(
+                                get: { viewModel.selectedTargetID },
+                                set: { viewModel.selectedTargetID = $0 }
+                            )) {
+                                ForEach(viewModel.targetOptions) { option in
+                                    Text(option.title).tag(option.id)
+                                }
+                            }
+                            .frame(maxWidth: 320)
                         }
-                        .frame(maxWidth: 320)
                     }
                 }
 

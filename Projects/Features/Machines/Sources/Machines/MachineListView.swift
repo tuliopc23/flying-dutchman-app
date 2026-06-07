@@ -30,12 +30,16 @@ public struct MachineListView: View {
             }
 
             if viewModel.filtered.isEmpty {
-                EmptyStateCard(
+                EmptyStateView(
                     title: "No machines found",
                     message: viewModel.searchQuery.isEmpty
                         ? "Create a Linux machine to get started."
                         : "Try adjusting your search filters.",
-                    systemImage: "laptopcomputer"
+                    systemImage: "laptopcomputer",
+                    actionTitle: "Refresh",
+                    action: {
+                        Task { @MainActor in await viewModel.load() }
+                    }
                 )
                 .padding(.horizontal, DesignSystem.Spacing.md)
             } else {

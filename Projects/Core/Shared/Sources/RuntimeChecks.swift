@@ -225,6 +225,12 @@ public enum RuntimeChecks {
     }
 
     public static func activeRuntimeMode() -> String {
+        if let defaultsOverride = UserDefaults.standard.string(forKey: "FD_RUNTIME")?.lowercased(),
+           !defaultsOverride.isEmpty, defaultsOverride != "auto"
+        {
+            return defaultsOverride
+        }
+
         let env = ProcessInfo.processInfo.environment["FD_RUNTIME"]?.lowercased()
         if let env, !env.isEmpty, env != "auto" {
             return env

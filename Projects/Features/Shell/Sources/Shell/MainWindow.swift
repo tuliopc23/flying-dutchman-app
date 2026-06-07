@@ -10,6 +10,80 @@ public struct MainWindow: View {
 
     public init() {}
 
+    private var blockingError: (
+        title: String,
+        message: String,
+        icon: String,
+        actionTitle: String?,
+        action: (() -> Void)?
+    )? {
+        if let platformStatus = state.platformStatus, !platformStatus.isSupported {
+            return (
+                title: "Unsupported macOS Version",
+                message: platformStatus.message,
+                icon: "macwindow.badge.exclamationmark",
+                actionTitle: nil,
+                action: nil
+            )
+        }
+
+        if let kernelStatus = state.kernelStatus, kernelStatus.status != "ok" {
+            return (
+                title: "Linux Kernel Missing",
+                message: kernelStatus.message,
+                icon: "cpu",
+                actionTitle: "Retry Diagnostics",
+                action: {
+                    state.refreshDiagnostics()
+                }
+            )
+        }
+
+        if let initfsStatus = state.initfsStatus, initfsStatus.status != "ok" {
+            return (
+                title: "Initfs Component Missing",
+                message: initfsStatus.message,
+                icon: "folder.badge.minus",
+                actionTitle: "Retry Diagnostics",
+                action: {
+                    state.refreshDiagnostics()
+                }
+            )
+        }
+
+        if state.activeRuntimeMode == "stub" {
+            #if !DEBUG
+                return (
+                    title: "Native Runtime Unavailable",
+                    message: "Apple Containerization framework or kernel is missing on this host. You can switch to CLI Fallback mode.",
+                    icon: "exclamationmark.octagon.fill",
+                    actionTitle: "Switch to CLI Mode",
+                    action: {
+                        UserDefaults.standard.set("cli", forKey: "FD_RUNTIME")
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("FDRuntimeModeDidChange"),
+                            object: nil
+                        )
+                    }
+                )
+            #endif
+        }
+
+        if !state.isEngineHealthy {
+            return (
+                title: "Engine Offline",
+                message: "The Flying Dutchman background engine is unreachable. Ensure the daemon is running.",
+                icon: "wifi.slash",
+                actionTitle: "Retry Connection",
+                action: {
+                    Task { await state.refreshEngineStatus() }
+                }
+            )
+        }
+
+        return nil
+    }
+
     public var body: some View {
         @Bindable var state = state
 
@@ -18,15 +92,27 @@ public struct MainWindow: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 240)
         } detail: {
             NavigationStack(path: $state.navigationPath) {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-                        DiagnosticsSection()
-                        EngineStatusHero()
-                    }
-                    .padding(.horizontal, DesignSystem.Spacing.xl)
-                    .padding(.top, DesignSystem.Spacing.xl)
+                Group {
+                    if let error = blockingError {
+                        UnavailableOverlay(
+                            title: error.title,
+                            message: error.message,
+                            icon: error.icon,
+                            actionTitle: error.actionTitle,
+                            action: error.action
+                        )
+                    } else {
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                                DiagnosticsSection()
+                                EngineStatusHero()
+                            }
+                            .padding(.horizontal, DesignSystem.Spacing.xl)
+                            .padding(.top, DesignSystem.Spacing.xl)
 
-                    DetailContentView()
+                            DetailContentView()
+                        }
+                    }
                 }
                 .navigationTitle(state.selectedSection.title)
                 .toolbarTitleDisplayMode(.inline)
@@ -164,11 +250,62 @@ struct DiagnosticsSection: View {
                             value: state.portsStatus?.message ?? "unknown",
                             status: state.portsStatus?.status ?? "unknown"
                         )
+
+                        Divider()
+                            .padding(.vertical, DesignSystem.Spacing.xs)
+
+                        HStack(spacing: DesignSystem.Spacing.md) {
+                            Button {
+                                copyDiagnosticReport()
+                            } label: {
+                                Label("Copy Diagnostic Report", systemImage: "doc.on.clipboard")
+                            }
+                            .buttonStyle(.glass)
+
+                            Button {
+                                openEngineLogs()
+                            } label: {
+                                Label("Open Engine Logs", systemImage: "folder")
+                            }
+                            .buttonStyle(.glass)
+                        }
                     }
                     .padding(.vertical, DesignSystem.Spacing.xs)
                 }
             }
         }
+    }
+
+    private func copyDiagnosticReport() {
+        let report = """
+        Flying Dutchman Diagnostic Report
+        Generated: \(Date().description)
+
+        Platform: \(state.platformStatus?.isSupported == true ? "Supported" : "Unsupported") (macOS \(state
+            .platformStatus?.osVersion.majorVersion ?? 0).\(state.platformStatus?.osVersion.minorVersion ?? 0) \(state
+            .platformStatus?.isAppleSilicon == true ? "Apple Silicon" : "Intel"))
+        Runtime Mode: \(state.activeRuntimeMode)
+        Engine Status: \(state.engineStatus)
+        Containerization Status: \(state.containerizationStatus?.status ?? "unknown") (\(state.containerizationStatus?
+            .message ?? ""))
+        Kernel Status: \(state.kernelStatus?.status ?? "unknown") (\(state.kernelStatus?.message ?? ""))
+        Initfs Status: \(state.initfsStatus?.status ?? "unknown") (\(state.initfsStatus?.message ?? ""))
+        Database Status: \(state.databaseStatus?.status ?? "unknown") (\(state.databaseStatus?.message ?? ""))
+        Ports Status: \(state.portsStatus?.status ?? "unknown") (\(state.portsStatus?.message ?? ""))
+        """
+
+        #if canImport(AppKit)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(report, forType: .string)
+        #endif
+    }
+
+    private func openEngineLogs() {
+        let logDir = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Logs/FlyingDutchman", isDirectory: true)
+        #if canImport(AppKit)
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: logDir.path)
+        #endif
     }
 }
 
