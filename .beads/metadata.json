@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "flying_dutchman_app",
+  "project_id": "c143936d-b816-4e5d-9788-234823de74d7"
+}
