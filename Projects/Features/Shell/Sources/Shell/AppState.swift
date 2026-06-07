@@ -44,6 +44,11 @@ public final class AppState {
 
     var platformStatus: RuntimeChecks.PlatformStatus?
     var containerizationStatus: RuntimeChecks.ToolCheck?
+    var activeRuntimeMode: String = "unknown"
+    var kernelStatus: RuntimeChecks.ToolCheck?
+    var initfsStatus: RuntimeChecks.ToolCheck?
+    var databaseStatus: RuntimeChecks.ToolCheck?
+    var portsStatus: RuntimeChecks.ToolCheck?
 
     // MARK: - Initialization & Bootstrap
 
@@ -52,6 +57,11 @@ public final class AppState {
         // Initial setup
         self.platformStatus = RuntimeChecks.platformSupport()
         self.containerizationStatus = RuntimeChecks.containerizationFramework()
+        self.activeRuntimeMode = RuntimeChecks.activeRuntimeMode()
+        self.kernelStatus = RuntimeChecks.checkKernelAvailability()
+        self.initfsStatus = RuntimeChecks.checkInitfsAvailability()
+        self.databaseStatus = RuntimeChecks.checkDatabaseStatus()
+        self.portsStatus = RuntimeChecks.checkPortAvailability()
         rebuildCommandRegistry()
     }
 
@@ -67,7 +77,18 @@ public final class AppState {
 
     // MARK: - Global Actions
 
+    func refreshDiagnostics() {
+        self.platformStatus = RuntimeChecks.platformSupport()
+        self.containerizationStatus = RuntimeChecks.containerizationFramework()
+        self.activeRuntimeMode = RuntimeChecks.activeRuntimeMode()
+        self.kernelStatus = RuntimeChecks.checkKernelAvailability()
+        self.initfsStatus = RuntimeChecks.checkInitfsAvailability()
+        self.databaseStatus = RuntimeChecks.checkDatabaseStatus()
+        self.portsStatus = RuntimeChecks.checkPortAvailability()
+    }
+
     func refreshEngineStatus() async {
+        refreshDiagnostics()
         do {
             async let httpStatus: EngineStatus? = try? EngineClient.fetchHealth()
             async let detail: EngineStatusDetail? = try? EngineClient.fetchStatus()

@@ -17,6 +17,11 @@ struct Doctor: AsyncParsableCommand {
             } else {
                 CLIOutput.warn("Compatibility", report.platform.message)
             }
+            CLIOutput.line("Architecture", report.platform.isAppleSilicon ? "arm64" : "x86_64")
+            let os = report.platform.osVersion
+            CLIOutput.line("macOS Version", "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)")
+            CLIOutput.line("Runtime Mode", report.runtimeMode)
+
             if report.containerization.status == "ok" {
                 CLIOutput.line(
                     "Containerization",
@@ -29,8 +34,26 @@ struct Doctor: AsyncParsableCommand {
                 )
             }
             CLIOutput.line("container CLI", "\(report.containerTool.status) – \(report.containerTool.message)")
+            
+            if report.kernel.status == "ok" {
+                CLIOutput.line("Kernel", "\(report.kernel.status) – \(report.kernel.message)")
+            } else {
+                CLIOutput.warn("Kernel", "\(report.kernel.status) – \(report.kernel.message)")
+            }
 
-            CLIOutput.section("Engine")
+            if report.initfs.status == "ok" {
+                CLIOutput.line("Initfs", "\(report.initfs.status) – \(report.initfs.message)")
+            } else {
+                CLIOutput.warn("Initfs", "\(report.initfs.status) – \(report.initfs.message)")
+            }
+
+            CLIOutput.section("Engine & Storage")
+            if report.database.status == "ok" {
+                CLIOutput.line("Database", "\(report.database.status) – \(report.database.message)")
+            } else {
+                CLIOutput.warn("Database", "\(report.database.status) – \(report.database.message)")
+            }
+
             if let health = report.http {
                 CLIOutput.line("HTTP", "\(health.status) – engine: \(health.engine)")
             } else if let error = report.httpError {
@@ -46,7 +69,7 @@ struct Doctor: AsyncParsableCommand {
                         .joined(separator: ", ")
                 )
                 if let mode = detail.mode {
-                    CLIOutput.line("Runtime", "containerization=\(mode)")
+                    CLIOutput.line("Runtime Mode (Engine)", "containerization=\(mode)")
                 }
             }
 
@@ -57,6 +80,12 @@ struct Doctor: AsyncParsableCommand {
             }
 
             CLIOutput.section("Networking")
+            if report.ports.status == "ok" {
+                CLIOutput.line("Ports Status", "\(report.ports.status) – \(report.ports.message)")
+            } else {
+                CLIOutput.warn("Ports Status", "\(report.ports.status) – \(report.ports.message)")
+            }
+
             if report.resolver.status == "ok" {
                 CLIOutput.line("DNS Resolver", "\(report.resolver.status) – \(report.resolver.message)")
             } else {
@@ -80,6 +109,11 @@ private struct DoctorReport: Encodable {
     let platform: RuntimeChecks.PlatformStatus
     let containerTool: RuntimeChecks.ToolCheck
     let containerization: RuntimeChecks.ToolCheck
+    let kernel: RuntimeChecks.ToolCheck
+    let initfs: RuntimeChecks.ToolCheck
+    let database: RuntimeChecks.ToolCheck
+    let ports: RuntimeChecks.ToolCheck
+    let runtimeMode: String
     let resolver: RuntimeChecks.ToolCheck
     let caCertificate: RuntimeChecks.ToolCheck
     let http: EngineStatus?
@@ -106,6 +140,11 @@ private struct DoctorReport: Encodable {
             case platform
             case containerTool
             case containerization
+            case kernel
+            case initfs
+            case database
+            case ports
+            case runtimeMode
             case resolver
             case caCertificate
             case http
@@ -139,6 +178,23 @@ private struct DoctorReport: Encodable {
             forKey: .containerization
         )
         try container.encode(
+            ToolPayload(name: kernel.name, status: kernel.status, message: kernel.message),
+            forKey: .kernel
+        )
+        try container.encode(
+            ToolPayload(name: initfs.name, status: initfs.status, message: initfs.message),
+            forKey: .initfs
+        )
+        try container.encode(
+            ToolPayload(name: database.name, status: database.status, message: database.message),
+            forKey: .database
+        )
+        try container.encode(
+            ToolPayload(name: ports.name, status: ports.status, message: ports.message),
+            forKey: .ports
+        )
+        try container.encode(runtimeMode, forKey: .runtimeMode)
+        try container.encode(
             ToolPayload(name: resolver.name, status: resolver.status, message: resolver.message),
             forKey: .resolver
         )
@@ -158,6 +214,12 @@ private struct DoctorReport: Encodable {
         let platform = RuntimeChecks.platformSupport()
         let containerTool = RuntimeChecks.containerToolVersion()
         let containerization = RuntimeChecks.containerizationFramework()
+        let kernel = RuntimeChecks.checkKernelAvailability()
+        let initfs = RuntimeChecks.checkInitfsAvailability()
+        let database = RuntimeChecks.checkDatabaseStatus()
+        let ports = RuntimeChecks.checkPortAvailability()
+        let runtimeMode = RuntimeChecks.activeRuntimeMode()
+        
         let setupManager = NetworkSetupManager()
         let resolverInstalled = await setupManager.checkDNSStatus()
         let caCertificatePresent = await setupManager.checkCATrustStatus()
@@ -209,6 +271,11 @@ private struct DoctorReport: Encodable {
             platform: platform,
             containerTool: containerTool,
             containerization: containerization,
+            kernel: kernel,
+            initfs: initfs,
+            database: database,
+            ports: ports,
+            runtimeMode: runtimeMode,
             resolver: resolver,
             caCertificate: caCertificate,
             http: http,

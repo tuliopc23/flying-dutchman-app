@@ -108,4 +108,120 @@ public enum RuntimeChecks {
             message: message
         )
     }
+
+    private static var kernelPath: URL {
+        let fm = FileManager.default
+        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
+        return base
+            .appendingPathComponent("flyingdutchman")
+            .appendingPathComponent("kernel")
+            .appendingPathComponent("vmlinux")
+    }
+
+    public static func checkKernelAvailability() -> ToolCheck {
+        let path = kernelPath.path
+        if FileManager.default.fileExists(atPath: path) {
+            return ToolCheck(name: "Kernel", status: "ok", message: "Kernel present at \(path)")
+        } else {
+            return ToolCheck(name: "Kernel", status: "missing", message: "Kernel missing at \(path). Please run 'dutchman kernel download'")
+        }
+    }
+
+    public static func checkInitfsAvailability() -> ToolCheck {
+        #if canImport(Containerization)
+        return ToolCheck(name: "vminit (initfs)", status: "ok", message: "Reference: ghcr.io/apple/containerization/vminit:0.13.0")
+        #else
+        return ToolCheck(name: "vminit (initfs)", status: "missing", message: "Containerization framework required to load initfs")
+        #endif
+    }
+
+    public static func checkDatabaseStatus() -> ToolCheck {
+        let fm = FileManager.default
+        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
+        let dbDir = base.appendingPathComponent("flyingdutchman")
+        let dbPath = dbDir.appendingPathComponent("flyingdutchman.sqlite")
+
+        if !fm.fileExists(atPath: dbPath.path) {
+            let dirExists = fm.fileExists(atPath: dbDir.path)
+            if !dirExists {
+                try? fm.createDirectory(at: dbDir, withIntermediateDirectories: true)
+            }
+            if fm.isWritableFile(atPath: dbDir.path) {
+                return ToolCheck(name: "Database (SQLite)", status: "ok", message: "Database does not exist yet, directory is writable")
+            } else {
+                return ToolCheck(name: "Database (SQLite)", status: "error", message: "Database directory is not writable")
+            }
+        }
+
+        if fm.isWritableFile(atPath: dbPath.path) {
+            return ToolCheck(name: "Database (SQLite)", status: "ok", message: "Database file is present and writable")
+        } else {
+            return ToolCheck(name: "Database (SQLite)", status: "error", message: "Database file is not writable")
+        }
+    }
+
+    public static func checkPortAvailability() -> ToolCheck {
+        var occupied: [Int] = []
+        // Standard ports: 8080 (HTTP API), 5353 (DNS Resolver), 8443 (HTTPS Proxy)
+        let portsToCheck = [8080, 5353, 8443]
+
+        for port in portsToCheck {
+            if isPortInUse(UInt16(port)) {
+                occupied.append(port)
+            }
+        }
+
+        if occupied.isEmpty {
+            return ToolCheck(name: "Ports Status", status: "ok", message: "All ports (8080, 5353, 8443) are available")
+        } else {
+            return ToolCheck(
+                name: "Ports Status",
+                status: "warning",
+                message: "Ports occupied by other processes: \(occupied.map(String.init).joined(separator: ", "))"
+            )
+        }
+    }
+
+    private static func isPortInUse(_ port: UInt16) -> Bool {
+        var socketAddress = sockaddr_in()
+        socketAddress.sin_family = sa_family_t(AF_INET)
+        socketAddress.sin_port = port.bigEndian
+        socketAddress.sin_addr.s_addr = INADDR_ANY.bigEndian
+
+        let socketFd = socket(AF_INET, SOCK_STREAM, 0)
+        if socketFd == -1 { return false }
+        defer { close(socketFd) }
+
+        var yes: Int32 = 1
+        setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
+
+        let bindResult = withUnsafePointer(to: &socketAddress) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                bind(socketFd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+
+        return bindResult == -1
+    }
+
+    public static func activeRuntimeMode() -> String {
+        let env = ProcessInfo.processInfo.environment["FD_RUNTIME"]?.lowercased()
+        if let env, !env.isEmpty, env != "auto" {
+            return env
+        }
+
+        #if canImport(Containerization)
+        let fm = FileManager.default
+        if fm.fileExists(atPath: kernelPath.path) {
+            return "native"
+        }
+        #endif
+
+        let cliCheck = containerToolVersion()
+        if cliCheck.status == "ok" {
+            return "cli"
+        }
+
+        return "stub"
+    }
 }
