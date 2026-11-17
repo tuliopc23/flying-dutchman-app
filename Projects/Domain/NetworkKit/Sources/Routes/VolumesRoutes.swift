@@ -24,11 +24,9 @@ struct VolumesRoutes: @unchecked Sendable {
                 let driver: String?
             }
 
-            guard let payload = try? await request.decode(as: CreateVolumeRequest.self, context: context) else {
-                throw HTTPError(.badRequest)
-            }
-
-            guard !payload.name.isEmpty else {
+            guard let payload = try? await request.decode(as: CreateVolumeRequest.self, context: context),
+                  !payload.name.isEmpty
+            else {
                 throw HTTPError(.badRequest)
             }
 

@@ -112,7 +112,7 @@ public struct LogsView: View {
     let containers: [ContainerSummary]
     @Environment(\.colorScheme) private var colorScheme
 
-    public init(viewModel: LogsViewModel, containers: [ContainerSummary]) {
+    public init(viewModel: LogsViewModel = LogsViewModel(), containers: [ContainerSummary] = []) {
         self.viewModel = viewModel
         self.containers = containers
     }

@@ -30,10 +30,6 @@ public final class AppState {
     var workerStatuses: [String: String] = [:]
     var engineMode: String?
 
-    // MARK: - Feature Registry
-
-    public let features: ShellFeatureRegistry
-
     // MARK: - Sidebar / Menu Bar State
 
     let sidebar = SidebarViewModel()
@@ -52,8 +48,7 @@ public final class AppState {
 
     // MARK: - Initialization & Bootstrap
 
-    public init(features: ShellFeatureRegistry) {
-        self.features = features
+    public init() {
         // Initial setup
         self.platformStatus = RuntimeChecks.platformSupport()
         self.containerizationStatus = RuntimeChecks.containerizationFramework()
@@ -142,11 +137,9 @@ public final class AppState {
         }
 
         let deletedContainers = oldContainers.filter { old in !self.containers.contains(where: { $0.id == old.id }) }
-        if !deletedContainers.isEmpty {
-            if selectedSection == .containers {
-                selectedSection = .dashboard
-                navigationPath = NavigationPath()
-            }
+        if !deletedContainers.isEmpty, selectedSection == .containers {
+            selectedSection = .dashboard
+            navigationPath = NavigationPath()
         }
 
         rebuildCommandRegistry()
@@ -161,11 +154,9 @@ public final class AppState {
         }
 
         let deletedMachines = oldMachines.filter { old in !self.machines.contains(where: { $0.id == old.id }) }
-        if !deletedMachines.isEmpty {
-            if selectedSection == .machines {
-                selectedSection = .dashboard
-                navigationPath = NavigationPath()
-            }
+        if !deletedMachines.isEmpty, selectedSection == .machines {
+            selectedSection = .dashboard
+            navigationPath = NavigationPath()
         }
 
         rebuildCommandRegistry()
@@ -182,7 +173,7 @@ public final class AppState {
             break
         case .machines, .kubernetes:
             await refreshMachines()
-        case .containers, .images, .volumes, .networks, .stacks, .debugShell:
+        case .containers, .images, .volumes, .networks, .stacks, .terminal:
             await refreshContainers()
         }
     }

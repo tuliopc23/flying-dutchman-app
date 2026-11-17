@@ -2,8 +2,9 @@ import FlyingDutchmanContainers
 import Foundation
 import Shared
 
+@MainActor
 public extension EngineClient {
-    @MainActor static func listImages() async throws -> [ImageSummary] {
+    static func listImages() async throws -> [ImageSummary] {
         let url = URL(string: "\(baseURL)/images")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -12,7 +13,7 @@ public extension EngineClient {
         return try JSONDecoder().decode([ImageSummary].self, from: data)
     }
 
-    @MainActor static func pullImage(reference: String) async throws -> String {
+    static func pullImage(reference: String) async throws -> String {
         let url = URL(string: "\(baseURL)/images/pull")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -26,7 +27,7 @@ public extension EngineClient {
         return payload?["message"] as? String ?? "Pull completed"
     }
 
-    @MainActor static func buildImage(_ requestPayload: ImageBuildRequest) async throws -> ImageBuildResult {
+    static func buildImage(_ requestPayload: ImageBuildRequest) async throws -> ImageBuildResult {
         let url = URL(string: "\(baseURL)/images/build")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

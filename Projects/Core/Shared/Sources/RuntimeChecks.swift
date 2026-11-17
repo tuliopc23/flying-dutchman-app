@@ -133,13 +133,13 @@ public enum RuntimeChecks {
 
     public static func checkInitfsAvailability() -> ToolCheck {
         #if canImport(Containerization)
-            return ToolCheck(
+            ToolCheck(
                 name: "vminit (initfs)",
                 status: "ok",
                 message: "Reference: ghcr.io/apple/containerization/vminit:0.13.0"
             )
         #else
-            return ToolCheck(
+            ToolCheck(
                 name: "vminit (initfs)",
                 status: "missing",
                 message: "Containerization framework required to load initfs"
@@ -209,7 +209,9 @@ public enum RuntimeChecks {
         socketAddress.sin_addr.s_addr = INADDR_ANY.bigEndian
 
         let socketFd = socket(AF_INET, SOCK_STREAM, 0)
-        if socketFd == -1 { return false }
+        if socketFd == -1 {
+            return false
+        }
         defer { close(socketFd) }
 
         var yes: Int32 = 1

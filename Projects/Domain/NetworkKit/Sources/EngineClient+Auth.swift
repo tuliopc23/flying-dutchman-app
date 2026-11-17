@@ -2,8 +2,9 @@ import FlyingDutchmanContainers
 import Foundation
 import Shared
 
+@MainActor
 public extension EngineClient {
-    @MainActor static func login(registry: String, username: String, password: String) async throws {
+    static func login(registry: String, username: String, password: String) async throws {
         let url = URL(string: "\(baseURL)/auth/login")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -22,7 +23,7 @@ public extension EngineClient {
         }
     }
 
-    @MainActor static func logout(registry: String) async throws {
+    static func logout(registry: String) async throws {
         let url = URL(string: "\(baseURL)/auth/logout")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

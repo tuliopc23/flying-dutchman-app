@@ -50,7 +50,7 @@ public struct VolumeListView: View {
     @Bindable var viewModel: VolumeListViewModel
     @State private var volumeToDelete: VolumeSummary?
 
-    public init(viewModel: VolumeListViewModel) {
+    public init(viewModel: VolumeListViewModel = VolumeListViewModel()) {
         self.viewModel = viewModel
     }
 
@@ -126,7 +126,11 @@ public struct VolumeListView: View {
             "Are you sure you want to delete this volume?",
             isPresented: Binding(
                 get: { volumeToDelete != nil },
-                set: { if !$0 { volumeToDelete = nil } }
+                set: {
+                    if !$0 {
+                        volumeToDelete = nil
+                    }
+                }
             ),
             titleVisibility: .visible,
             presenting: volumeToDelete

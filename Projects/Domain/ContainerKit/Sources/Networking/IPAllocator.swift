@@ -18,12 +18,9 @@ public struct IPAllocator: Sendable {
         let parts = subnet.split(separator: "/")
         guard parts.count == 2,
               let prefixLen = Int(parts[1]),
-              prefixLen >= 0, prefixLen <= 32
+              prefixLen >= 0, prefixLen <= 32,
+              let ip = IPAllocator.ipToUInt32(String(parts[0]))
         else {
-            throw ContainerNetworkError.invalidSubnet(subnet)
-        }
-
-        guard let ip = IPAllocator.ipToUInt32(String(parts[0])) else {
             throw ContainerNetworkError.invalidSubnet(subnet)
         }
 

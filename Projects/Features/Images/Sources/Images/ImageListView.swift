@@ -114,7 +114,7 @@ public struct ImageListView: View {
     @Bindable var viewModel: ImageListViewModel
     @Environment(\.colorScheme) private var colorScheme
 
-    public init(viewModel: ImageListViewModel) {
+    public init(viewModel: ImageListViewModel = ImageListViewModel()) {
         self.viewModel = viewModel
     }
 

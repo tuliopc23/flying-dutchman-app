@@ -31,15 +31,14 @@ public struct ARPScanner: Sendable {
 
         for line in output.components(separatedBy: .newlines) {
             let normalizedLine = line.lowercased()
-            if normalizedLine.contains(targetMAC) {
-                // Extract IP from parenthesis
-                if let start = line.firstIndex(of: "("),
-                   let end = line.firstIndex(of: ")"),
-                   start < end
-                {
-                    let ipRange = line.index(after: start) ..< end
-                    return String(line[ipRange])
-                }
+            if normalizedLine.contains(targetMAC),
+               // Extract IP from parenthesis
+               let start = line.firstIndex(of: "("),
+               let end = line.firstIndex(of: ")"),
+               start < end
+            {
+                let ipRange = line.index(after: start) ..< end
+                return String(line[ipRange])
             }
         }
 

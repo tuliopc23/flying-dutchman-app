@@ -62,8 +62,12 @@ private struct ShimEventRecord: Codable, FetchableRecord, PersistableRecord {
             "Action": kind,
             "time": Int(timestamp.timeIntervalSince1970),
         ]
-        if let containerId { dict["id"] = containerId }
-        if let image { dict["from"] = image }
+        if let containerId {
+            dict["id"] = containerId
+        }
+        if let image {
+            dict["from"] = image
+        }
         dict["Type"] = "container"
         return dict
     }

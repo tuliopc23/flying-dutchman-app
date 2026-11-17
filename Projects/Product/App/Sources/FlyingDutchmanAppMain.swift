@@ -1,42 +1,13 @@
-import Containers
-import ContainersInterface
-import Dashboard
-import DebugShell
-import Diagnostics
-import DiagnosticsInterface
-import Images
-import ImagesInterface
-import Kubernetes
-import Machines
-import Networks
-import NetworksInterface
+import AppShell
 import Settings
 import Shared
-import Shell
-import Stacks
-import StacksInterface
 import SwiftUI
-import Volumes
-import VolumesInterface
 
 @main
 @MainActor
 struct FlyingDutchmanApp: App {
     /// Single source of truth for the entire app state (macOS 26+ Observation)
-    @State private var state = AppState(
-        features: ShellFeatureRegistry(
-            dashboard: .live,
-            containers: .live,
-            images: .live,
-            volumes: .live,
-            networks: .live,
-            diagnostics: .live,
-            stacks: .live,
-            machines: .live,
-            kubernetes: .live,
-            debugShell: .live
-        )
-    )
+    @State private var state = AppState()
 
     @State private var updater = AppUpdaterController()
 

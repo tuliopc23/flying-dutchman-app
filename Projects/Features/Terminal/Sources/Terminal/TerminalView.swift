@@ -7,7 +7,7 @@ import UIComponents
 
 @MainActor
 @Observable
-public final class DebugShellViewModel {
+public final class TerminalViewModel {
     public enum TargetKind: String, CaseIterable, Identifiable {
         case local
         case container
@@ -126,11 +126,11 @@ public final class DebugShellViewModel {
     }
 }
 
-public struct DebugShellView: View {
-    @Bindable var viewModel: DebugShellViewModel
+public struct TerminalView: View {
+    @Bindable var viewModel: TerminalViewModel
     @Dependency(\.terminalLauncher) private var terminalLauncher
 
-    public init(viewModel: DebugShellViewModel) {
+    public init(viewModel: TerminalViewModel = TerminalViewModel()) {
         self.viewModel = viewModel
     }
 
@@ -162,7 +162,7 @@ public struct DebugShellView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Debug Shell")
+                Text("Terminal")
                     .font(DesignSystem.Typography.title2)
                     .foregroundStyle(DesignSystem.Colors.textPrimary)
                 Text(
@@ -182,7 +182,7 @@ public struct DebugShellView: View {
 
                 HStack(spacing: DesignSystem.Spacing.md) {
                     Picker("Target", selection: $viewModel.targetKind) {
-                        ForEach(DebugShellViewModel.TargetKind.allCases) { kind in
+                        ForEach(TerminalViewModel.TargetKind.allCases) { kind in
                             Text(kind.title).tag(kind)
                         }
                     }

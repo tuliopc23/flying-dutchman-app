@@ -8,7 +8,7 @@ public struct KubernetesListView: View {
     @State private var kubeconfig: String?
     @State private var showKubeconfig: Bool = false
 
-    public init(viewModel: KubernetesListViewModel) {
+    public init(viewModel: KubernetesListViewModel = KubernetesListViewModel()) {
         self.viewModel = viewModel
     }
 

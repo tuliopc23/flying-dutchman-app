@@ -49,7 +49,7 @@ public final class DashboardViewModel {
 public struct DashboardView: View {
     @Bindable var viewModel: DashboardViewModel
 
-    public init(viewModel: DashboardViewModel) {
+    public init(viewModel: DashboardViewModel = DashboardViewModel()) {
         self.viewModel = viewModel
     }
 

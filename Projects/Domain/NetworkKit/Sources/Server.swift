@@ -172,7 +172,9 @@ public enum EngineServer {
         } else {
             let data = try? JSONSerialization.data(withJSONObject: events, options: [])
             var buffer = ByteBufferAllocator().buffer(capacity: data?.count ?? 0)
-            if let data { buffer.writeBytes(data) }
+            if let data {
+                buffer.writeBytes(data)
+            }
             var headers = HTTPFields()
             headers[.contentType] = "application/json"
             headers[.contentLength] = "\(buffer.readableBytes)"

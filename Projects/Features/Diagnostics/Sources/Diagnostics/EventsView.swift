@@ -50,7 +50,7 @@ public struct EventsView: View {
     @Bindable var viewModel: EventsViewModel
     @Environment(\.colorScheme) private var colorScheme
 
-    public init(viewModel: EventsViewModel) {
+    public init(viewModel: EventsViewModel = EventsViewModel()) {
         self.viewModel = viewModel
     }
 

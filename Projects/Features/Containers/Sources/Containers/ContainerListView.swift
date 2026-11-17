@@ -72,7 +72,7 @@ public struct ContainerListView: View {
     var stack: StackSummary?
     @State private var selectedContainer: ContainerSummary?
 
-    public init(viewModel: ContainerListViewModel, stack: StackSummary? = nil) {
+    public init(viewModel: ContainerListViewModel = ContainerListViewModel(), stack: StackSummary? = nil) {
         self.viewModel = viewModel
         self.stack = stack
     }

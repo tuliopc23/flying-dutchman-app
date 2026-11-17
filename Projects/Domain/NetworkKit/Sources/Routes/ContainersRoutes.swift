@@ -34,10 +34,8 @@ struct ContainersRoutes: @unchecked Sendable {
             let volumes: [String]?
         }
 
-        guard let payload = try? await request.decode(as: CreateRequest.self, context: context) else {
-            throw HTTPError(.badRequest)
-        }
-        guard !payload.name.isEmpty, !payload.image.isEmpty else { throw HTTPError(.badRequest) }
+        guard let payload = try? await request.decode(as: CreateRequest.self, context: context), !payload.name.isEmpty,
+              !payload.image.isEmpty else { throw HTTPError(.badRequest) }
 
         let baseConfig = payload.config ?? ContainerConfig.default
         let config = ContainerConfig(

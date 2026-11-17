@@ -103,7 +103,7 @@ public final class StacksViewModel {
 public struct StacksView: View {
     @Bindable var viewModel: StacksViewModel
 
-    public init(viewModel: StacksViewModel) {
+    public init(viewModel: StacksViewModel = StacksViewModel()) {
         self.viewModel = viewModel
     }
 

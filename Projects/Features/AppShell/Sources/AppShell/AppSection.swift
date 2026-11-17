@@ -12,7 +12,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
     case networks
     case logs
     case events
-    case debugShell
+    case terminal
 
     public var id: String {
         rawValue
@@ -30,7 +30,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
         case .networks: "Networks"
         case .logs: "Logs"
         case .events: "Events"
-        case .debugShell: "Debug Shell"
+        case .terminal: "Terminal"
         }
     }
 
@@ -44,9 +44,9 @@ public enum AppSection: String, CaseIterable, Identifiable {
         case .kubernetes: "hexagon"
         case .volumes: "internaldrive"
         case .networks: "network"
-        case .logs: "terminal"
+        case .logs: "doc.text.magnifyingglass"
         case .events: "waveform.path"
-        case .debugShell: "chevron.left.slash.chevron.right"
+        case .terminal: "terminal.fill"
         }
     }
 
@@ -62,7 +62,7 @@ public enum AppSection: String, CaseIterable, Identifiable {
         case .networks: "7"
         case .logs: "8"
         case .events: "9"
-        case .debugShell: "d"
+        case .terminal: "t"
         }
     }
 }

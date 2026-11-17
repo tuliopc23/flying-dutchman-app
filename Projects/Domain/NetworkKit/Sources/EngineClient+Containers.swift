@@ -2,8 +2,9 @@ import FlyingDutchmanContainers
 import Foundation
 import Shared
 
+@MainActor
 public extension EngineClient {
-    @MainActor static func listContainers() async throws -> [ContainerSummary] {
+    static func listContainers() async throws -> [ContainerSummary] {
         let url = URL(string: "\(baseURL)/containers")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -12,7 +13,7 @@ public extension EngineClient {
         return try JSONDecoder().decode([ContainerSummary].self, from: data)
     }
 
-    @MainActor static func createContainer(
+    static func createContainer(
         name: String,
         image: String,
         config: ContainerConfig
@@ -46,7 +47,7 @@ public extension EngineClient {
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
     }
 
-    @MainActor static func fetchContainer(id: UUID) async throws -> ContainerSummary {
+    static func fetchContainer(id: UUID) async throws -> ContainerSummary {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -55,19 +56,19 @@ public extension EngineClient {
         return try JSONDecoder().decode(ContainerSummary.self, from: data)
     }
 
-    @MainActor static func startContainer(id: UUID) async throws -> ContainerSummary {
+    static func startContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "start")
     }
 
-    @MainActor static func stopContainer(id: UUID) async throws -> ContainerSummary {
+    static func stopContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "stop")
     }
 
-    @MainActor static func restartContainer(id: UUID) async throws -> ContainerSummary {
+    static func restartContainer(id: UUID) async throws -> ContainerSummary {
         try await mutateContainer(id: id, action: "restart")
     }
 
-    @MainActor static func removeContainer(id: UUID) async throws {
+    static func removeContainer(id: UUID) async throws {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)")!
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
@@ -77,7 +78,7 @@ public extension EngineClient {
         }
     }
 
-    @MainActor static func containerLogs(containerID: UUID) async throws -> [String] {
+    static func containerLogs(containerID: UUID) async throws -> [String] {
         let url = URL(string: "\(baseURL)/containers/\(containerID.uuidString)/logs")!
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -87,13 +88,13 @@ public extension EngineClient {
         return text.split(separator: "\n").map(String.init)
     }
 
-    @MainActor static func fetchLogs(id: UUID) async throws -> [String] {
+    static func fetchLogs(id: UUID) async throws -> [String] {
         try await containerLogs(containerID: id)
     }
 
     // MARK: - Private
 
-    @MainActor private static func mutateContainer(id: UUID, action: String) async throws -> ContainerSummary {
+    private static func mutateContainer(id: UUID, action: String) async throws -> ContainerSummary {
         let url = URL(string: "\(baseURL)/containers/\(id.uuidString)/\(action)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

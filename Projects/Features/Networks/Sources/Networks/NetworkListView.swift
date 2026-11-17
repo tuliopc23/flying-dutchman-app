@@ -36,7 +36,7 @@ public final class NetworkListViewModel {
 public struct NetworkListView: View {
     @Bindable var viewModel: NetworkListViewModel
 
-    public init(viewModel: NetworkListViewModel) {
+    public init(viewModel: NetworkListViewModel = NetworkListViewModel()) {
         self.viewModel = viewModel
     }
 

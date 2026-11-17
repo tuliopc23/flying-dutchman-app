@@ -1,7 +1,17 @@
+import Containers
+import Dashboard
 import DesignSystem
+import Diagnostics
+import Images
+import Kubernetes
+import Machines
+import Networks
 import Shared
+import Stacks
 import SwiftUI
+import Terminal
 import UIComponents
+import Volumes
 
 // MARK: - Main Window
 
@@ -10,15 +20,17 @@ public struct MainWindow: View {
 
     public init() {}
 
-    private var blockingError: (
-        title: String,
-        message: String,
-        icon: String,
-        actionTitle: String?,
-        action: (() -> Void)?
-    )? {
+    private struct BlockingError {
+        let title: String
+        let message: String
+        let icon: String
+        let actionTitle: String?
+        let action: (() -> Void)?
+    }
+
+    private var blockingError: BlockingError? {
         if let platformStatus = state.platformStatus, !platformStatus.isSupported {
-            return (
+            return BlockingError(
                 title: "Unsupported macOS Version",
                 message: platformStatus.message,
                 icon: "macwindow.badge.exclamationmark",
@@ -28,7 +40,7 @@ public struct MainWindow: View {
         }
 
         if let kernelStatus = state.kernelStatus, kernelStatus.status != "ok" {
-            return (
+            return BlockingError(
                 title: "Linux Kernel Missing",
                 message: kernelStatus.message,
                 icon: "cpu",
@@ -40,7 +52,7 @@ public struct MainWindow: View {
         }
 
         if let initfsStatus = state.initfsStatus, initfsStatus.status != "ok" {
-            return (
+            return BlockingError(
                 title: "Initfs Component Missing",
                 message: initfsStatus.message,
                 icon: "folder.badge.minus",
@@ -53,7 +65,7 @@ public struct MainWindow: View {
 
         if state.activeRuntimeMode == "stub" {
             #if !DEBUG
-                return (
+                return BlockingError(
                     title: "Native Runtime Unavailable",
                     message: "Apple Containerization framework or kernel is missing on this host. You can switch to CLI Fallback mode.",
                     icon: "exclamationmark.octagon.fill",
@@ -70,7 +82,7 @@ public struct MainWindow: View {
         }
 
         if !state.isEngineHealthy {
-            return (
+            return BlockingError(
                 title: "Engine Offline",
                 message: "The Flying Dutchman background engine is unreachable. Ensure the daemon is running.",
                 icon: "wifi.slash",
@@ -208,71 +220,75 @@ struct DiagnosticsSection: View {
             .buttonStyle(.glass)
 
             if isExpanded {
-                GlassCard {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                        DiagnosticRow(
-                            label: "macOS Version",
-                            value: "\(state.platformStatus?.osVersion.majorVersion ?? 0).\(state.platformStatus?.osVersion.minorVersion ?? 0)",
-                            status: state.platformStatus?.isSupported == true ? "ok" : "warning"
-                        )
-                        DiagnosticRow(
-                            label: "Architecture",
-                            value: state.platformStatus?.isAppleSilicon == true ? "arm64" : "x86_64",
-                            status: state.platformStatus?.isAppleSilicon == true ? "ok" : "warning"
-                        )
-                        DiagnosticRow(
-                            label: "Runtime Mode",
-                            value: state.activeRuntimeMode,
-                            status: state.activeRuntimeMode == "stub" ? "warning" : "ok"
-                        )
-                        DiagnosticRow(
-                            label: "Framework",
-                            value: state.containerizationStatus?.message ?? "unknown",
-                            status: state.containerizationStatus?.status ?? "unknown"
-                        )
-                        DiagnosticRow(
-                            label: "Linux Kernel",
-                            value: state.kernelStatus?.message ?? "unknown",
-                            status: state.kernelStatus?.status ?? "unknown"
-                        )
-                        DiagnosticRow(
-                            label: "Initfs",
-                            value: state.initfsStatus?.message ?? "unknown",
-                            status: state.initfsStatus?.status ?? "unknown"
-                        )
-                        DiagnosticRow(
-                            label: "Database",
-                            value: state.databaseStatus?.message ?? "unknown",
-                            status: state.databaseStatus?.status ?? "unknown"
-                        )
-                        DiagnosticRow(
-                            label: "Ports Availability",
-                            value: state.portsStatus?.message ?? "unknown",
-                            status: state.portsStatus?.status ?? "unknown"
-                        )
+                expandedDiagnosticsCard
+            }
+        }
+    }
 
-                        Divider()
-                            .padding(.vertical, DesignSystem.Spacing.xs)
+    private var expandedDiagnosticsCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                DiagnosticRow(
+                    label: "macOS Version",
+                    value: "\(state.platformStatus?.osVersion.majorVersion ?? 0).\(state.platformStatus?.osVersion.minorVersion ?? 0)",
+                    status: state.platformStatus?.isSupported == true ? "ok" : "warning"
+                )
+                DiagnosticRow(
+                    label: "Architecture",
+                    value: state.platformStatus?.isAppleSilicon == true ? "arm64" : "x86_64",
+                    status: state.platformStatus?.isAppleSilicon == true ? "ok" : "warning"
+                )
+                DiagnosticRow(
+                    label: "Runtime Mode",
+                    value: state.activeRuntimeMode,
+                    status: state.activeRuntimeMode == "stub" ? "warning" : "ok"
+                )
+                DiagnosticRow(
+                    label: "Framework",
+                    value: state.containerizationStatus?.message ?? "unknown",
+                    status: state.containerizationStatus?.status ?? "unknown"
+                )
+                DiagnosticRow(
+                    label: "Linux Kernel",
+                    value: state.kernelStatus?.message ?? "unknown",
+                    status: state.kernelStatus?.status ?? "unknown"
+                )
+                DiagnosticRow(
+                    label: "Initfs",
+                    value: state.initfsStatus?.message ?? "unknown",
+                    status: state.initfsStatus?.status ?? "unknown"
+                )
+                DiagnosticRow(
+                    label: "Database",
+                    value: state.databaseStatus?.message ?? "unknown",
+                    status: state.databaseStatus?.status ?? "unknown"
+                )
+                DiagnosticRow(
+                    label: "Ports Availability",
+                    value: state.portsStatus?.message ?? "unknown",
+                    status: state.portsStatus?.status ?? "unknown"
+                )
 
-                        HStack(spacing: DesignSystem.Spacing.md) {
-                            Button {
-                                copyDiagnosticReport()
-                            } label: {
-                                Label("Copy Diagnostic Report", systemImage: "doc.on.clipboard")
-                            }
-                            .buttonStyle(.glass)
-
-                            Button {
-                                openEngineLogs()
-                            } label: {
-                                Label("Open Engine Logs", systemImage: "folder")
-                            }
-                            .buttonStyle(.glass)
-                        }
-                    }
+                Divider()
                     .padding(.vertical, DesignSystem.Spacing.xs)
+
+                HStack(spacing: DesignSystem.Spacing.md) {
+                    Button {
+                        copyDiagnosticReport()
+                    } label: {
+                        Label("Copy Diagnostic Report", systemImage: "doc.on.clipboard")
+                    }
+                    .buttonStyle(.glass)
+
+                    Button {
+                        openEngineLogs()
+                    } label: {
+                        Label("Open Engine Logs", systemImage: "folder")
+                    }
+                    .buttonStyle(.glass)
                 }
             }
+            .padding(.vertical, DesignSystem.Spacing.xs)
         }
     }
 
@@ -396,33 +412,32 @@ struct DetailContentView: View {
     @Environment(AppState.self) private var state
 
     var body: some View {
-        let features = state.features
         switch state.selectedSection {
         case .dashboard:
-            features.dashboard.dashboardView()
+            DashboardView()
         case .containers:
             VStack(spacing: DesignSystem.Spacing.lg) {
-                features.stacks.detailView(state.sidebar.selectedStack)
-                features.containers.listView(state.sidebar.selectedStack)
+                StackDetailView(stack: state.sidebar.selectedStack)
+                ContainerListView(stack: state.sidebar.selectedStack)
             }
         case .images:
-            features.images.listView()
+            ImageListView()
         case .volumes:
-            features.volumes.listView()
+            VolumeListView()
         case .networks:
-            features.networks.listView()
+            NetworkListView()
         case .logs:
-            features.diagnostics.logsView(state.containers)
+            LogsView(containers: state.containers)
         case .events:
-            features.diagnostics.eventsView()
+            EventsView()
         case .stacks:
-            features.stacks.listView()
+            StacksView()
         case .machines:
-            features.machines.listView()
+            MachineListView()
         case .kubernetes:
-            features.kubernetes.listView()
-        case .debugShell:
-            features.debugShell.listView()
+            KubernetesListView()
+        case .terminal:
+            TerminalView()
         }
     }
 }

@@ -16,8 +16,10 @@ extension ContainerizationRuntime {
         config: ContainerConfig,
         routingTable: DomainRoutingTable
     ) async {
-        guard container.image.localizedCaseInsensitiveContains("k3s") else { return }
-        guard let upstream = determineKubernetesUpstream(from: config, legacyPorts: container.ports) else { return }
+        guard container.image.localizedCaseInsensitiveContains("k3s"), let upstream = determineKubernetesUpstream(
+            from: config,
+            legacyPorts: container.ports
+        ) else { return }
 
         await routingTable.registerKubernetesCluster(
             id: container.id.uuidString,

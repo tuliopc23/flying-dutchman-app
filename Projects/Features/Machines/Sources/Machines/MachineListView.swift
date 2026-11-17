@@ -6,7 +6,7 @@ import UIComponents
 public struct MachineListView: View {
     @Bindable var viewModel: MachineListViewModel
 
-    public init(viewModel: MachineListViewModel) {
+    public init(viewModel: MachineListViewModel = MachineListViewModel()) {
         self.viewModel = viewModel
     }
 

@@ -109,73 +109,10 @@ let package = Package(
             ],
             path: "Projects/Domain/NetworkKit/Sources"
         ),
-        // Feature Interfaces
-        .target(
-            name: "DashboardInterface",
-            path: "Projects/Features/Dashboard/Sources/DashboardInterface"
-        ),
-        .target(
-            name: "SettingsInterface",
-            path: "Projects/Features/Settings/Sources/SettingsInterface"
-        ),
-        .target(
-            name: "ContainersInterface",
-            dependencies: [
-                "Shared",
-            ],
-            path: "Projects/Features/Containers/Sources/ContainersInterface"
-        ),
-        .target(
-            name: "ImagesInterface",
-            path: "Projects/Features/Images/Sources/ImagesInterface"
-        ),
-        .target(
-            name: "VolumesInterface",
-            path: "Projects/Features/Volumes/Sources/VolumesInterface"
-        ),
-        .target(
-            name: "NetworksInterface",
-            path: "Projects/Features/Networks/Sources/NetworksInterface"
-        ),
-        .target(
-            name: "DiagnosticsInterface",
-            dependencies: [
-                "Shared",
-            ],
-            path: "Projects/Features/Diagnostics/Sources/DiagnosticsInterface"
-        ),
-        .target(
-            name: "StacksInterface",
-            dependencies: [
-                "Shared",
-            ],
-            path: "Projects/Features/Stacks/Sources/StacksInterface"
-        ),
-        .target(
-            name: "MachinesInterface",
-            dependencies: [
-                "Shared",
-            ],
-            path: "Projects/Features/Machines/Sources/MachinesInterface"
-        ),
-        .target(
-            name: "KubernetesInterface",
-            path: "Projects/Features/Kubernetes/Sources/KubernetesInterface"
-        ),
-        .target(
-            name: "DebugShellInterface",
-            path: "Projects/Features/DebugShell/Sources/DebugShellInterface"
-        ),
-        .target(
-            name: "ShellInterface",
-            path: "Projects/Features/Shell/Sources/ShellInterface"
-        ),
-
         // Feature Implementations
         .target(
             name: "Dashboard",
             dependencies: [
-                "DashboardInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -187,7 +124,6 @@ let package = Package(
         .target(
             name: "Settings",
             dependencies: [
-                "SettingsInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -200,7 +136,6 @@ let package = Package(
         .target(
             name: "Containers",
             dependencies: [
-                "ContainersInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -214,7 +149,6 @@ let package = Package(
         .target(
             name: "Images",
             dependencies: [
-                "ImagesInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -226,7 +160,6 @@ let package = Package(
         .target(
             name: "Volumes",
             dependencies: [
-                "VolumesInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -238,7 +171,6 @@ let package = Package(
         .target(
             name: "Networks",
             dependencies: [
-                "NetworksInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -250,7 +182,6 @@ let package = Package(
         .target(
             name: "Diagnostics",
             dependencies: [
-                "DiagnosticsInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -263,7 +194,6 @@ let package = Package(
         .target(
             name: "Stacks",
             dependencies: [
-                "StacksInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -276,7 +206,6 @@ let package = Package(
         .target(
             name: "Machines",
             dependencies: [
-                "MachinesInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -289,7 +218,6 @@ let package = Package(
         .target(
             name: "Kubernetes",
             dependencies: [
-                "KubernetesInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
@@ -299,38 +227,36 @@ let package = Package(
             path: "Projects/Features/Kubernetes/Sources/Kubernetes"
         ),
         .target(
-            name: "DebugShell",
+            name: "Terminal",
             dependencies: [
-                "DebugShellInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
                 "FlyingDutchmanNetworking",
                 .product(name: "Dependencies", package: "swift-dependencies"),
             ],
-            path: "Projects/Features/DebugShell/Sources/DebugShell"
+            path: "Projects/Features/Terminal/Sources/Terminal"
         ),
         .target(
-            name: "Shell",
+            name: "AppShell",
             dependencies: [
-                "ShellInterface",
                 "Shared",
                 "DesignSystem",
                 "UIComponents",
-                "Dashboard",
                 "FlyingDutchmanNetworking",
-                "ContainersInterface",
-                "ImagesInterface",
-                "VolumesInterface",
-                "NetworksInterface",
-                "DiagnosticsInterface",
-                "StacksInterface",
-                "MachinesInterface",
-                "KubernetesInterface",
-                "DebugShellInterface",
+                "Dashboard",
+                "Containers",
+                "Images",
+                "Volumes",
+                "Networks",
+                "Diagnostics",
+                "Stacks",
+                "Machines",
+                "Kubernetes",
+                "Terminal",
                 .product(name: "Dependencies", package: "swift-dependencies"),
             ],
-            path: "Projects/Features/Shell/Sources/Shell"
+            path: "Projects/Features/AppShell/Sources/AppShell"
         ),
 
         // Product
@@ -359,17 +285,8 @@ let package = Package(
         .executableTarget(
             name: "FlyingDutchmanApp",
             dependencies: [
+                "AppShell",
                 "Settings",
-                "Shell",
-                "Containers",
-                "Images",
-                "Volumes",
-                "Networks",
-                "Diagnostics",
-                "Stacks",
-                "Machines",
-                "Kubernetes",
-                "DebugShell",
                 .product(name: "SwiftNavigation", package: "swift-navigation"),
                 .product(name: "SwiftUINavigation", package: "swift-navigation"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
@@ -383,18 +300,9 @@ let package = Package(
             name: "FlyingDutchmanAppTests",
             dependencies: [
                 "FlyingDutchmanApp",
-                "Shell",
+                "AppShell",
                 "Shared",
                 "Diagnostics",
-                "ContainersInterface",
-                "ImagesInterface",
-                "VolumesInterface",
-                "NetworksInterface",
-                "DiagnosticsInterface",
-                "StacksInterface",
-                "MachinesInterface",
-                "KubernetesInterface",
-                "DebugShellInterface",
             ],
             path: "Tests/FlyingDutchmanAppTests"
         ),

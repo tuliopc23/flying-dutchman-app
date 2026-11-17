@@ -35,7 +35,7 @@ public struct SidebarView: View {
             }
 
             Section("Tools") {
-                SidebarRow(section: .debugShell)
+                SidebarRow(section: .terminal)
             }
 
             if !state.sidebar.stacks.isEmpty {
