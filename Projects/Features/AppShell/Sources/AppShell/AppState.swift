@@ -18,6 +18,9 @@ public final class AppState {
     /// Whether the command palette is visible
     var showPalette: Bool = false
 
+    /// Whether the native inspector is visible (macOS 27 HIG)
+    var showInspector: Bool = false
+
     /// Command palette registry
     var commandRegistry = CommandRegistry()
 

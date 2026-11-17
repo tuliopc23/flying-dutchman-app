@@ -132,6 +132,10 @@ public struct MainWindow: View {
                     MainToolbar()
                 }
             }
+            .inspector(isPresented: $state.showInspector) {
+                SystemInspectorView()
+                    .inspectorColumnWidth(min: 240, ideal: 280, max: 340)
+            }
         }
         .unifiedChrome()
         .sheet(isPresented: $state.showPalette) {
@@ -463,6 +467,15 @@ struct MainToolbar: CustomizableToolbarContent {
             }
             .buttonStyle(.glassProminent)
             .tint(DesignSystem.Colors.accent)
+        }
+
+        ToolbarItem(id: "inspector", placement: .primaryAction) {
+            Button {
+                state.showInspector.toggle()
+            } label: {
+                Label("Inspector", systemImage: "sidebar.trailing")
+            }
+            .buttonStyle(.glass)
         }
     }
 }
