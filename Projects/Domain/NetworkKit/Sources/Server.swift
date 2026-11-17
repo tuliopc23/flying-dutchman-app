@@ -349,3 +349,4 @@ extension StackSummary: ResponseEncodable {}
 extension StackActionResponse: ResponseEncodable {}
 extension VolumeSummary: ResponseEncodable {}
 extension NetworkSummary: ResponseEncodable {}
+extension ImageBuildResult: ResponseEncodable {}

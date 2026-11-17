@@ -1,5 +1,4 @@
 import Foundation
-import Hummingbird
 
 public struct ImageBuildRequest: Codable, Hashable, Sendable {
     public var contextPath: String
@@ -23,7 +22,7 @@ public struct ImageBuildRequest: Codable, Hashable, Sendable {
     }
 }
 
-public struct ImageBuildResult: Codable, Hashable, Sendable, ResponseEncodable {
+public struct ImageBuildResult: Codable, Hashable, Sendable {
     public var image: ImageSummary
     public var logs: [String]
     public var builder: String

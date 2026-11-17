@@ -13,8 +13,6 @@ let package = Package(
         .library(name: "FlyingDutchmanNetworking", targets: ["FlyingDutchmanNetworking"]),
         .library(name: "FlyingDutchmanPersistence", targets: ["FlyingDutchmanPersistence"]),
         .library(name: "FlyingDutchmanContainers", targets: ["FlyingDutchmanContainers"]),
-        .library(name: "KubeKit", targets: ["KubeKit"]),
-        .library(name: "AIKit", targets: ["AIKit"]),
         .library(name: "Shared", targets: ["Shared"]),
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
         .library(name: "UIComponents", targets: ["UIComponents"]),
@@ -28,7 +26,6 @@ let package = Package(
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.60.0"),
         .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.21.0"),
-        .package(url: "https://github.com/swiftkube/client.git", from: "0.20.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
         .package(url: "https://github.com/apple/containerization.git", from: "0.1.0"),
         .package(url: "https://github.com/apple/swift-system.git", from: "1.3.0"),
@@ -47,7 +44,6 @@ let package = Package(
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
-                .product(name: "Hummingbird", package: "hummingbird"),
             ],
             path: "Projects/Core/Shared/Sources"
         ),
@@ -113,22 +109,6 @@ let package = Package(
             ],
             path: "Projects/Domain/NetworkKit/Sources"
         ),
-        .target(
-            name: "KubeKit",
-            dependencies: [
-                "Shared",
-                .product(name: "SwiftkubeClient", package: "client"),
-            ],
-            path: "Projects/Domain/KubeKit/Sources"
-        ),
-        .target(
-            name: "AIKit",
-            dependencies: [
-                "Shared",
-            ],
-            path: "Projects/Domain/AIKit/Sources"
-        ),
-
         // Feature Interfaces
         .target(
             name: "DashboardInterface",
