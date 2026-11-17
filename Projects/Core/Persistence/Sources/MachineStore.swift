@@ -5,42 +5,34 @@ import Shared
 public final class MachineStore: Sendable {
     private let dbQueue: DatabaseQueue
 
-    public init(dbQueue: DatabaseQueue? = nil) {
-        if let dbQueue {
-            self.dbQueue = dbQueue
-        } else {
-            let path = AppConfig.Database.machinesPath
-            do {
-                try FileManager.default.createDirectory(
-                    at: URL(fileURLWithPath: path).deletingLastPathComponent(),
-                    withIntermediateDirectories: true
-                )
-                self.dbQueue = try DatabaseQueue(path: path)
-                try self.dbQueue.write { db in
-                    try db.create(table: "machines", ifNotExists: true) { t in
-                        t.column("id", .text).primaryKey()
-                        t.column("name", .text).notNull()
-                        t.column("distro", .text).notNull()
-                        t.column("version", .text).notNull()
-                        t.column("status", .text).notNull()
-                        t.column("cpuCount", .integer).notNull()
-                        t.column("memoryGB", .integer).notNull()
-                        t.column("diskGB", .integer).notNull()
-                        t.column("macAddress", .text)
-                        t.column("ipAddress", .text)
-                        t.column("sshPort", .integer)
-                        t.column("createdAt", .datetime).notNull()
-                        t.column("updatedAt", .datetime).notNull()
-                    }
+    public init(dbQueue: DatabaseQueue = DatabaseContainer.shared.dbQueue) {
+        self.dbQueue = dbQueue
+        try? self.dbQueue.write { db in
+            try Self.ensureSchema(db)
+        }
+    }
 
-                    if try !db.columns(in: "machines").contains(where: { $0.name == "macAddress" }) {
-                        try db.alter(table: "machines") { t in
-                            t.add(column: "macAddress", .text)
-                        }
-                    }
-                }
-            } catch {
-                fatalError("Failed to initialize MachineStore: \(error)")
+    private static func ensureSchema(_ db: GRDB.Database) throws {
+        if try !db.tableExists("machines") {
+            try db.create(table: "machines") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("distro", .text).notNull()
+                t.column("version", .text).notNull()
+                t.column("status", .text).notNull()
+                t.column("cpuCount", .integer).notNull()
+                t.column("memoryGB", .integer).notNull()
+                t.column("diskGB", .integer).notNull()
+                t.column("macAddress", .text)
+                t.column("ipAddress", .text)
+                t.column("sshPort", .integer)
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+            }
+        }
+        if try !db.columns(in: "machines").contains(where: { $0.name == "macAddress" }) {
+            try db.alter(table: "machines") { t in
+                t.add(column: "macAddress", .text)
             }
         }
     }

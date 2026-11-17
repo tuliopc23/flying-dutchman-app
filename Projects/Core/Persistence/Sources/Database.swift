@@ -48,6 +48,7 @@ public final class DatabaseContainer: @unchecked Sendable {
         migrator.registerMigration("v5_ui_state", migrate: DatabaseContainer.migrateV5UIState)
         migrator.registerMigration("v9_ui_state_preferences", migrate: DatabaseContainer.migrateV9UIStatePreferences)
         migrator.registerMigration("v10_container_labels", migrate: DatabaseContainer.migrateV10ContainerLabels)
+        migrator.registerMigration("v11_machines", migrate: DatabaseContainer.migrateV11Machines)
         return migrator
     }()
 
@@ -240,6 +241,26 @@ public final class DatabaseContainer: @unchecked Sendable {
         if try !db.columns(in: "containers").contains(where: { $0.name == "labels" }) {
             try db.alter(table: "containers") { t in
                 t.add(column: "labels", .text).notNull().defaults(to: "{}")
+            }
+        }
+    }
+
+    private static func migrateV11Machines(_ db: GRDB.Database) throws {
+        if try !db.tableExists("machines") {
+            try db.create(table: "machines") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("distro", .text).notNull()
+                t.column("version", .text).notNull()
+                t.column("status", .text).notNull()
+                t.column("cpuCount", .integer).notNull()
+                t.column("memoryGB", .integer).notNull()
+                t.column("diskGB", .integer).notNull()
+                t.column("macAddress", .text)
+                t.column("ipAddress", .text)
+                t.column("sshPort", .integer)
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
             }
         }
     }

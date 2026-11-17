@@ -59,12 +59,15 @@ struct Start: AsyncParsableCommand {
         try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
 
         let logFile = logDir.appendingPathComponent("engine.log")
+        if !FileManager.default.fileExists(atPath: logFile.path) {
+            FileManager.default.createFile(atPath: logFile.path, contents: nil)
+        }
         let logHandle = try FileHandle(forWritingTo: logFile)
+        try logHandle.seekToEnd()
         process.standardOutput = logHandle
         process.standardError = logHandle
 
         try process.run()
-        process.waitUntilExit()
 
         CLIOutput.line("Daemon", "Started (PID: \(process.processIdentifier))")
         CLIOutput.line("Logs", logFile.path)

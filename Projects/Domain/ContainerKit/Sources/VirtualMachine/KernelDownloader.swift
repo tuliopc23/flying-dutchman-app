@@ -14,23 +14,30 @@ public actor KernelDownloader {
         try? fm.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
     }
 
+    private var architectureString: String {
+        #if arch(arm64)
+            "arm64"
+        #else
+            "amd64"
+        #endif
+    }
+
     /// Kernel URLs for different distributions
     private func kernelURL(for distro: String, version: String) -> (kernel: String, initrd: String)? {
+        let arch = architectureString
         switch distro.lowercased() {
         case "ubuntu":
-            // Ubuntu cloud images kernel
-            (
-                kernel: "https://cloud-images.ubuntu.com/releases/\(version)/release/unpacked/ubuntu-\(version)-server-cloudimg-amd64-vmlinuz-generic",
-                initrd: "https://cloud-images.ubuntu.com/releases/\(version)/release/unpacked/ubuntu-\(version)-server-cloudimg-amd64-initrd-generic"
+            return (
+                kernel: "https://cloud-images.ubuntu.com/releases/\(version)/release/unpacked/ubuntu-\(version)-server-cloudimg-\(arch)-vmlinuz-generic",
+                initrd: "https://cloud-images.ubuntu.com/releases/\(version)/release/unpacked/ubuntu-\(version)-server-cloudimg-\(arch)-initrd-generic"
             )
         case "debian":
-            // Debian cloud kernels
-            (
-                kernel: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.tar.xz",
-                initrd: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.tar.xz"
+            return (
+                kernel: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(arch).tar.xz",
+                initrd: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(arch).tar.xz"
             )
         default:
-            nil
+            return nil
         }
     }
 
@@ -77,8 +84,9 @@ public actor KernelDownloader {
     }
 
     public func getCachedKernel(for distro: String, version: String) -> (kernel: URL, initrd: URL)? {
-        let kernelPath = cacheDirectory.appendingPathComponent("\(distro)-\(version)-vmlinuz")
-        let initrdPath = cacheDirectory.appendingPathComponent("\(distro)-\(version)-initrd.img")
+        let arch = architectureString
+        let kernelPath = cacheDirectory.appendingPathComponent("\(distro)-\(version)-\(arch)-vmlinuz")
+        let initrdPath = cacheDirectory.appendingPathComponent("\(distro)-\(version)-\(arch)-initrd.img")
 
         if FileManager.default.fileExists(atPath: kernelPath.path),
            FileManager.default.fileExists(atPath: initrdPath.path)
